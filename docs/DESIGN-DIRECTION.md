@@ -1,4 +1,4 @@
-# Margin: design direction (draft 1)
+# Margin: design direction (v1)
 
 This is the brief that impeccable works from. Phase 0 installs impeccable's
 skills into this repo and runs its context setup, which turns this brief into
@@ -18,7 +18,7 @@ motion, like objects on a desk being picked up, slid and stamped.
 
 The core of the system: you can tell who is speaking by the type alone.
 
-| Voice | Who | Direction (impeccable picks the final faces) |
+| Voice | Who | Direction (impeccable chooses the faces; Steve has no favourites) |
 |---|---|---|
 | **The book** | excerpts, titles, the author's words | a literary book serif with real italics and old-style figures |
 | **The buddy** | prompts, guide glosses, anything the tutor "says" | a typewriter face, inked unevenly (per-glyph opacity and baseline jitter) |

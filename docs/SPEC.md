@@ -1,11 +1,11 @@
-# Margin: spec (draft 1)
+# Margin: spec (v1)
 
 > A reading buddy that asks, not tells. It keeps track of what you're reading,
 > holds your notes and the lines you underlined, and talks with you about the
 > book while you read it. It has read about the book; you are the one reading it.
 
-Draft 1 includes Steve's answers from the first round of questions. Anything
-still open is marked **⚑**.
+v1 includes Steve's answers from every round of questions. Nothing is open.
+Build order is in `PLAN.md`.
 
 ---
 
@@ -113,17 +113,21 @@ reader of that book shares it (if multi-user).
    frames it as one reading among others and hands the question back. It
    knows all of the reader's books, themes and notes, and uses them (see
    §3.8).
-5. **Correction.** The reader can tell the buddy "that hasn't happened yet" or
+5. **Re-reads remember.** A second read gets its own thread, but the buddy
+   can see the earlier reads' book memory and entries, and draws on them
+   ("last time, at this point, you thought…"). The spoiler rule does not apply
+   to a book the reader has already finished once.
+6. **Correction.** The reader can tell the buddy "that hasn't happened yet" or
    "that's wrong for my edition". The correction is stored as an override for
    that read, and the buddy moves the milestone.
-6. **Unknown books.** When `knownness` is low, the workflow researches the
+7. **Unknown books.** When `knownness` is low, the workflow researches the
    book on the web first. If the book is still thinly known, the buddy says
    so and leans on the reader's own excerpts and notes instead of inventing
    content.
 
 **Models.** Research runs on the most capable model, the conversation on a
 mid-tier model, and routing and classification on the smallest. All prompts
-are cached. There's no hard budget yet; a cost meter is shown in Settings, with an alert above a soft ceiling (default $20 a month).
+are cached. There's no hard budget; a cost meter is shown in Settings, with an alert when monthly spend passes **$20** (agreed).
 
 ### 3.4 Capture
 - **Camera (PWA).** Photograph a page, Claude vision transcribes it (paragraphs,
