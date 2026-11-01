@@ -7,4 +7,4 @@ and have a conversation with the book while you read it.
 - `docs/PLAN.md`: the order it gets built in
 - `docs/DESIGN-DIRECTION.md`: what it looks like and how it moves
 
-Status: spec draft. Open questions are marked **⚑ Qn** and answered in the session.
+Status: spec draft 1 (round-one answers folded in).

@@ -1,61 +1,88 @@
-# Margin: design direction (draft 0)
+# Margin: design direction (draft 1)
 
 This is the brief that impeccable works from. Phase 0 installs impeccable's
 skills into this repo and runs its context setup, which turns this brief into
-`PRODUCT.md` and `DESIGN.md`. After that, its critique, typeset, animate and
-polish passes run against every surface.
+`PRODUCT.md` and `DESIGN.md`. After that, its critique, typeset, animate,
+delight and polish passes run against every surface.
+
+**Margin has its own identity.** It takes nothing from Didactic's palette,
+type or tokens.
 
 ## The idea: a reader's desk
 
-Paper, a typewriter, a pencil, shelves, bookmarks and tags. The palette and
-the marginalia come from Didactic: warm newsprint paper, warm near-black ink, a
-mustard highlighter wash, the reader's words in a hand script, and asterisks
-starred in the gutter. Margin is warmer and more playful than Didactic.
+Paper, a typewriter, a pencil, shelves, ribbon bookmarks, paper tags, index
+cards and library cards. It should be tactile, playful and generous with
+motion, like objects on a desk being picked up, slid and stamped.
 
 ## Three voices, three typefaces
 
 The core of the system: you can tell who is speaking by the type alone.
 
-| Voice | Who | Face (candidates) |
+| Voice | Who | Direction (impeccable picks the final faces) |
 |---|---|---|
-| **The book** | excerpts, titles, the author's words | a book serif: Newsreader / EB Garamond / Fraunces (shared with Didactic) |
-| **The buddy** | prompts, guide glosses, system copy that "speaks" | typewriter: Courier Prime / Cutive Mono, inked unevenly |
-| **The reader** | notes, reflections, summaries | hand: Caveat (as in Didactic) or a looser pencil script |
-| UI chrome | labels, controls, data | a quiet grotesk (Archivo, as in Didactic) |
+| **The book** | excerpts, titles, the author's words | a literary book serif with real italics and old-style figures |
+| **The buddy** | prompts, guide glosses, anything the tutor "says" | a typewriter face, inked unevenly (per-glyph opacity and baseline jitter) |
+| **The reader** | notes, reflections, summaries | a pencil or fountain-pen hand, legible at small sizes |
+| UI chrome | labels, controls, data | a quiet sans or mono for labels, never decorative |
 
-**⚑ Q18**: keep the family resemblance to Didactic, or give Margin its own faces?
+Palette: start from paper stock, typewriter ribbon ink (black, with a red
+second ribbon used for emphasis), pencil graphite, a highlighter, and the
+cloth colours of book spines. Two themes:
+- **Daylight**: paper on a desk
+- **The desk at night**: a lamp-lit wooden board with warm paper; the ground
+  goes dark, but the sheets stay paper
 
-## Signature moments
+The theme follows the system setting by default, with a manual override.
 
-1. **The typewriter.** A buddy note types out one character at a time, with a
-   small baseline jitter and uneven ink density. At line end there is a
-   carriage return and the sheet feeds up, so the page scrolls up into view as
-   it is written. A tap finishes the typing at once. Sound is optional and off
-   by default. With reduced motion, the text fades in.
-2. **The camera page.** OCR'd text is typed onto a fresh sheet, then
-   highlighted with a mustard swipe that follows the finger.
-3. **Shelves.** The library is drawn as spines. A spine's height comes from
-   the page count, its thickness from the edition, and its colour from the
-   cover. A ribbon bookmark hangs from every book in progress. You can toggle
-   to grid or table for real filtering.
-4. **Library card.** Each book's history (TBR'd, started, paused, finished,
-   re-read) is shown as date stamps on a pocket library card.
-5. **Paper tags.** Tags are hole-punched labels with string. Topics are index
-   cards.
-6. **The review queue.** Low-confidence import matches come as a stack of
-   index cards to swipe through.
+## Motion: liberal, physical, never in the way
 
-## Rules carried over from Didactic (learned the hard way)
+Motion is a first-class part of the design. Every object moves the way the
+real one would. Built on Motion (springs, gestures, layout) and View
+Transitions (routes).
+
+| Moment | Motion |
+|---|---|
+| **Buddy note** | Types out one character at a time, with a strike and a tiny bounce. At line end there's a carriage return and the sheet feeds up, scrolling into view as it is written. Optional clack and ding (off by default). A tap finishes the typing instantly. |
+| **Route changes** | Pages turn or slide like sheets. Shared-element transitions: spine → pulls out of the shelf → turns face-on → becomes the book page header. |
+| **Shelves** | Spines lean when you scroll fast and settle on a spring. Adding a book slides it into its slot and nudges its neighbours. |
+| **Ribbon bookmark** | Drapes and sways. Logging progress drags the ribbon down the page edge. |
+| **Highlighting** | The mustard swipe follows your finger with a slightly uneven edge, then dries (desaturates a touch). |
+| **Notes** | Handwriting reveals stroke by stroke (a clip-path sweep) when an entry first lands. |
+| **Library card** | Each event is stamped: a thunk, a slight rotation, ink spread. |
+| **Tags** | Swing on their string when added and flutter when filtered. |
+| **The drawer** | It slides open, a card rises, and Shuffle flicks the card away as the next one arrives. |
+| **Review queue** | An index-card stack: swipe to accept or reject, flick to skip. |
+| **Camera page** | The shutter flashes, the photo crossfades into a blank sheet, and the transcript is typed onto it. |
+| **Explore graph** | Nodes settle on the force layout with spring physics. Focusing a topic pulls its books in like iron filings. |
+| **Empty states** | Something small and alive, like a pencil rolling to a stop. |
+
+Rules:
+- Animate only transform and opacity on mid-range Android. 60fps budget.
+- Motion never blocks input: everything is interruptible and skippable.
+- `prefers-reduced-motion` turns every movement into a crossfade or an
+  instant change. It is designed, not just disabled.
+- Durations are short for feedback (≤150ms) and longer only for the signature
+  moments.
+
+## Rules for the surface
 - No fine repeating texture on a ground: it moirés at most zooms. Paper is a
   flat colour. Any texture comes from large objects (a card's edge, a coffee
-  ring), never from a grain.
+  ring, a torn edge), never from a grain.
 - The hand script is for the reader's own words, never for controls.
 - No word may be wider than its column (`overflow-wrap: anywhere`).
-- Dark mode is "the desk at night" (a warm board with lamplight), not an
-  inverted page.
 
-## Native feel on phones
-Bottom tab bar (Desk · Shelves · Capture · Explore); sheet-style modals with a
-drag to dismiss; view transitions between shelf → book → entry; safe-area
-insets; 44px targets; haptics where the platform allows; no hover-only
-affordances.
+## Native feel on Android
+- Installed PWA, standalone display, themed status bar
+- Bottom tab bar: Desk · Shelves · Capture · Explore
+- Sheet-style modals as routes, with a drag to dismiss and Back to close
+- Safe-area insets, 48dp targets, `navigator.vibrate` haptics on stamp,
+  highlight and save
+- No hover-only affordances; pull-to-refresh where it means something
+
+## Home: the Desk
+1. **Current book** (a swipeable stack if you're reading several): cover,
+   ribbon progress, and the actions Log progress · Excerpt · Camera · Note ·
+   Talk
+2. **Latest note**: the buddy's pending prompt, typed out, or your most recent
+   entry
+3. **The drawer**: a random note or excerpt from your whole history
