@@ -8,6 +8,7 @@ import { BUDDY_EFFORT, BUDDY_MODEL, PERSONA } from './lib/buddy'
 
 // Often enough to read as typing, without a database write for every word.
 const WRITE_EVERY_MS = 350
+const GUIDE_POLL_MS = 15_000
 
 function whyItFailed(e: unknown) {
   if (e instanceof Anthropic.AuthenticationError) return "Your buddy can't sign in: check ANTHROPIC_API_KEY."
@@ -30,6 +31,12 @@ export const reply = internalAction({
     if (!apiKey) return fail('Your buddy needs ANTHROPIC_API_KEY set in Convex.')
     const facts = await ctx.runQuery(internal.buddy.context, { turnId })
     if (!facts) return
+    if (facts.waitForGuide) {
+      // The first time a book is opened, its guide is still being researched. Wait for it rather than talk blind.
+      await ctx.runMutation(internal.buddy.writeSoFar, { turnId, text: 'Reading up on this book first. This takes a minute or two, once.' })
+      await ctx.scheduler.runAfter(GUIDE_POLL_MS, internal.buddyNode.reply, { turnId })
+      return
+    }
 
     try {
       const client = new Anthropic({ apiKey })
@@ -42,7 +49,7 @@ export const reply = internalAction({
         output_config: { effort: BUDDY_EFFORT },
         system: [
           { type: 'text', text: PERSONA },
-          { type: 'text', text: facts.pack, cache_control: { type: 'ephemeral' } },
+          { type: 'text', text: facts.guide ? `${facts.pack}\n\n${facts.guide}` : facts.pack, cache_control: { type: 'ephemeral' } },
         ],
         messages: facts.messages,
       } as Parameters<typeof client.beta.messages.stream>[0])

@@ -46,6 +46,7 @@ function Thread({ readId, title }: { readId: Id<'reads'>; title: string }) {
     return (
       <div className="stack">
         <p>Your buddy knows where you are in {title} and won't go past it. It has read your notes, and it will ask rather than tell.</p>
+        <p className="where">The first time, it reads up on the book, which takes a minute or two and costs about 50 cents, once.</p>
         <div className="btn-row"><button type="button" className="btn btn-solid" onClick={() => void start({ readId })}>Start talking</button></div>
       </div>
     )

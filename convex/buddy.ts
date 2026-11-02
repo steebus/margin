@@ -5,6 +5,8 @@ import type { Doc, Id } from './_generated/dataModel'
 import { internalMutation, internalQuery, mutation, query, type MutationCtx } from './_generated/server'
 import { positionOf } from './lib/books'
 import { bookPack, costOf, MAX_NOTES, SPEND_ALERT, toMessages, visibleTo } from './lib/buddy'
+import { guideCost, guideText, guideUpTo, type Guide } from './lib/guide'
+import { guideFor, requestGuide, stillWriting } from './guides'
 
 const MAX_LENGTH = 10_000
 
@@ -36,6 +38,8 @@ async function mine(ctx: MutationCtx, readId: Id<'reads'>) {
 
 /** A reply on its way. Only one at a time, or the conversation would talk over itself. */
 async function ask(ctx: MutationCtx, userId: Id<'users'>, readId: Id<'reads'>) {
+  const read = await ctx.db.get(readId)
+  if (read) await requestGuide(ctx, userId, read)
   const turnId = await ctx.db.insert('buddyTurns', { userId, readId, role: 'buddy', text: '', state: 'writing', createdAt: Date.now() })
   await ctx.scheduler.runAfter(0, internal.buddyNode.reply, { turnId })
 }
@@ -92,13 +96,18 @@ export const context = internalQuery({
       return other && { title: other.title, author: other.authors[0] ?? 'Unknown', rating: r.rating }
     }))).filter(b => b !== null)
     const turns = (await turnsOf(ctx, read._id)).filter(t => t._id !== turnId)
+    const visibility = visibleTo(read)
+    const guide = await guideFor(ctx, work._id)
     return {
+      waitForGuide: stillWriting(guide, Date.now()),
+      // The spoiler rule, in the data: the guide is cut at the reader's place before the model ever sees it.
+      guide: guide?.state === 'ready' ? guideText(guideUpTo(guide.guide as Guide, visibility), visibility.finished) : null,
       pack: bookPack({
         title: work.title,
         authors: work.authors,
         year: work.year,
         subjects: work.subjects,
-        visibility: visibleTo(read),
+        visibility,
         notes: entries.map(e => ({ kind: e.kind, text: e.text, position: positionOf(e.pos), question: e.question })),
         otherBooks,
       }),
@@ -135,7 +144,9 @@ export const monthSpend = query({
     const now = new Date()
     const start = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)
     const turns = await ctx.db.query('buddyTurns').withIndex('by_user', q => q.eq('userId', userId).gte('createdAt', start)).collect()
+    const guides = await ctx.db.query('guides').withIndex('by_user', q => q.eq('userId', userId).gte('createdAt', start)).collect()
     const dollars = turns.reduce((sum, t) => sum + (t.usage ? costOf(t.usage) : 0), 0)
+      + guides.reduce((sum, g) => sum + (g.usage ? guideCost(g.usage) : 0), 0)
     return { dollars, alert: SPEND_ALERT, over: dollars >= SPEND_ALERT }
   },
 })

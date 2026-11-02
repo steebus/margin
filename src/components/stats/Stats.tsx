@@ -1,12 +1,25 @@
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { ArrowLeft } from 'lucide-react'
 import { useState } from 'react'
+import { sortBooks } from '../../lib/shelf'
+import { Catalog } from '../shelf/BookList'
 import { useBooks } from '../../lib/offline'
 import { bestSources, byAuthor, byDays, byFormat, byGenre, byMonth, byRating, byYear, finishesOf, headline, tbrAge, type Row } from '../../lib/stats'
+
+/** The books behind a mark. */
+function Behind({ row, onClose }: { row: Row; onClose: () => void }) {
+  return (
+    <div className="chart-books">
+      <p><strong>{row.label}:</strong> {row.books.length} {row.books.length === 1 ? 'book' : 'books'} <button type="button" className="text-link" onClick={onClose}>Close</button></p>
+      <Catalog books={sortBooks(row.books)} size="small" />
+    </div>
+  )
+}
 
 /** Tapping or hovering a column says what it holds. One line under the chart, so it can't run off a phone's edge. */
 function Columns({ title, rows, unit }: { title: string; rows: Row[]; unit: string }) {
   const [picked, setPicked] = useState<number | null>(null)
+  const [open, setOpen] = useState<number | null>(null)
   const max = Math.max(1, ...rows.map(r => r.value))
   const last = rows.length - 1
   const shown = rows[picked ?? last]
@@ -21,10 +34,10 @@ function Columns({ title, rows, unit }: { title: string; rows: Row[]; unit: stri
             type="button"
             className="column"
             aria-label={`${row.label}: ${row.note ?? `${row.value} ${unit}`}`}
-            aria-pressed={picked === i}
+            aria-pressed={open === i}
             onPointerEnter={() => setPicked(i)}
             onFocus={() => setPicked(i)}
-            onClick={() => setPicked(i)}
+            onClick={() => { setPicked(i); setOpen(open === i ? null : i) }}
           >
             <span className="column-track"><span className="column-bar" style={{ height: `${(row.value / max) * 100}%` }} /></span>
             <span className="column-label">{(i === last || (last - i) % step === 0) && (step === 1 ? row.label : row.label.slice(-2))}</span>
@@ -32,29 +45,41 @@ function Columns({ title, rows, unit }: { title: string; rows: Row[]; unit: stri
         ))}
       </div>
       {shown && <p className="chart-readout" role="status"><strong>{shown.label}</strong> {shown.note ?? `${shown.value.toLocaleString('en-GB')} ${unit}`}</p>}
+      {open !== null && rows[open].books.length > 0 && <Behind row={rows[open]} onClose={() => setOpen(null)} />}
     </figure>
   )
 }
 
 /** Longer labels read best across, and every bar carries its own number. */
 function Bars({ title, rows, note }: { title: string; rows: Row[]; note?: string }) {
+  const [open, setOpen] = useState<string | null>(null)
   const max = Math.max(1, ...rows.map(r => r.value))
+  const opened = rows.find(r => r.label === open)
   if (!rows.some(r => r.value > 0)) return null
   return (
     <figure className="chart">
       <figcaption className="year"><span>{title}</span></figcaption>
       {note && <p className="where">{note}</p>}
-      <dl className="bars">
+      <div className="bars">
         {rows.map(row => (
-          <div key={row.label} className="bar-row" title={row.note}>
-            <dt>{row.label}</dt>
-            <dd>
+          <button
+            key={row.label}
+            type="button"
+            className="bar-row"
+            title={row.note}
+            disabled={!row.books.length}
+            aria-pressed={open === row.label}
+            onClick={() => setOpen(open === row.label ? null : row.label)}
+          >
+            <span className="bar-label">{row.label}</span>
+            <span className="bar-track">
               <span className="bar-fill" style={{ width: `${(row.value / max) * 100}%` }} />
               <span className="bar-value">{row.value.toLocaleString('en-GB')}</span>
-            </dd>
-          </div>
+            </span>
+          </button>
         ))}
-      </dl>
+      </div>
+      {opened && <Behind row={opened} onClose={() => setOpen(null)} />}
     </figure>
   )
 }

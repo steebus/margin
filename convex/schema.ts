@@ -146,6 +146,21 @@ export default defineSchema({
     .index('by_user_journal', ['userId', 'hardcoverJournalId'])
     .searchIndex('search_text', { searchField: 'text', filterFields: ['userId', 'kind'] }),
 
+  // A book's researched guide (SPEC 3.3), shared by every read of the work. The guide's shape is checked by
+  // lib/guide.ts when it's written, so it's stored as it came.
+  guides: defineTable({
+    workId: v.id('works'),
+    userId: v.id('users'),
+    state: v.union(v.literal('writing'), v.literal('ready'), v.literal('failed')),
+    version: v.number(),
+    guide: v.optional(v.any()),
+    error: v.optional(v.string()),
+    usage: v.optional(v.object({ input: v.number(), output: v.number(), cacheRead: v.number(), cacheWrite: v.number(), searches: v.number() })),
+    createdAt: v.number(),
+  })
+    .index('by_work', ['workId'])
+    .index('by_user', ['userId', 'createdAt']),
+
   // The conversation about one read. A reply is written into its row as it streams in.
   buddyTurns: defineTable({
     userId: v.id('users'),

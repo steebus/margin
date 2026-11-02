@@ -33,14 +33,15 @@ test('every half star gets a row, top down', () => {
   const rows = byRating([book({ rating: 4.5 }), book({ rating: 4.5 }), book({})])
   expect(rows).toHaveLength(10)
   expect(rows[0].label).toBe('5')
-  expect(rows[1]).toEqual({ label: '4.5', value: 2 })
+  expect(rows[1]).toMatchObject({ label: '4.5', value: 2 })
+  expect(rows[1].books).toHaveLength(2)
 })
 
 test('days and TBR age land in the right bands', () => {
-  expect(byDays(finishesOf([twice]))[0]).toEqual({ label: 'Under a week', value: 1 })
+  expect(byDays(finishesOf([twice]))[0]).toMatchObject({ label: 'Under a week', value: 1, books: [twice] })
   const rows = tbrAge([book({ status: 'tbr', addedAt: day('2024-01-01') }), book({ status: 'tbr', addedAt: day('2020-01-01') })], day('2024-01-10'))
   expect(rows[0].value).toBe(1)
-  expect(rows.at(-1)).toEqual({ label: 'Over 3 years', value: 1 })
+  expect(rows.at(-1)).toMatchObject({ label: 'Over 3 years', value: 1 })
 })
 
 test('a source needs two rated books, and the best come first', () => {
@@ -57,4 +58,10 @@ test('the headline uses the middle, so one long read does not skew it', () => {
   const h = headline(finishesOf([quick(5), quick(7), quick(400)]))
   expect(h).toEqual({ books: 3, pages: 300, medianDays: 7 })
   expect(headline([]).medianDays).toBeNull()
+})
+
+test('a re-read counts twice in the numbers, but is one book in the list behind them', () => {
+  const [row] = byYear(finishesOf([book({ readings: [{ finishedAt: day('2020-01-01') }, { finishedAt: day('2020-06-01') }] })]), 'books')
+  expect(row.value).toBe(2)
+  expect(row.books).toHaveLength(1)
 })

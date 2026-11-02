@@ -16,11 +16,8 @@ export function Catalog({ books, size }: { books: Book[]; size: Size }) {
     <div className="catalog" data-size={size} style={{ '--cell': `${SIZES.find(s => s.id === size)!.px}px` } as React.CSSProperties}>
       {books.map(b => (
         <Link key={b.slug} to="/books/$bookSlug" params={{ bookSlug: b.slug }} className="cell" aria-label={`${b.title} by ${b.author}`}>
-          <span className="cell-head">
-            <span className="cell-title">{b.title}</span>
-            {b.status === 'read' && <Tick />}
-          </span>
           <Thumb book={b} />
+          {b.status === 'read' && <span className="cell-tick"><Tick /></span>}
         </Link>
       ))}
     </div>

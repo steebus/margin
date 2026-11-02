@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { coverPath } from '../../lib/art'
+import { spineTitle } from '../../lib/pile'
 import { hatchKey, readHatch, storeHatch } from '../../lib/hatchCache'
 import { hatchWeights, toLuma } from '../../lib/ink'
 import { Circle, Strike } from './Marks'
@@ -120,6 +121,8 @@ export function Thumb({ book, marks = true }: { book: ThumbBook; marks?: boolean
           {book.coverUrl && state !== 'failed' && <HatchedCover coverUrl={book.coverUrl} onDone={setState} />}
         </>
       )}
+      {/* Every cover carries its title, without the subtitle. The title stamp already is one. */}
+      {(art || state === 'painted') && <span className="thumb-title" aria-hidden="true"><span>{spineTitle(book.title)}</span></span>}
       {marks && book.status === 'reading' && <Circle />}
       {marks && book.status === 'dnf' && <Strike />}
     </span>

@@ -3,6 +3,7 @@ import { convexTest } from 'convex-test'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { api, internal } from './_generated/api'
 import { bookPack, costOf, placeInBook, toMessages, visibleTo } from './lib/buddy'
+import { guideCost, guideUpTo, parseGuide } from './lib/guide'
 import schema from './schema'
 
 const sse = (events: object[]) => new Response(
@@ -19,11 +20,17 @@ const message = (words: string[], stop_reason = 'end_turn') => [
 ]
 
 /** A stand-in for Anthropic. Nothing here reaches the real API. */
-const fakeClaude = (answer: () => Response) => {
-  const bodies: { model: string; system: { text: string }[]; messages: { role: string; content: string }[]; fallbacks: string }[] = []
+type Body = { model: string; system: { text: string }[]; messages: { role: string; content: string }[]; fallbacks: string; tools?: unknown[] }
+const GUIDE = { knownness: 'well', structure: [{ label: 'Part One', percent: 0 }, { label: 'Part Two', percent: 60 }], themes: [{ name: 'Memory', gloss: 'What is kept.', readings: [], from: 0, confidence: 'high' }, { name: 'Betrayal', gloss: 'Late in the book.', readings: [], from: 70, confidence: 'high' }], moments: [{ percent: 10, what: 'The ship arrives.', spoiler: 'minor', confidence: 'high' }, { percent: 80, what: 'The captain dies.', spoiler: 'major', confidence: 'high' }], questions: [], sources: [] }
+const guideReply = () => sse(message(['Researched.\n```json\n', JSON.stringify(GUIDE), '\n```']))
+/** The buddy's requests only. The guide's research goes to a different model. */
+const chats = (bodies: Body[]) => bodies.filter(b => b.model === 'claude-sonnet-5-5')
+const fakeClaude = (answer: () => Response, guide: () => Response = guideReply) => {
+  const bodies: Body[] = []
   vi.stubGlobal('fetch', vi.fn(async (_url: string, init: { body: string }) => {
-    bodies.push(JSON.parse(init.body))
-    return answer()
+    const body = JSON.parse(init.body) as Body
+    bodies.push(body)
+    return body.tools ? guide() : answer()
   }))
   return bodies
 }
@@ -65,8 +72,8 @@ test('the opening question streams in, and the prompt carries the book and the r
 
   const thread = await as.query(api.buddy.thread, { readId })
   expect(thread).toMatchObject({ ready: true, turns: [{ role: 'buddy', text: 'What struck you?', state: 'done' }] })
-  expect(bodies[0]).toMatchObject({ model: 'claude-sonnet-5-5', fallbacks: 'default' })
-  const pack = bodies[0].system[1].text
+  expect(chats(bodies)[0]).toMatchObject({ model: 'claude-sonnet-5-5', fallbacks: 'default' })
+  const pack = chats(bodies)[0].system[1].text
   expect(pack).toContain('Book One')
   expect(pack).toContain('page 50, about 25%')
   expect(pack).toContain('I love the narrator.')
@@ -79,8 +86,8 @@ test('a reply goes out with the whole conversation, in order', async () => {
   await settle(t)
   await as.mutation(api.buddy.say, { readId, text: 'The ending of chapter two.' })
   await settle(t)
-  expect(bodies[1].messages.map(m => m.role)).toEqual(['user', 'assistant', 'user'])
-  expect(bodies[1].messages[2].content).toBe('The ending of chapter two.')
+  expect(chats(bodies)[1].messages.map(m => m.role)).toEqual(['user', 'assistant', 'user'])
+  expect(chats(bodies)[1].messages[2].content).toBe('The ending of chapter two.')
   expect((await as.query(api.buddy.thread, { readId }))!.turns).toHaveLength(3)
 })
 
@@ -107,7 +114,7 @@ test('a failure names itself, stays out of the conversation, and can be retried'
   await as.mutation(api.buddy.retry, { readId })
   await settle(t)
   expect((await as.query(api.buddy.thread, { readId }))!.turns).toMatchObject([{ state: 'done', text: 'Back.' }])
-  expect(bodies.at(-1)!.messages).toHaveLength(1)
+  expect(chats(bodies).at(-1)!.messages).toHaveLength(1)
 })
 
 test('a refusal is not presented as an answer', async () => {
@@ -137,7 +144,8 @@ test('what each reply cost is added up for the month', async () => {
   await as.mutation(api.buddy.start, { readId })
   await settle(t)
   const spend = await as.query(api.buddy.monthSpend, {})
-  expect(spend!.dollars).toBeCloseTo(costOf({ input: 100, output: 20, cacheRead: 50, cacheWrite: 10 }))
+  // One reply, plus the guide's research, which used the same stand-in usage.
+  expect(spend!.dollars).toBeCloseTo(costOf({ input: 100, output: 20, cacheRead: 50, cacheWrite: 10 }) + guideCost({ input: 100, output: 20, cacheRead: 50, cacheWrite: 10, searches: 0 }))
   expect(spend!.over).toBe(false)
 })
 
@@ -177,4 +185,59 @@ test('only finished turns with words count as conversation, and it always opens 
     { role: 'buddy', text: 'Oops', state: 'failed' },
   ])
   expect(messages.map(m => m.role)).toEqual(['user', 'assistant', 'user'])
+})
+
+test('the first reply waits for the guide, which reaches the model already cut at the reader\'s place', async () => {
+  const bodies = fakeClaude(() => sse(message(['So far?'])))
+  const { t, as, readId } = await setup()
+  await as.mutation(api.buddy.start, { readId })
+  await settle(t)
+  expect(bodies.filter(b => b.tools)).toHaveLength(1)
+  const pack = chats(bodies)[0].system[1].text
+  expect(pack).toContain('The ship arrives.')
+  expect(pack).toContain('Memory')
+  expect(pack).not.toContain('The captain dies.')
+  expect(pack).not.toContain('Betrayal')
+  expect(pack).not.toContain('Part Two')
+
+  // Later replies use the same guide. It's researched once per book.
+  await as.mutation(api.buddy.say, { readId, text: 'The arrival.' })
+  await settle(t)
+  expect(bodies.filter(b => b.tools)).toHaveLength(1)
+})
+
+test('a finished book gets no guide, and a failed guide never holds the buddy up', async () => {
+  const bodies = fakeClaude(() => sse(message(['Hello?'])))
+  const { t, as, readId } = await setup({ status: 'read', percent: 100 })
+  await as.mutation(api.buddy.start, { readId })
+  await settle(t)
+  expect(bodies.filter(b => b.tools)).toHaveLength(0)
+
+  const again = fakeClaude(() => sse(message(['Still here.'])), () => sse(message(['No JSON at all.'])))
+  const second = await setup()
+  await second.as.mutation(api.buddy.start, { readId: second.readId })
+  await settle(second.t)
+  expect((await second.as.query(api.buddy.thread, { readId: second.readId }))!.turns[0]).toMatchObject({ state: 'done', text: 'Still here.' })
+  expect(chats(again)[0].system[1].text).not.toContain('A guide to this book')
+})
+
+test('the spoiler rule in the data: nothing positioned after the reader survives, and finishing opens it all', () => {
+  const guide = parseGuide(`notes\n\`\`\`json\n${JSON.stringify(GUIDE)}\n\`\`\``)!
+  const at = (percent: number) => guideUpTo(guide, { finished: false, percent })
+  expect(at(5).moments).toEqual([])
+  expect(at(10).moments.map(m => m.what)).toEqual(['The ship arrives.'])
+  expect(at(79).moments).toHaveLength(1)
+  expect(at(80).moments).toHaveLength(2)
+  expect(at(69).themes.map(t => t.name)).toEqual(['Memory'])
+  expect(at(59).structure.map(s => s.label)).toEqual(['Part One'])
+  expect(guideUpTo(guide, { finished: true, percent: 0 }).moments).toHaveLength(2)
+})
+
+test('a guide that is partly wrong keeps what is right, and rubbish is no guide', () => {
+  const guide = parseGuide(JSON.stringify({ knownness: 'nonsense', moments: [{ percent: 150, what: 'x' }, { percent: 20, what: 'Real.' }], sources: ['not a url', 'https://a.example'] }))!
+  expect(guide.knownness).toBe('barely')
+  expect(guide.moments.map(m => m.what)).toEqual(['Real.'])
+  expect(guide.sources).toEqual(['https://a.example'])
+  expect(guide.structure).toEqual([])
+  expect(parseGuide('no guide here')).toBeNull()
 })
