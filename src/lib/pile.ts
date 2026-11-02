@@ -25,13 +25,43 @@ export function pileOf(books: Book[]): PileRow[] {
 
 const seedOf = (text: string) => [...text].reduce((sum, c) => (sum * 31 + c.charCodeAt(0)) >>> 0, 7)
 
-/** How a book lies in the pile: thick as its page count, with a width and offset that never change between visits. */
+const LOOKS = ['cloth', 'paper', 'label', 'ribs', 'hatch'] as const
+const UNKNOWN_PAGES = 300
+const LINE = 18
+
+/**
+ * How a book lies in the pile. Thickness is its page count and nothing else. Its binding, width and offset come
+ * from its slug, so they never change between visits. `lines` is how much of a note fits beside it.
+ */
 export function spineOf(slug: string, pages: number | null) {
   const seed = seedOf(slug)
+  const height = Math.round(44 + Math.min(pages ?? UNKNOWN_PAGES, 1200) / 8)
   return {
-    height: Math.round(34 + Math.min(pages ?? 300, 1200) / 28),
-    width: 78 + (seed % 23),
-    look: seed % 5 === 0 ? 'band' : seed % 3 === 0 ? 'outline' : 'solid',
+    height,
+    width: 86 + (seed % 15),
+    look: LOOKS[(seed >> 4) % LOOKS.length],
     shift: (seed >> 8) % 100,
+    lines: Math.max(1, Math.floor((height - 24) / LINE)),
   }
 }
+
+// Which typeface prints a book's spine. The first of its genres, most popular first, that means something here.
+const FACES: [RegExp, string][] = [
+  [/horror|gothic|ghost|vampire/i, 'horror'],
+  [/sci-?fi|science fiction|dystop|space|aliens|cyberpunk|litrpg/i, 'future'],
+  [/fantasy|mytholog|fairy|magic|adventure/i, 'fantasy'],
+  [/thriller|mystery|crime|detective|suspense|noir/i, 'crime'],
+  [/^science$|histor|business|econom|biograph|memoir|psycholog|philosoph|politic|social|self-help|non-?fiction|essay/i, 'fact'],
+  [/classic|litera|romance|poetry|drama|contemporary/i, 'novel'],
+]
+
+export function faceOf(subjects: string[]) {
+  for (const subject of subjects) {
+    const face = FACES.find(([pattern]) => pattern.test(subject))
+    if (face) return face[1]
+  }
+  return 'plain'
+}
+
+/** A spine has no room for a subtitle. */
+export const spineTitle = (title: string) => title.split(/:\s/)[0]

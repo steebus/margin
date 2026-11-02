@@ -10,10 +10,8 @@ type Row = { key: number; hardcoverId?: number; started: string; finished: strin
 
 const span = (r: Book['readings'][number]) => {
   const days = daysBetween(r.startedAt, r.finishedAt)
-  return [
-    r.startedAt ? formatDate(r.startedAt) : 'Start not recorded',
-    r.finishedAt ? formatDate(r.finishedAt) : r.startedAt ? 'Not finished' : '',
-  ].filter(Boolean).join(' to ') + (days ? `, ${days} ${days === 1 ? 'day' : 'days'}` : '')
+  if (!r.finishedAt) return r.startedAt ? `Started ${formatDate(r.startedAt)}, not finished` : 'No dates recorded'
+  return (r.startedAt ? `${formatDate(r.startedAt)} to ` : 'Finished ') + formatDate(r.finishedAt) + (days ? `, ${days} ${days === 1 ? 'day' : 'days'}` : '')
 }
 
 /** Each time through the book, with dates that can be changed here and go to Hardcover. */

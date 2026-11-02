@@ -1,8 +1,14 @@
+import '@fontsource/cinzel/latin-600.css'
+import '@fontsource/oxanium/latin-500.css'
+import '@fontsource/pirata-one/latin-400.css'
+import '@fontsource/playfair-display/latin-700.css'
+import '@fontsource/special-elite/latin-400.css'
+
 import { Link } from '@tanstack/react-router'
 import { useQuery } from 'convex/react'
 import { api } from '../../../convex/_generated/api'
 import { formatDate } from '../../lib/books'
-import { pileNote, pileOf, spineOf } from '../../lib/pile'
+import { faceOf, pileNote, pileOf, spineOf, spineTitle } from '../../lib/pile'
 
 /** Every book read, lying flat in the order they were finished, with what you made of each down the side. */
 export function Pile() {
@@ -30,10 +36,9 @@ export function Pile() {
           const year = finishedAt === null ? null : new Date(finishedAt).getUTCFullYear()
           const newYear = year !== null && year !== lastYear
           if (newYear) lastYear = year
-          const notes = bySlug.get(book.slug) ?? []
-          const note = pileNote(notes)
+          const note = pileNote(bySlug.get(book.slug) ?? [])
           return (
-            <li key={key} className="pile-row" style={{ minHeight: spine.height }}>
+            <li key={key} className="pile-row" style={{ height: spine.height }}>
               <div className="pile-book">
                 <Link
                   to="/books/$bookSlug"
@@ -42,20 +47,20 @@ export function Pile() {
                   data-look={spine.look}
                   style={{ width: `${spine.width}%`, marginLeft: `${((100 - spine.width) * spine.shift) / 100}%` }}
                 >
-                  <span className="spine-title">{book.title}</span>
-                  <span className="spine-author">{book.author}</span>
+                  <span className="spine-label">
+                    <span className="spine-title" data-face={faceOf(book.subjects)}>{spineTitle(book.title)}</span>
+                    <span className="spine-author">{book.author}</span>
+                  </span>
                 </Link>
               </div>
-              <div className="pile-side">
-                {newYear && <p className="pile-year">{year}</p>}
+              <div className="pile-side" data-year={newYear || undefined}>
                 <p className="pile-date">
-                  {finishedAt ? formatDate(finishedAt) : 'Date not recorded'}
-                  {days !== null && `, ${days} ${days === 1 ? 'day' : 'days'}`}
+                  <span>{finishedAt ? formatDate(finishedAt) : 'Date not recorded'}{days !== null && `, ${days} ${days === 1 ? 'day' : 'days'}`}</span>
+                  {newYear && <span className="pile-year">{year}</span>}
                 </p>
                 {note && (
                   <Link to="/books/$bookSlug/entries" params={{ bookSlug: book.slug }} className="pile-note">
-                    <span className={note.kind === 'excerpt' ? 'pile-text' : 'pile-text hand'}>{note.text}</span>
-                    {notes.length > 1 && <span className="pile-more">All {notes.length} notes</span>}
+                    <span className={note.kind === 'excerpt' ? 'pile-text' : 'pile-text hand'} style={{ WebkitLineClamp: spine.lines }}>{note.text}</span>
                   </Link>
                 )}
               </div>

@@ -1,11 +1,11 @@
 import { Link } from '@tanstack/react-router'
 import { useQuery } from 'convex/react'
-import { Check } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { toastDue } from '../../lib/drawer-rules'
 import { ProgressForm } from '../book/ProgressForm'
+import { QuickActions } from '../book/QuickActions'
 import { Reflection } from '../book/Reflection'
 import { Thumb } from '../thumb/Thumb'
 import { Typewriter } from '../typewriter/Typewriter'
@@ -31,12 +31,13 @@ export function Desk() {
   const books = useQuery(api.library.myBooks)
   const entries = useQuery(api.library.allEntries)
   const waiting = useQuery(api.reflect.waiting)
-  const [logging, setLogging] = useState<string | null>(null)
+  const [chosen, setChosen] = useState<string | null>(null)
+  const [logging, setLogging] = useState(false)
   const [stamp, setStamp] = useState<string | null>(null)
   const [toast, setToast] = useState(false)
 
   const current = (books ?? []).filter(b => b.status === 'reading')
-  const logged = current.find(b => b.readId === logging)
+  const book = current.find(b => b.readId === chosen) ?? current[0]
   const latest = entries?.[0]
   const prompt = waiting?.[0]
 
@@ -82,19 +83,20 @@ export function Desk() {
       <Masthead />
 
       {current.length > 0 ? (
-        <section className="reading" aria-label="Books you're reading" style={{ gridTemplateColumns: `repeat(${Math.min(current.length, 2)}, minmax(0, 1fr))` }}>
+        <section className="reading" aria-label="Books you're reading">
           {current.map(c => (
-            <div key={c.readId} className="reading-slot">
-              <Link to="/books/$bookSlug" params={{ bookSlug: c.slug }} className="reading-cell">
-                <span className="reading-title">{c.title}</span>
-                <span className="reading-sub">{c.format === 'audio' ? 'Audiobook' : c.author}</span>
-                <Thumb book={c} />
-                <span className="pct">{c.percent}%</span>
+            <div key={c.readId} className="reading-cell">
+              <Thumb book={c} marks={false} />
+              <div className="reading-text">
+                {c.readId === book.readId
+                  ? <p className="reading-label">Current book</p>
+                  : <button type="button" className="reading-label reading-switch" onClick={() => { setChosen(c.readId); setLogging(false) }}>Switch to</button>}
+                {/* Stretched over the whole cell, so tapping anywhere but "Switch to" opens the book. */}
+                <Link to="/books/$bookSlug" params={{ bookSlug: c.slug }} className="reading-title">{c.title}</Link>
+                <p className="reading-sub">{c.format === 'audio' ? 'audiobook' : `by ${c.author}`}</p>
+                <p className="pct">{c.percent}%</p>
                 <span className="bar" aria-hidden="true"><span style={{ transform: `scaleX(${c.percent / 100})` }} /></span>
-              </Link>
-              <button type="button" className="reading-log" aria-expanded={logging === c.readId} onClick={() => setLogging(logging === c.readId ? null : c.readId)}>
-                <Check aria-hidden="true" strokeWidth={2.25} />Log progress
-              </button>
+              </div>
             </div>
           ))}
           <AnimatePresence>
@@ -119,7 +121,9 @@ export function Desk() {
         </div>
       )}
 
-      {logged && <ProgressForm key={logged.readId} book={logged} onSaved={label => { setLogging(null); setStamp(label) }} />}
+      {book && <QuickActions book={book} logging={logging} onLog={() => setLogging(!logging)} />}
+
+      {book && logging && <ProgressForm key={book.readId} book={book} onSaved={label => { setLogging(false); setStamp(label) }} />}
 
       <hr className="rule" />
 

@@ -305,9 +305,9 @@ into every prompt. Three layers:
 - Optionally sent as a daily push ("from the drawer"), off by default.
 
 ### 3.10 Home: the Desk
-At the top are the books being read, each with its cover, progress and *Log
-progress*. Tapping a book opens its page, which carries the quick actions: *Log
-progress*, *Add excerpt*, *Camera* (phones only), *Add note*, *Talk*. Under them, the space
+At the top are the books being read, each with its cover and progress: one is the
+current book and the others offer *Switch to*. Tapping a book opens its page. Under them are the quick actions for the
+current book, which every book's page also carries: *Log progress*, *Add excerpt*, *Camera* (phones only), *Add note*, *Talk*. Under them, the space
 for the **latest note** (the buddy's pending prompt if there is one,
 otherwise your most recent entry). The drawer has its own tab.
 
@@ -339,10 +339,10 @@ everything else combined.
 | Rendition | Used for | Size per image, measured |
 |---|---|---|
 | 256px | Grid cells on most screens | 7 to 18 KB |
-| 512px | Book page, large cells, high-density phones | 27 to 60 KB |
+| 512px | Book page, large cells, high-density phones | 27 to 65 KB |
 
-Those are measured on 10 real generated drawings. At about 78 KB at worst for a book, 2,000
-books use at most about 153 MB of Convex's included 1 GB. `srcset` picks the size. Serve with long-lived caching, because art for a work never changes; a
+Those are measured on real generated drawings. At about 83 KB for the largest book and 62 KB on average, 2,000
+books use about 124 MB, and at most about 166 MB, of Convex's included 1 GB. `srcset` picks the size. Serve with long-lived caching, because art for a work never changes; a
 regeneration gets a new file. Verify the real cache headers on Convex's file URLs.
 
 **One file, both themes.** Art is stored as a neutral drawing on white and printed onto

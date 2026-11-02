@@ -1,6 +1,6 @@
 import { Link, useParams } from '@tanstack/react-router'
 import { useMutation, useQuery } from 'convex/react'
-import { ArrowLeft, Camera, Check, MessageCircle, PenLine, Quote } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { formatDate, type Book, type Status } from '../../lib/books'
@@ -9,6 +9,7 @@ import { daysToRead } from '../../lib/shelf'
 import { CoverControls } from './CoverControls'
 import { EntryList } from './EntryList'
 import { ProgressForm } from './ProgressForm'
+import { QuickActions } from './QuickActions'
 import { ReadDates } from './ReadDates'
 import { Reflection } from './Reflection'
 import { Thumb } from '../thumb/Thumb'
@@ -91,17 +92,7 @@ export function BookPage() {
         </div>
       </header>
 
-      <div className="actions">
-        {book.status !== 'read' && (
-          <button type="button" className="action" aria-expanded={logging} onClick={() => setLogging(!logging)}>
-            <Check aria-hidden="true" strokeWidth={2.25} />Log progress
-          </button>
-        )}
-        <Link to="/capture" search={{ book: book.slug, kind: 'excerpt' }} className="action"><Quote aria-hidden="true" strokeWidth={2.25} />Add excerpt</Link>
-        <Link to="/capture/camera" className="action action-camera"><Camera aria-hidden="true" strokeWidth={2.25} />Camera</Link>
-        <Link to="/capture" search={{ book: book.slug, kind: 'note' }} className="action"><PenLine aria-hidden="true" strokeWidth={2.25} />Add note</Link>
-        <Link to="/books/$bookSlug/buddy" params={{ bookSlug: book.slug }} className="action"><MessageCircle aria-hidden="true" strokeWidth={2.25} />Talk</Link>
-      </div>
+      <QuickActions book={book} logging={logging} onLog={() => setLogging(!logging)} />
 
       {logging && book.status !== 'read' && <ProgressForm book={book} onSaved={label => { setLogging(false); setLogged(label) }} />}
       {logged && <p role="status">Logged: {logged}</p>}
@@ -142,7 +133,7 @@ export function BookPage() {
         {entries.length > 0 ? <EntryList entries={[...entries].reverse().slice(0, PREVIEW)} /> : <p>Nothing in the margin yet. Add a line you underlined, or a thought about it.</p>}
         {entries.length > 0 && (
           <div className="btn-row">
-            <Link to="/books/$bookSlug/entries" params={{ bookSlug: book.slug }} className="btn">All {entries.length} notes and thoughts</Link>
+            <Link to="/books/$bookSlug/entries" params={{ bookSlug: book.slug }} className="btn">{entries.length === 1 ? 'Open in notes and thoughts' : `All ${entries.length} notes and thoughts`}</Link>
           </div>
         )}
       </section>
