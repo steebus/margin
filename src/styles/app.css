@@ -346,7 +346,9 @@ p a { color: inherit; text-underline-offset: 3px; }
 }
 
 /* ---------- Shelves ---------- */
-.shelves-head { display: flex; align-items: baseline; gap: 12px; padding-right: 112px; }
+.shelves-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 12px; padding-right: 112px; }
+.shelves-head .title-head { padding-right: 0; overflow-wrap: normal; }
+.shelves-head p { white-space: nowrap; }
 .shelves-tools { display: flex; flex-wrap: wrap; gap: 10px; }
 .shelves-tools .segments { flex: 1 1 200px; }
 .year { display: flex; align-items: center; gap: 10px; margin: 8px 0; font-size: 1.5rem; }
