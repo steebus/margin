@@ -174,6 +174,18 @@ export default defineSchema({
     .index('by_read', ['readId', 'createdAt'])
     .index('by_user', ['userId', 'createdAt']),
 
+  // A note the buddy leaves when progress crosses a milestone (SPEC 3.3), waiting on the book until it's dealt with.
+  buddyQueue: defineTable({
+    userId: v.id('users'),
+    readId: v.id('reads'),
+    milestoneKey: v.string(),
+    percent: v.number(),
+    text: v.string(),
+    state: v.union(v.literal('pending'), v.literal('snoozed'), v.literal('answered'), v.literal('passed')),
+    snoozedUntil: v.optional(v.number()),
+    createdAt: v.number(),
+  }).index('by_read', ['readId', 'createdAt']),
+
   // The question asked when a book is finished. One per read, however many times it's marked finished.
   reflectionPrompts: defineTable({
     userId: v.id('users'),

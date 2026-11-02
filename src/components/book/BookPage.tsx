@@ -12,6 +12,7 @@ import { EntryList } from './EntryList'
 import { ProgressForm } from './ProgressForm'
 import { QuickActions } from './QuickActions'
 import { ReadDates } from './ReadDates'
+import { BuddyNote } from './BuddyNote'
 import { Reflection } from './Reflection'
 import { Thumb } from '../thumb/Thumb'
 
@@ -91,7 +92,7 @@ export function BookPage() {
   if (found === undefined) return <p role="status">Finding your book…</p>
   if (found === null) return <NotFoundBook />
 
-  const { book, entries, cover, prompt } = found
+  const { book, entries, cover, prompt, note } = found
   const showProgress = book.status === 'reading' || book.status === 'paused'
 
   return (
@@ -121,6 +122,7 @@ export function BookPage() {
       {logged && <p role="status">Logged: {logged}</p>}
 
       {prompt && <Reflection key={prompt.id} prompt={prompt} />}
+      {!prompt && note && <BuddyNote key={note.id} note={note} slug={book.slug} />}
 
       <div className="book-controls">
         <div className="field">

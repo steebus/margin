@@ -5,6 +5,7 @@ import { mutation, query, type MutationCtx } from './_generated/server'
 import { datesFrom, positionOf, progressAt, readingsAfter, readingsOf, toBook } from './lib/books'
 import { askForReflection, waitingPrompt } from './lib/reflection'
 import { enqueueRead } from './lib/outbox'
+import { checkMilestones, waitingNote } from './milestones'
 
 /** Every book on the signed-in reader's shelves. Empty when signed out. */
 export const myBooks = query({
@@ -34,6 +35,7 @@ export const bookBySlug = query({
     const entries = await ctx.db.query('entries').withIndex('by_read', q => q.eq('readId', read._id)).collect()
     const art = await ctx.db.query('workArt').withIndex('by_work', q => q.eq('workId', work._id)).first()
     const prompt = await waitingPrompt(ctx, read._id)
+    const note = await waitingNote(ctx, read._id)
     return {
       book: toBook(read, work),
       cover: {
@@ -44,6 +46,7 @@ export const bookBySlug = query({
         error: art?.error ?? null,
       },
       prompt: prompt && { id: prompt._id, question: prompt.question! },
+      note,
       entries: entries.map(e => ({ id: e._id, kind: e.kind, text: e.text, question: e.question ?? null, parentId: e.parentId ?? null, position: positionOf(e.pos), createdAt: e.createdAt })),
     }
   },
@@ -144,6 +147,7 @@ export const logProgress = mutation({
     if (!progress) throw new ConvexError('That place does not fit this book')
     await ctx.db.patch(readId, { progress })
     await ctx.db.insert('progressLog', { userId, readId, at: Date.now(), percent: progress.percent, page: progress.page, origin: 'manual' })
+    await checkMilestones(ctx, read, read.progress.percent, progress.percent)
     const next = progress.percent === 100 ? 'read' : read.status === 'tbr' || read.status === 'paused' ? 'reading' : read.status
     if (next !== read.status) await changeStatus(ctx, userId, { ...read, progress }, next)
     await enqueueRead(ctx, userId, readId)

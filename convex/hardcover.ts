@@ -5,6 +5,7 @@ import type { Id } from './_generated/dataModel'
 import { action, internalAction, internalMutation, internalQuery, query, type ActionCtx } from './_generated/server'
 import { entryKey } from './lib/entryKey'
 import { askForReflection } from './lib/reflection'
+import { checkMilestones } from './milestones'
 import {
   JOURNAL_FIELDS, journalObject, LIBRARY_QUERY, LISTS_QUERY, listSlug, mapJournal, mapSearch, mapUserBook, newUserBook, progressChanged, SEARCH_QUERY, progressFields, readFields, readingDates, statusId,
   type HardcoverJournal, type HardcoverList, type HardcoverUserBook, type SearchDocument,
@@ -127,6 +128,7 @@ export const saveBooks = internalMutation({
           })
           if (percent !== mine.progress.percent) {
             await ctx.db.insert('progressLog', { userId, readId: mine._id, at: Date.now(), percent, page: read.page, origin: 'hardcover' })
+            await checkMilestones(ctx, mine, mine.progress.percent, percent)
           }
           if (mine.status !== 'read' && read.status === 'read') await askForReflection(ctx, userId, mine._id)
         } else if (!update && !mine.readings && read.readings) {

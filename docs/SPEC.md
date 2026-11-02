@@ -127,7 +127,7 @@ reader of that book shares it (if multi-user).
 
 **Built so far (2026-11-02), waiting on `ANTHROPIC_API_KEY`.** The conversation (Claude Sonnet 5.5, streaming, server-side refusal
 fallback), the spoiler rule (`visibleTo`, stated in the prompt from the read's own progress), the reader's notes and finished
-books as context, and the cost meter. Not built: the guide, milestones, memory, push, corrections. Until a guide exists, the rule
+books as context, and the cost meter. Since built: the guide (cut by `guideUpTo`) and milestones (`convex/lib/milestones.ts`: the guide's questions spaced 8% apart, or plain checkpoints at 10/25/50/75/90 without one; one note per move, answered into the conversation). Not built: memory, push, corrections. Until a guide exists, the rule
 is only an instruction to the model, not a cut in the data, so it needs the eval set before it can be trusted.
 
 **Models.** Research runs on the most capable model, the conversation on a

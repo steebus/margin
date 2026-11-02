@@ -220,3 +220,30 @@ test('the import walks every page of Hardcover and saves the books', async () =>
   expect(book).toMatchObject({ title: 'From Hardcover', status: 'reading', author: 'Unknown author' })
   vi.unstubAllEnvs()
 })
+
+test('crossing a milestone leaves one note on the book, and answering it starts the conversation', async () => {
+  const t = setup()
+  const { userId, as } = await reader(t)
+  await t.mutation(internal.hardcover.saveBooks, { userId, items: [item(1, { percent: 5 })] })
+  const [{ readId }] = await as.query(api.library.myBooks, {})
+
+  await as.mutation(api.library.logProgress, { readId, percent: 8 })
+  expect((await as.query(api.library.bookBySlug, { slug: 'book-1' }))?.note).toBeNull()
+
+  await as.mutation(api.library.logProgress, { readId, percent: 30 })
+  const note = (await as.query(api.library.bookBySlug, { slug: 'book-1' }))!.note!
+  expect(note.percent).toBe(25)
+
+  await as.mutation(api.library.logProgress, { readId, percent: 20 })
+  await as.mutation(api.library.logProgress, { readId, percent: 30 })
+  expect(await t.run(ctx => ctx.db.query('buddyQueue').collect())).toHaveLength(1)
+
+  await as.mutation(api.milestones.answer, { noteId: note.id })
+  expect((await as.query(api.library.bookBySlug, { slug: 'book-1' }))?.note).toBeNull()
+  expect((await as.query(api.buddy.thread, { readId }))?.turns.map(t => t.text)).toEqual([note.text])
+
+  await as.mutation(api.library.logProgress, { readId, percent: 55 })
+  const later = (await as.query(api.library.bookBySlug, { slug: 'book-1' }))!.note!
+  await as.mutation(api.milestones.snooze, { noteId: later.id })
+  expect((await as.query(api.library.bookBySlug, { slug: 'book-1' }))?.note).toBeNull()
+})
