@@ -253,7 +253,7 @@ A square ruled cell holding the title, catalog code and cover. Small cells drop 
 ### Covers
 Every cover prints in one ink on bare paper, drawn to a canvas 1:1 with device pixels. A printed title stamp shows until the art lands, or if there's none.
 
-**Thumbnails:** generated full-frame ink scenes printed onto the page with blend modes (`multiply` by day; `invert` and `screen` by night), falling back to a pen cross-hatch of the real cover, then a printed title stamp. See `docs/SPEC.md` §3.11. `public/art-demo/` holds hand-stored test scenes until the pipeline exists.
+**Thumbnails:** generated engraved illustrations, with blank paper above for the title, printed onto the page with blend modes (`multiply` by day; `invert` and `screen` by night), falling back to a pen cross-hatch of the real cover, then a printed title stamp. See `docs/SPEC.md` §3.11. `public/art-demo/` holds hand-stored test scenes until the pipeline exists.
 
 ### Biro Marks
 Biro marks carry meaning: a circle is reading, a tick is finished, a strike is abandoned. Each stroke draws itself in 520ms. A hand-drawn arrow also leads the reader's turns in a buddy thread, as a pointer rather than a status.

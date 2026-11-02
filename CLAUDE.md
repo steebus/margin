@@ -18,7 +18,7 @@ Read `docs/SPEC.md`, `docs/PLAN.md`, `docs/DESIGN-DIRECTION.md` and `PRODUCT.md`
   element rects against the viewport instead.
 - Don't give two files in `src/` names that differ only by case: `./Foo` resolves
   to the wrong one on Windows.
-- `public/art-demo/` and `demoArt` in `src/sample/sample.ts` are hand-stored Gemini test scenes.
+- `public/art-demo/` and `demoArt` in `src/sample/sample.ts` are hand-stored Gemini test drawings.
   Delete them when the art pipeline lands (SPEC §3.11). `SAMPLE_POST` in `src/components/share/Share.tsx` is
   fake too, and nothing on the share screen is saved yet (SPEC §3.4.1).
 - `GEMINI_API_KEY` lives in the gitignored `.env`. Never print it.

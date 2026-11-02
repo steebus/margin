@@ -16,7 +16,7 @@ const tags: Record<string, string[]> = {
 
 const slugify = (text: string) => text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
 
-// ponytail: real Gemini scenes from the second art test, stored by hand until the pipeline exists (SPEC 3.11).
+// ponytail: real Gemini drawings from the third art test, stored by hand until the pipeline exists (SPEC 3.11).
 // The other books show their fallback. Delete public/art-demo and this list with Phase 1.
 const demoArt = new Set([
   'The Left Hand of Darkness', 'Middlemarch', 'Beloved', 'Moby-Dick', 'Mrs Dalloway',

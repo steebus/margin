@@ -184,7 +184,9 @@ p a { color: inherit; text-underline-offset: 3px; }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) .thumb-generated { filter: invert(1) brightness(0.88); mix-blend-mode: screen; }
 }
+/* The title prints over the blank paper at the top of the art, and the art sits on the cell's floor. */
 .cell > .thumb { margin-top: auto; }
+.cell:has(.thumb[data-art]) > .cell-head { z-index: 1; margin-bottom: -24%; }
 .thumb-art { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
 .thumb-icon { display: block; width: 100%; height: 100%; object-fit: contain; padding: 8%; }
 .thumb-stamp {

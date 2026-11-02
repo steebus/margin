@@ -295,7 +295,7 @@ for the **latest note** (the buddy's pending prompt if there is one,
 otherwise your most recent entry). Then the drawer card.
 
 ### 3.11 Cover art
-Every book's thumbnail is a full ink scene from its world, not a copy of its cover and not an isolated object.
+Every book's thumbnail is an engraved ink illustration with one bold subject from its world, not a copy of its cover.
 Three sources, best first. Each covers for the next while it loads or if it fails:
 
 1. **Generated art** from Gemini.
@@ -310,20 +310,18 @@ share it (`workArt { workId, state: queued|ready|failed|rejected, small, large, 
 model and costs more, so asking for less would cost more. Aspect ratio 1:1, which
 keeps cells compact and matches the mockup. Check prices before a large run.
 
-**Post-process, in this order:** greyscale, trim any white margin the model left, level the
-paper to white and the ink to black, crop to fill the square, then encode two sizes as WebP
-at quality 60. Discard the original:
+**Post-process, in this order:** greyscale, level the paper to white and the ink to black, then
+encode two sizes as WebP at quality 60. Don't trim: the blank top is part of the design. Discard the original:
 regenerating one costs under 2 cents, and keeping them would use more storage than
 everything else combined.
 
 | Rendition | Used for | Size per image, measured |
 |---|---|---|
-| 256px | Grid cells on most screens | 10 to 22 KB |
-| 512px | Book page, large cells, high-density phones | 62 to 97 KB |
+| 256px | Grid cells on most screens | 3 to 8 KB |
+| 512px | Book page, large cells, high-density phones | 12 to 30 KB |
 
-Those are measured on 10 real generated scenes. Full scenes cost about four times what
-isolated objects did, since there's ink everywhere. At about 119 KB at worst for a book, 2,000
-books use at most about 240 MB of Convex's included 1 GB. `srcset` picks the size. Serve with long-lived caching, because art for a work never changes; a
+Those are measured on 10 real generated drawings. At about 40 KB at worst for a book, 2,000
+books use at most about 80 MB of Convex's included 1 GB. `srcset` picks the size. Serve with long-lived caching, because art for a work never changes; a
 regeneration gets a new file. Verify the real cache headers on Convex's file URLs.
 
 **One file, both themes.** Art is stored as a neutral drawing on white and printed onto
@@ -344,18 +342,20 @@ per-theme assets.
 explorer hauling a sledge for *The Left Hand of Darkness*, which belongs to a later journey.
 It also gave wrong subjects (a black cat, a treasure chest) and three near-identical houses.
 So asking the image model to be careful isn't enough, which is Principle 2 again.
-- A small text model picks one concrete scene first, from the book's premise and opening,
+- A small text model picks one concrete subject first, from the book's premise and opening,
   and avoids subjects the library already overuses. When a guide exists, it picks only from
   moments before the opening milestone.
 - The reader can see and edit that subject when rejecting a drawing.
 
 **The prompt carries the style.**
 - Input: the chosen subject. Never the cover image, or the title as text.
-- A complete picture with a foreground, middle ground and background that runs off all four
-  edges and is cropped by the frame. Asking only for an object gets a floating specimen.
-- Black ink on white, with etched hatching and heavy solid blacks. No text, no border.
-- Pass crops of approved scenes as reference images so a library stays consistent. Scenes
-  in the reference produce scenes; isolated objects in it produce isolated objects.
+- One subject that reads at stamp size. Mostly single things, with some small scenes; ground or
+  water may run off the bottom and sides.
+- The top quarter is bare paper, because the title prints over it. There is no drawn sky.
+- No frame or edge: the drawing thins out into loose hatch strokes, so you can't see where it ends.
+- Fine engraved lines and rich solid black, with no grey wash.
+- The exact prompt and style reference are in `docs/art/`. The model copies whatever the reference
+  shows, including stray labels and borders, so keep that sheet clean.
 - Store the prompt and model with the image, for provenance.
 
 **The reader has the last word.** A drawing can be rejected, which regenerates it once and
