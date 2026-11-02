@@ -427,7 +427,8 @@ td a { display: inline-flex; align-items: center; min-height: 48px; color: inher
 .entries .book-voice { font-size: 1.125rem; }
 
 /* ---------- Buddy ---------- */
-.buddy-head { display: grid; grid-template-columns: auto 52px minmax(0, 1fr); gap: 10px; align-items: center; padding-right: 112px; }
+.buddy-head { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 10px; align-items: center; }
+.buddy-head .back { grid-column: 1 / -1; }
 .buddy-title { font: 600 1.25rem/1.15 var(--book); }
 
 .thread { display: grid; gap: 18px; }
