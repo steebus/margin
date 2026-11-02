@@ -159,8 +159,9 @@ async function ingest() {
   const files = readdirSync(RAW).map(f => f.replace(/\.jpg$/, '')).filter(id => !done.has(id)).slice(0, limit)
   console.log(`Ingesting ${files.length}`)
   const blank = []
-  for (let i = 0; i < files.length; i += 25) {
-    const group = files.slice(i, i + 25)
+  // Small groups: the items go on a command line, and Windows caps that at 32 KB.
+  for (let i = 0; i < files.length; i += 10) {
+    const group = files.slice(i, i + 10)
     const urls = convex('art:uploadUrls', { count: group.length * 2 })
     const items = []
     let u = 0

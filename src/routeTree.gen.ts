@@ -11,7 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DrawerRouteImport } from './routes/drawer'
-import { Route as ExploreRouteImport } from './routes/explore'
+import { Route as NotesRouteImport } from './routes/notes'
+import { Route as PileRouteImport } from './routes/pile'
 import { Route as ReviewRouteImport } from './routes/review'
 import { Route as StatsRouteImport } from './routes/stats'
 import { Route as CaptureIndexRouteImport } from './routes/capture.index'
@@ -44,9 +45,14 @@ const DrawerRoute = DrawerRouteImport.update({
   path: '/drawer',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ExploreRoute = ExploreRouteImport.update({
-  id: '/explore',
-  path: '/explore',
+const NotesRoute = NotesRouteImport.update({
+  id: '/notes',
+  path: '/notes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PileRoute = PileRouteImport.update({
+  id: '/pile',
+  path: '/pile',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ReviewRoute = ReviewRouteImport.update({
@@ -161,7 +167,8 @@ const BooksBookSlugReadsNRoute = BooksBookSlugReadsNRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/drawer': typeof DrawerRoute
-  '/explore': typeof ExploreRoute
+  '/notes': typeof NotesRoute
+  '/pile': typeof PileRoute
   '/review': typeof ReviewRoute
   '/stats': typeof StatsRoute
   '/capture/camera': typeof CaptureCameraRoute
@@ -187,7 +194,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/drawer': typeof DrawerRoute
-  '/explore': typeof ExploreRoute
+  '/notes': typeof NotesRoute
+  '/pile': typeof PileRoute
   '/review': typeof ReviewRoute
   '/stats': typeof StatsRoute
   '/capture/camera': typeof CaptureCameraRoute
@@ -214,7 +222,8 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/drawer': typeof DrawerRoute
-  '/explore': typeof ExploreRoute
+  '/notes': typeof NotesRoute
+  '/pile': typeof PileRoute
   '/review': typeof ReviewRoute
   '/stats': typeof StatsRoute
   '/capture/camera': typeof CaptureCameraRoute
@@ -242,7 +251,8 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/drawer'
-    | '/explore'
+    | '/notes'
+    | '/pile'
     | '/review'
     | '/stats'
     | '/capture/camera'
@@ -268,7 +278,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/drawer'
-    | '/explore'
+    | '/notes'
+    | '/pile'
     | '/review'
     | '/stats'
     | '/capture/camera'
@@ -294,7 +305,8 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/drawer'
-    | '/explore'
+    | '/notes'
+    | '/pile'
     | '/review'
     | '/stats'
     | '/capture/camera'
@@ -321,7 +333,8 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DrawerRoute: typeof DrawerRoute
-  ExploreRoute: typeof ExploreRoute
+  NotesRoute: typeof NotesRoute
+  PileRoute: typeof PileRoute
   ReviewRoute: typeof ReviewRoute
   StatsRoute: typeof StatsRoute
   CaptureCameraRoute: typeof CaptureCameraRoute
@@ -361,11 +374,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DrawerRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/explore': {
-      id: '/explore'
-      path: '/explore'
-      fullPath: '/explore'
-      preLoaderRoute: typeof ExploreRouteImport
+    '/notes': {
+      id: '/notes'
+      path: '/notes'
+      fullPath: '/notes'
+      preLoaderRoute: typeof NotesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pile': {
+      id: '/pile'
+      path: '/pile'
+      fullPath: '/pile'
+      preLoaderRoute: typeof PileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/review': {
@@ -521,7 +541,8 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DrawerRoute: DrawerRoute,
-  ExploreRoute: ExploreRoute,
+  NotesRoute: NotesRoute,
+  PileRoute: PileRoute,
   ReviewRoute: ReviewRoute,
   StatsRoute: StatsRoute,
   CaptureCameraRoute: CaptureCameraRoute,

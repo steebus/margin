@@ -1,6 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { Placeholder } from '../components/placeholder/Placeholder'
+import { Shelf } from '../components/shelf/Shelves'
+import { shelfSearch } from '../lib/shelf'
 
-export const Route = createFileRoute('/shelves/$shelfSlug')({
-  component: () => <Placeholder title="Shelf" />,
-})
+export const Route = createFileRoute('/shelves/$shelfSlug')({ validateSearch: shelfSearch, component: Shelf })

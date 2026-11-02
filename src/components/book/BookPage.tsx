@@ -1,13 +1,22 @@
 import { Link, useParams } from '@tanstack/react-router'
 import { useMutation, useQuery } from 'convex/react'
-import { ArrowLeft, MessageCircle, Plus, Trash2 } from 'lucide-react'
+import { ArrowLeft, Camera, Check, MessageCircle, PenLine, Quote } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { api } from '../../../convex/_generated/api'
-import { formatDate, type Status } from '../../lib/books'
+import { formatDate, type Book, type Status } from '../../lib/books'
+import { formatClock, pagesPerDay } from '../../lib/progress'
+import { daysToRead } from '../../lib/shelf'
 import { CoverControls } from './CoverControls'
+import { EntryList } from './EntryList'
+import { ProgressForm } from './ProgressForm'
+import { ReadDates } from './ReadDates'
+import { Reflection } from './Reflection'
 import { Thumb } from '../thumb/Thumb'
 
 const STATUS: Record<Status, string> = { tbr: 'TBR', reading: 'Reading', paused: 'Paused', read: 'Read', dnf: 'Stopped' }
+const FORMAT: Record<Book['format'], string> = { print: 'Print', ebook: 'Ebook', audio: 'Audiobook' }
 const RATINGS = [5, 4.5, 4, 3.5, 3, 2.5, 2, 1.5, 1, 0.5]
+const PREVIEW = 3
 
 export function NotFoundBook() {
   return (
@@ -19,23 +28,47 @@ export function NotFoundBook() {
   )
 }
 
+/** Everything known about the book, leaving out what isn't. */
+function bookFacts(book: Book, notes: number) {
+  const days = daysToRead(book)
+  const pace = pagesPerDay(book.pages, days)
+  return [
+    ['Pages', book.pages],
+    ['Length', book.audioSeconds && formatClock(book.audioSeconds)],
+    ['Published', book.published],
+    ['Format', FORMAT[book.format]],
+    ['Added', book.addedAt && formatDate(book.addedAt)],
+    ['Started', book.startedAt && formatDate(book.startedAt)],
+    ['Finished', book.finishedAt && formatDate(book.finishedAt)],
+    ['Days to read', days],
+    ['Pace', pace && `${pace} pages a day`],
+    ['Times read', book.readings.length > 1 && book.readings.length],
+    ['Notes and thoughts', notes],
+    ['Genres', book.subjects.join(', ')],
+    ['ISBN', book.isbn],
+    ['Recommended by', book.recommendedBy],
+  ].filter((row): row is [string, string | number] => !!row[1])
+}
+
 export function BookPage() {
   const { bookSlug } = useParams({ from: '/books/$bookSlug/' })
   const found = useQuery(api.library.bookBySlug, { slug: bookSlug })
-  const removeEntry = useMutation(api.entries.removeEntry)
   const setStatus = useMutation(api.library.setStatus)
   const setRating = useMutation(api.library.setRating)
+  const [logging, setLogging] = useState(false)
+  const [logged, setLogged] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!logged) return
+    const timer = setTimeout(() => setLogged(null), 2500)
+    return () => clearTimeout(timer)
+  }, [logged])
 
   if (found === undefined) return <p role="status">Finding your book…</p>
   if (found === null) return <NotFoundBook />
 
-  const { book, entries, cover } = found
+  const { book, entries, cover, prompt } = found
   const showProgress = book.status === 'reading' || book.status === 'paused'
-  const card = [
-    book.addedAt && { date: book.addedAt, event: 'Added' },
-    book.startedAt && { date: book.startedAt, event: 'Started' },
-    book.finishedAt && { date: book.finishedAt, event: 'Finished' },
-  ].filter(row => !!row)
 
   return (
     <div className="narrow stack">
@@ -46,15 +79,34 @@ export function BookPage() {
         <div className="book-head-text">
           <h1 className="book-title">{book.title}</h1>
           <p>{book.author}</p>
-          {book.format === 'audio' && <p className="where">Audiobook</p>}
           {showProgress && (
             <>
               <p className="pct pct-large">{book.percent}%</p>
               <span className="bar" aria-hidden="true"><span style={{ transform: `scaleX(${book.percent / 100})` }} /></span>
+              {book.format === 'audio' && book.seconds !== null && book.audioSeconds
+                ? <p className="where">{formatClock(book.seconds)} of {formatClock(book.audioSeconds)}</p>
+                : book.page !== null && book.pages && <p className="where">Page {book.page} of {book.pages}</p>}
             </>
           )}
         </div>
       </header>
+
+      <div className="actions">
+        {book.status !== 'read' && (
+          <button type="button" className="action" aria-expanded={logging} onClick={() => setLogging(!logging)}>
+            <Check aria-hidden="true" strokeWidth={2.25} />Log progress
+          </button>
+        )}
+        <Link to="/capture" search={{ book: book.slug, kind: 'excerpt' }} className="action"><Quote aria-hidden="true" strokeWidth={2.25} />Add excerpt</Link>
+        <Link to="/capture/camera" className="action action-camera"><Camera aria-hidden="true" strokeWidth={2.25} />Camera</Link>
+        <Link to="/capture" search={{ book: book.slug, kind: 'note' }} className="action"><PenLine aria-hidden="true" strokeWidth={2.25} />Add note</Link>
+        <Link to="/books/$bookSlug/buddy" params={{ bookSlug: book.slug }} className="action"><MessageCircle aria-hidden="true" strokeWidth={2.25} />Talk</Link>
+      </div>
+
+      {logging && book.status !== 'read' && <ProgressForm book={book} onSaved={label => { setLogging(false); setLogged(label) }} />}
+      {logged && <p role="status">Logged: {logged}</p>}
+
+      {prompt && <Reflection key={prompt.id} prompt={prompt} />}
 
       <div className="book-controls">
         <div className="field">
@@ -72,57 +124,31 @@ export function BookPage() {
         </div>
       </div>
 
-      <CoverControls readId={book.readId} cover={cover} />
+      <table className="card-table">
+        <caption>Library card</caption>
+        <tbody>
+          {bookFacts(book, entries.length).map(([label, value]) => (
+            <tr key={label}><th scope="row">{label}</th><td>{value}</td></tr>
+          ))}
+        </tbody>
+      </table>
 
-      {(card.length > 0 || book.recommendedBy) && (
-        <table className="card-table">
-          <caption>Library card</caption>
-          <tbody>
-            {card.map(row => (
-              <tr key={row.event}>
-                <td><span className="date-stamp">{formatDate(row.date)}</span></td>
-                <td>{row.event}</td>
-              </tr>
-            ))}
-            {book.recommendedBy && <tr><td colSpan={2}>Recommended by {book.recommendedBy}</td></tr>}
-          </tbody>
-        </table>
-      )}
+      <ReadDates book={book} />
 
       <hr className="rule" />
 
       <section className="stack" aria-labelledby="margin-heading">
         <h2 id="margin-heading" className="head">In the margin</h2>
-        {entries.length > 0 ? (
-          <ul className="entries">
-            {entries.map(e => (
-              <li key={e.id}>
-                <span className="entry-position">{e.kind === 'review' ? 'Your review' : e.kind === 'summary' ? `Summary${e.position ? `, ${e.position}` : ''}` : e.position}</span>
-                {e.kind === 'excerpt' ? <blockquote className="book-voice">{e.text}</blockquote> : <p className="hand">{e.text}</p>}
-                {e.kind !== 'review' && (
-                  <button
-                    type="button"
-                    className="entry-delete"
-                    aria-label={`Delete: ${e.text.slice(0, 40)}`}
-                    onClick={() => { if (confirm('Delete this entry, here and on Hardcover? This cannot be undone.')) void removeEntry({ id: e.id }) }}
-                  >
-                    <Trash2 aria-hidden="true" strokeWidth={2} />
-                  </button>
-                )}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p>Nothing in the margin yet. Add a line you underlined, or a thought about it.</p>
+        {entries.length > 0 ? <EntryList entries={[...entries].reverse().slice(0, PREVIEW)} /> : <p>Nothing in the margin yet. Add a line you underlined, or a thought about it.</p>}
+        {entries.length > 0 && (
+          <div className="btn-row">
+            <Link to="/books/$bookSlug/entries" params={{ bookSlug: book.slug }} className="btn">All {entries.length} notes and thoughts</Link>
+          </div>
         )}
       </section>
 
-      <div className="btn-row btn-row-fill">
-        <Link to="/capture" search={{ book: book.slug }} className="btn"><Plus aria-hidden="true" strokeWidth={2.25} />Add entry</Link>
-        <Link to="/books/$bookSlug/buddy" params={{ bookSlug: book.slug }} className="btn btn-solid">
-          <MessageCircle aria-hidden="true" strokeWidth={2.25} />Talk about it
-        </Link>
-      </div>
+      <hr className="rule" />
+      <CoverControls readId={book.readId} cover={cover} />
     </div>
   )
 }

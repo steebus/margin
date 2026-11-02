@@ -222,8 +222,16 @@ block one.
   - Pace: about one request every 4.5 seconds, because the limit Hardcover reports is 15.
 - **Backfill** brings in the history only. No buddy notes are generated for
   books that are already finished.
+- **Reads and dates** sync both ways. A book can have several reads (re-reads), each with its own start and finish
+  date, editable on the book page. A read removed in Margin is removed on Hardcover, but only by explicit id. Hardcover
+  doesn't date its read records, so the whole library is compared hourly, read-only, to catch date changes made there.
+- **Finishing a book** from either side asks one reflection question, written by the small text model from the book and
+  the reader's notes, once per book. The answer is a `reflection` entry that keeps its question. On Hardcover it's a
+  private note, without the question. Imports never ask.
+- **Progress** is logged by page, by hours and minutes, or by percent, remembered per book. The exact place is what
+  goes to Hardcover. Logging the last page marks the book finished.
 
-### 3.6 Knowledge graph and explore
+### 3.6 Knowledge graph
 - **Topics** have a *facet*: `theme` (feminism, grief), `form` (ergodic,
   epistolary), `technique` (grammar as meaning, unreliable narration),
   `genre`, `movement/period`, `setting`, `person/idea`. Topics are per user.
@@ -234,12 +242,8 @@ block one.
 - Topics are **suggested by the LLM and owned by the reader**: confirm, rename,
   merge or reject. Embeddings live in Convex vector search so similar topics
   get merged instead of piling up as duplicates.
-- **Explore:**
-  - a topic page showing your books on it, your notes tagged with it, and how
-    your thinking on it moved over time
-  - a force graph of books and topics
-  - "you keep coming back to…"
-  - connective prompts that feed back into the buddy
+- **Topic pages** show your books on a topic, your notes tagged with it, and how
+  your thinking on it moved over time. There is no Explore screen: Steve removed it, and the drawer took its tab.
 
 ### 3.7 Data and visualisation
 Books, pages and time read by month or year; status flow (TBR → read
@@ -301,11 +305,11 @@ into every prompt. Three layers:
 - Optionally sent as a daily push ("from the drawer"), off by default.
 
 ### 3.10 Home: the Desk
-At the top is the current book (or a swipeable stack of them if you're
-reading several), with the cover, progress ribbon, and actions: *Log
-progress*, *Add excerpt*, *Camera*, *Add note*, *Talk*. Under it, the space
+At the top are the books being read, each with its cover, progress and *Log
+progress*. Tapping a book opens its page, which carries the quick actions: *Log
+progress*, *Add excerpt*, *Camera* (phones only), *Add note*, *Talk*. Under them, the space
 for the **latest note** (the buddy's pending prompt if there is one,
-otherwise your most recent entry). Then the drawer card.
+otherwise your most recent entry). The drawer has its own tab.
 
 ### 3.11 Cover art
 Every book's thumbnail is an engraved ink illustration with one bold subject from its world, not a copy of its cover.
@@ -424,8 +428,10 @@ they open over their parent, and Back closes them.
 
 ```
 /                                   Desk
-/shelves                            all books; ?status=&tag=&topic=&source=&format=&rating=&year=&sort=&view=spines|grid|table
-/shelves/:shelfSlug                 a shelf (smart shelves = saved search params)
+/shelves                            every shelf, separated by status; ?q=&sort=&dir=&format=&rating=&genre=&view=catalog|table
+/shelves/:shelfSlug                 one status shelf (reading, paused, tbr, read, stopped); the same, plus ?group=
+/pile                               every finished book stacked by date, with notes down the side
+/notes                              all notes and reflections, by book; ?q=&kind=
 /books/:bookSlug                    book page (slug = title-author-shortid, e.g. house-of-leaves-danielewski-k3f9)
 /books/:bookSlug/reads/:n           a specific read (re-reads)
 /books/:bookSlug/entries            margin view; ?kind=&from=&to=
@@ -436,7 +442,6 @@ they open over their parent, and Back closes them.
 /e/:entryId                         short link → redirects to canonical entry URL
 /drawer                             random entry; ?kind=&topic=
 /topics  /topics/:topicSlug         topic index and topic page
-/explore                            graph; ?focus=topic:…|book:…&depth=
 /people/:personSlug                 a recommender and what came from them
 /stats                              ?range=&chart=
 /capture  /capture/camera  /capture/share   capture flows (share_target posts here)

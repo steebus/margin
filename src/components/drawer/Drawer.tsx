@@ -14,7 +14,7 @@ const kinds = [
 export function Drawer() {
   const { kind } = useSearch({ from: '/drawer' })
   const navigate = useNavigate({ from: '/drawer' })
-  const all = useQuery(api.library.recentEntries)
+  const all = useQuery(api.library.allEntries)
   const [card, setCard] = useState(0)
   const [hidden, setHidden] = useState<string[]>([])
 

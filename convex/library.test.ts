@@ -27,7 +27,7 @@ test('signed out, there is nothing to see and nothing can be done', async () => 
   const [{ readId }] = await as.query(api.library.myBooks, {})
 
   expect(await t.query(api.library.myBooks, {})).toEqual([])
-  expect(await t.query(api.library.recentEntries, {})).toEqual([])
+  expect(await t.query(api.library.allEntries, {})).toEqual([])
   expect(await t.query(api.library.bookBySlug, { slug: 'book-1' })).toBeNull()
   await expect(t.mutation(api.library.logProgress, { readId, percent: 50 })).rejects.toThrow()
   await expect(t.action(api.hardcover.importLibrary, {})).rejects.toThrow()
@@ -81,7 +81,7 @@ test('logging progress is kept in range, works out the page, and is written to t
   const [{ readId }] = await as.query(api.library.myBooks, {})
 
   await as.mutation(api.library.logProgress, { readId, percent: 50.4 })
-  expect((await as.query(api.library.myBooks, {}))[0]).toMatchObject({ percent: 50, page: 100 })
+  expect((await as.query(api.library.myBooks, {}))[0]).toMatchObject({ percent: 50, page: 101 })
   await as.mutation(api.library.logProgress, { readId, percent: 400 })
   expect((await as.query(api.library.myBooks, {}))[0].percent).toBe(100)
   await expect(as.mutation(api.library.logProgress, { readId, percent: Number.NaN })).rejects.toThrow()
@@ -89,17 +89,82 @@ test('logging progress is kept in range, works out the page, and is written to t
   expect(await t.run(ctx => ctx.db.query('progressLog').collect())).toHaveLength(2)
 })
 
-test('the shelf year comes from finishing, then starting, then adding', async () => {
+test('a page or a time is kept exactly, and the very last page finishes the book', async () => {
   const t = setup()
   const { userId, as } = await reader(t)
-  const items = [
-    item(1, { finishedAt: Date.UTC(2023, 0, 5), startedAt: Date.UTC(2022, 0, 5) }),
-    item(2, { startedAt: Date.UTC(2022, 0, 5) }),
-    item(3),
-  ]
-  await t.mutation(internal.hardcover.saveBooks, { userId, items })
+  const audio = item(2)
+  await t.mutation(internal.hardcover.saveBooks, { userId, items: [{ ...item(1), work: { ...item(1).work, pages: 1000 } }, { ...audio, work: { ...audio.work, pages: undefined, audioSeconds: 36_000 } }] })
+  const of = async (slug: string) => (await as.query(api.library.myBooks, {})).find(b => b.slug === slug)!
+  const { readId } = await of('book-1')
+
+  await as.mutation(api.library.logProgress, { readId, page: 996 })
+  expect(await of('book-1')).toMatchObject({ page: 996, percent: 99, status: 'reading' })
+
+  const listening = await of('book-2')
+  await as.mutation(api.library.logProgress, { readId: listening.readId, seconds: 9000 })
+  expect(await of('book-2')).toMatchObject({ seconds: 9000, percent: 25 })
+  await expect(as.mutation(api.library.logProgress, { readId: listening.readId, page: 10 })).rejects.toThrow()
+
+  await as.mutation(api.library.logProgress, { readId, page: 1000 })
+  const done = await of('book-1')
+  expect(done).toMatchObject({ percent: 100, status: 'read' })
+  expect(done.finishedAt).toBeTruthy()
+})
+
+test('logging a book from the TBR starts it', async () => {
+  const t = setup()
+  const { userId, as } = await reader(t)
+  await t.mutation(internal.hardcover.saveBooks, { userId, items: [item(1, { status: 'tbr', percent: 0 })] })
+  const [{ readId }] = await as.query(api.library.myBooks, {})
+  await as.mutation(api.library.logProgress, { readId, page: 10 })
+  expect((await as.query(api.library.myBooks, {}))[0].status).toBe('reading')
+})
+
+test('how a book is logged is remembered for that book', async () => {
+  const t = setup()
+  const { userId, as } = await reader(t)
+  await t.mutation(internal.hardcover.saveBooks, { userId, items: [item(1), item(2)] })
   const books = await as.query(api.library.myBooks, {})
-  expect(Object.fromEntries(books.map(b => [b.slug, b.year]))).toEqual({ 'book-1': 2023, 'book-2': 2022, 'book-3': 2024 })
+  await as.mutation(api.library.setProgressUnit, { readId: books.find(b => b.slug === 'book-1')!.readId, unit: 'percent' })
+  const after = await as.query(api.library.myBooks, {})
+  expect(after.find(b => b.slug === 'book-1')!.progressUnit).toBe('percent')
+  expect(after.find(b => b.slug === 'book-2')!.progressUnit).toBeNull()
+})
+
+test('reads can be edited: dates change, one can go, and it must make sense', async () => {
+  const t = setup()
+  const { userId, as } = await reader(t)
+  const first = { hardcoverId: 501, startedAt: Date.UTC(2020, 0, 1), finishedAt: Date.UTC(2020, 1, 1) }
+  const second = { hardcoverId: 502, startedAt: Date.UTC(2023, 0, 1), finishedAt: Date.UTC(2023, 1, 1) }
+  await t.mutation(internal.hardcover.saveBooks, { userId, items: [item(1, { status: 'read', percent: 100, readings: [first, second], startedAt: second.startedAt, finishedAt: second.finishedAt })] })
+  const [{ readId, readings }] = await as.query(api.library.myBooks, {})
+  expect(readings).toHaveLength(2)
+
+  await expect(as.mutation(api.library.saveReadings, { readId, readings: [{ startedAt: 10, finishedAt: 5 }] })).rejects.toThrow()
+  await expect(as.mutation(api.library.saveReadings, { readId, readings: [{}] })).rejects.toThrow()
+  await expect(as.mutation(api.library.saveReadings, { readId, readings: [{ hardcoverId: 999, startedAt: 10 }] })).rejects.toThrow()
+
+  const moved = Date.UTC(2023, 2, 1)
+  await as.mutation(api.library.saveReadings, { readId, readings: [{ ...second, finishedAt: moved }] })
+  const [book] = await as.query(api.library.myBooks, {})
+  expect(book.finishedAt).toBe(moved)
+  expect(book.readings).toEqual([{ ...second, finishedAt: moved }])
+  expect((await t.run(ctx => ctx.db.get(readId)))!.deletedReadings).toEqual([501])
+})
+
+test('starting a finished book again is a re-read, and finishing closes it', async () => {
+  const t = setup()
+  const { userId, as } = await reader(t)
+  await t.mutation(internal.hardcover.saveBooks, { userId, items: [item(1, { status: 'read', percent: 100, finishedAt: 100, readings: [{ hardcoverId: 1, finishedAt: 100 }] })] })
+  const [{ readId }] = await as.query(api.library.myBooks, {})
+  await as.mutation(api.library.setStatus, { readId, status: 'reading' })
+  let [book] = await as.query(api.library.myBooks, {})
+  expect(book.readings).toHaveLength(2)
+  expect(book.finishedAt).toBeNull()
+  await as.mutation(api.library.setStatus, { readId, status: 'read' })
+  ;[book] = await as.query(api.library.myBooks, {})
+  expect(book.readings).toHaveLength(2)
+  expect(book.readings[1].finishedAt).toBeTruthy()
 })
 
 test('the import walks every page of Hardcover and saves the books', async () => {

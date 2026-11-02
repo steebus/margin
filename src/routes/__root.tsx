@@ -1,16 +1,17 @@
 import { createRootRoute, Link, Outlet, useRouterState } from '@tanstack/react-router'
 import { useConvexAuth } from 'convex/react'
-import { Compass, LampDesk, Library, Camera, Moon, Sun, UserRound } from 'lucide-react'
+import { Archive, LampDesk, Library, Moon, NotebookPen, PenLine, Sun, UserRound } from 'lucide-react'
 import { SignIn } from '../components/settings/SignIn'
 import { setTheme, useTheme } from '../lib/theme'
 
 export const Route = createRootRoute({ component: Root })
 
 const tabs = [
-  { to: '/', label: 'Desk', Icon: LampDesk, match: (path: string) => path === '/' || path.startsWith('/drawer') },
-  { to: '/shelves', label: 'Shelves', Icon: Library, match: (path: string) => path.startsWith('/shelves') || path.startsWith('/books') },
-  { to: '/capture', label: 'Capture', Icon: Camera, match: (path: string) => path.startsWith('/capture') },
-  { to: '/explore', label: 'Explore', Icon: Compass, match: (path: string) => path.startsWith('/explore') },
+  { to: '/', label: 'Desk', Icon: LampDesk, match: (path: string) => path === '/' },
+  { to: '/shelves', label: 'Shelves', Icon: Library, match: (path: string) => path.startsWith('/shelves') || path.startsWith('/books') || path.startsWith('/pile') },
+  { to: '/notes', label: 'Notes', Icon: NotebookPen, match: (path: string) => path.startsWith('/notes') },
+  { to: '/drawer', label: 'Drawer', Icon: Archive, match: (path: string) => path.startsWith('/drawer') },
+  { to: '/capture', label: 'Capture', Icon: PenLine, match: (path: string) => path.startsWith('/capture') },
 ] as const
 
 function ThemeToggle() {

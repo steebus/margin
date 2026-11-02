@@ -26,7 +26,7 @@ test('a saved entry appears on its book and in the drawer, with its place', asyn
 
   const found = await as.query(api.library.bookBySlug, { slug: 'book-1' })
   expect(found?.entries).toMatchObject([{ kind: 'excerpt', text: 'A line I liked.', position: 'Page 41' }])
-  expect(await as.query(api.library.recentEntries, {})).toMatchObject([{ text: 'A line I liked.', where: 'Book One, Page 41', slug: 'book-1' }])
+  expect(await as.query(api.library.allEntries, {})).toMatchObject([{ text: 'A line I liked.', where: 'Book One, Page 41', slug: 'book-1' }])
 })
 
 test('saving the same words twice keeps one, but another page or kind is a new entry', async () => {
@@ -37,7 +37,7 @@ test('saving the same words twice keeps one, but another page or kind is a new e
   expect(again).toEqual({ id: first.id, duplicate: true })
   await as.mutation(api.entries.addEntry, { readId, kind: 'note', text: 'Same thought.', page: 6 })
   await as.mutation(api.entries.addEntry, { readId, kind: 'excerpt', text: 'Same thought.', page: 5 })
-  expect(await as.query(api.library.recentEntries, {})).toHaveLength(3)
+  expect(await as.query(api.library.allEntries, {})).toHaveLength(3)
 })
 
 test('bad input is refused', async () => {
@@ -63,7 +63,7 @@ test('only the owner can add to a read or remove an entry, and signed out nobody
   await expect(t.mutation(api.entries.removeEntry, { id })).rejects.toThrow()
 
   await as.mutation(api.entries.removeEntry, { id })
-  expect(await as.query(api.library.recentEntries, {})).toEqual([])
+  expect(await as.query(api.library.allEntries, {})).toEqual([])
 })
 
 test('the key ignores spacing, capitals and curly quotes, but not the words or the place', () => {

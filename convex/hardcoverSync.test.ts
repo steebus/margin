@@ -212,7 +212,7 @@ test('notes come in once, match ones sent from Margin, and follow edits; other j
   expect((await t.run(ctx => ctx.db.get(id)))?.hardcoverJournalId).toBe(6)
   expect(await save([{ ...note, journalId: 7, hardcoverBookId: 999, text: 'Book not on my shelves.' }])).toEqual({ added: 0 })
 
-  const texts = (await as.query(api.library.recentEntries, {})).map(e => e.text).sort()
+  const texts = (await as.query(api.library.allEntries, {})).map(e => e.text).sort()
   expect(texts).toEqual(['Edited on Hardcover.', 'Mine first.'])
 })
 
@@ -262,4 +262,89 @@ test('pure pieces: lengths, journal mapping and rounding', () => {
   expect(journalObject({ kind: 'summary', text: 'S', createdAt: 0 }, 3)).toMatchObject({ event: 'note', metadata: {} })
   expect(progressChanged(50, 51)).toBe(false)
   expect(progressChanged(50, 52)).toBe(true)
+})
+
+const readsBook = (user_book_reads: unknown[], status_id = 3) => ({
+  id: 10, status_id, date_added: '2020-01-01', edition: { pages: 200 },
+  book: { id: 1, title: 'Book One', pages: 200, cached_contributors: [{ author: { name: 'An Author' } }] },
+  user_book_reads,
+})
+
+test('every read comes in with its dates, oldest first, and the import fills in books it already had', async () => {
+  fakeHardcover({
+    library: [readsBook([{ id: 2, started_at: '2023-01-01', finished_at: '2023-02-01' }, { id: 1, started_at: '2020-01-01', finished_at: '2020-03-01' }])],
+  })
+  const { t, as, userId } = await setup()
+  await flushTimers(t.action(internal.hardcover.importFor, { userId }))
+  const [book] = await as.query(api.library.myBooks, {})
+  expect(book.readings).toEqual([
+    { hardcoverId: 1, startedAt: Date.UTC(2020, 0, 1), finishedAt: Date.UTC(2020, 2, 1) },
+    { hardcoverId: 2, startedAt: Date.UTC(2023, 0, 1), finishedAt: Date.UTC(2023, 1, 1) },
+  ])
+})
+
+test('the hourly pull brings in a date changed on Hardcover, and one cleared there clears here', async () => {
+  fakeHardcover({ library: [readsBook([{ id: 1, started_at: '2021-05-05', finished_at: null }], 2)] })
+  const { t, as, readId } = await setup()
+  await t.run(async ctx => {
+    await ctx.db.patch(readId, { startedAt: 5, readings: [{ hardcoverId: 1, startedAt: 5, finishedAt: 9 }] })
+    await ctx.db.insert('integrations', { userId: (await ctx.db.get(readId))!.userId, provider: 'hardcover', hardcoverUserId: 1, cursor: '2020-01-01T00:00:00Z' })
+  })
+  await flushTimers(t.action(internal.hardcover.reconcile, {}))
+  const [book] = await as.query(api.library.myBooks, {})
+  expect(book.readings).toEqual([{ hardcoverId: 1, startedAt: Date.UTC(2021, 4, 5) }])
+  expect(book.startedAt).toBe(Date.UTC(2021, 4, 5))
+})
+
+test('a change still waiting to send is not overwritten by the pull', async () => {
+  fakeHardcover({ library: [readsBook([{ id: 1, started_at: '2021-05-05' }], 2)] })
+  const { t, as, readId, userId } = await setup()
+  await as.mutation(api.library.saveReadings, { readId, readings: [{ startedAt: Date.UTC(2024, 0, 1) }] })
+  await t.run(ctx => ctx.db.insert('integrations', { userId, provider: 'hardcover', hardcoverUserId: 1, cursor: '2020-01-01T00:00:00Z' }))
+  // Hold the outbox row back, as if the send hasn't happened yet.
+  await t.run(async ctx => { for (const r of await ctx.db.query('hardcoverOutbox').collect()) await ctx.db.patch(r._id, { nextAt: Date.now() + 3_600_000 }) })
+  await flushTimers(t.action(internal.hardcover.reconcile, {}))
+  expect((await as.query(api.library.myBooks, {}))[0].startedAt).toBe(Date.UTC(2024, 0, 1))
+})
+
+test('edited reads go to Hardcover: changed dates, a new read, a removed one, and a cleared date', async () => {
+  const calls = fakeHardcover({ remote: { edition: { pages: 200 }, book: { pages: 200 }, user_book_reads: [{ id: 3 }] } })
+  const { t, as, readId } = await setup()
+  await t.run(ctx => ctx.db.patch(readId, { readings: [{ hardcoverId: 1, startedAt: 1000 }, { hardcoverId: 2, startedAt: 2000 }, { hardcoverId: 3, startedAt: 3000 }] }))
+  await as.mutation(api.library.saveReadings, {
+    readId,
+    readings: [
+      { hardcoverId: 1, startedAt: Date.UTC(2020, 0, 1) },
+      { hardcoverId: 3, startedAt: Date.UTC(2021, 0, 1), finishedAt: Date.UTC(2021, 1, 1) },
+      { startedAt: Date.UTC(2024, 0, 1) },
+    ],
+  })
+  await flushTimers(t.action(internal.hardcover.flush, {}))
+  const sent = writes(calls)
+
+  expect(sent.filter(c => c.query.includes('delete_user_book_read')).map(c => c.variables.id)).toEqual([2])
+  const updates = sent.filter(c => c.query.includes('update_user_book_read'))
+  expect(updates.map(c => c.variables.id)).toEqual([1, 3])
+  expect(updates[0].variables.object).toEqual({ started_at: '2020-01-01', finished_at: null })
+  expect(updates[1].variables.object).toEqual({ started_at: '2021-01-01', finished_at: '2021-02-01' })
+  expect(sent.filter(c => c.query.includes('insert_user_book_read'))[0].variables.read).toMatchObject({ started_at: '2024-01-01', finished_at: null, progress_pages: 20 })
+
+  const after = await t.run(ctx => ctx.db.get(readId))
+  expect(after!.deletedReadings).toEqual([])
+  expect(after!.readings!.at(-1)!.hardcoverId).toBe(1)
+})
+
+test('a read with no id takes over the one Hardcover already has, rather than adding a twin', async () => {
+  const calls = fakeHardcover()
+  const { t, as, readId } = await setup()
+  await as.mutation(api.library.setStatus, { readId, status: 'read' })
+  await flushTimers(t.action(internal.hardcover.flush, {}))
+  expect(writes(calls).filter(c => c.query.includes('insert_user_book_read'))).toEqual([])
+  expect((await t.run(ctx => ctx.db.get(readId)))!.readings!.at(-1)!.hardcoverId).toBe(55)
+})
+
+test('a logged page goes to Hardcover exactly, not rounded through percent', () => {
+  expect(progressFields(25, { pages: 1000 }, null, { page: 246 })).toEqual({ progress_pages: 246 })
+  expect(progressFields(25, { audio_seconds: 1000 }, null, { seconds: 251 })).toEqual({ progress_seconds: 251 })
+  expect(progressFields(100, { pages: 1000 }, null, { page: 246 })).toEqual({ progress_pages: 1000 })
 })

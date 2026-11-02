@@ -22,7 +22,9 @@ import type * as lib_entryKey from "../lib/entryKey.js";
 import type * as lib_hardcover from "../lib/hardcover.js";
 import type * as lib_outbox from "../lib/outbox.js";
 import type * as lib_redirects from "../lib/redirects.js";
+import type * as lib_reflection from "../lib/reflection.js";
 import type * as library from "../library.js";
+import type * as reflect from "../reflect.js";
 import type * as users from "../users.js";
 
 import type {
@@ -46,7 +48,9 @@ declare const fullApi: ApiFromModules<{
   "lib/hardcover": typeof lib_hardcover;
   "lib/outbox": typeof lib_outbox;
   "lib/redirects": typeof lib_redirects;
+  "lib/reflection": typeof lib_reflection;
   library: typeof library;
+  reflect: typeof reflect;
   users: typeof users;
 }>;
 

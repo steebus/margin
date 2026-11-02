@@ -3,8 +3,9 @@ import { ConvexError, v } from 'convex/values'
 import { internal } from './_generated/api'
 import { action, internalAction, internalMutation, internalQuery, query } from './_generated/server'
 import { entryKey } from './lib/entryKey'
+import { askForReflection } from './lib/reflection'
 import {
-  JOURNAL_FIELDS, journalObject, LIBRARY_QUERY, mapJournal, mapUserBook, progressChanged, readFields, statusId,
+  JOURNAL_FIELDS, journalObject, LIBRARY_QUERY, mapJournal, mapUserBook, progressChanged, progressFields, readFields, readingDates, statusId,
   type HardcoverJournal, type HardcoverUserBook,
 } from './lib/hardcover'
 import { retryDelayMs } from './lib/outbox'
@@ -56,6 +57,7 @@ const bookItem = v.object({
     isbns: v.array(v.string()),
     coverUrl: v.optional(v.string()),
     pages: v.optional(v.number()),
+    audioSeconds: v.optional(v.number()),
     subjects: v.array(v.string()),
   }),
   read: v.object({
@@ -67,6 +69,8 @@ const bookItem = v.object({
     percent: v.number(),
     progressKnown: v.optional(v.boolean()),
     page: v.optional(v.number()),
+    seconds: v.optional(v.number()),
+    readings: v.optional(v.array(v.object({ hardcoverId: v.optional(v.number()), startedAt: v.optional(v.number()), finishedAt: v.optional(v.number()) }))),
     format,
     owned: v.boolean(),
     rating: v.optional(v.number()),
@@ -102,14 +106,20 @@ export const saveBooks = internalMutation({
           await ctx.db.patch(mine._id, {
             status: read.status,
             rating: read.rating,
-            startedAt: read.startedAt ?? mine.startedAt,
-            finishedAt: read.status === 'read' ? read.finishedAt ?? mine.finishedAt : undefined,
-            progress: percent === mine.progress.percent ? mine.progress : { percent, page: read.page },
+            // When Hardcover sent its reads they're the truth, so a date cleared there clears here.
+            startedAt: read.readings ? read.startedAt : read.startedAt ?? mine.startedAt,
+            finishedAt: read.status !== 'read' ? undefined : read.readings ? read.finishedAt : read.finishedAt ?? mine.finishedAt,
+            ...(read.readings ? { readings: read.readings } : {}),
+            progress: percent === mine.progress.percent ? mine.progress : { percent, page: read.page, seconds: read.seconds },
             hardcoverUserBookId: read.hardcoverUserBookId,
           })
           if (percent !== mine.progress.percent) {
             await ctx.db.insert('progressLog', { userId, readId: mine._id, at: Date.now(), percent, page: read.page, origin: 'hardcover' })
           }
+          if (mine.status !== 'read' && read.status === 'read') await askForReflection(ctx, userId, mine._id)
+        } else if (!update && !mine.readings && read.readings) {
+          // An import leaves a read alone, but fills in the reads it had never brought over.
+          await ctx.db.patch(mine._id, { readings: read.readings, startedAt: read.startedAt ?? mine.startedAt, finishedAt: read.finishedAt ?? mine.finishedAt })
         }
       } else {
         readId = await ctx.db.insert('reads', {
@@ -119,7 +129,8 @@ export const saveBooks = internalMutation({
           addedAt: read.addedAt,
           startedAt: read.startedAt,
           finishedAt: read.finishedAt,
-          progress: { percent: read.percent, page: read.page },
+          progress: { percent: read.percent, page: read.page, seconds: read.seconds },
+          readings: read.readings,
           format: read.format,
           ownership: read.owned ? 'owned' : undefined,
           rating: read.rating,
@@ -129,6 +140,8 @@ export const saveBooks = internalMutation({
           hardcoverUserBookId: read.hardcoverUserBookId,
         })
         added++
+        // Only a sync means it was just finished. An import is history, and isn't asked about (SPEC 3.5).
+        if (update && read.status === 'read') await askForReflection(ctx, userId, readId)
       }
 
       if (read.review && readId) {
@@ -175,7 +188,10 @@ export const saveJournal = internalMutation({
       if (!work || !read) continue
       const pos = { page: item.page, percent: item.percent }
       const originKey = entryKey(work._id, item.kind, item.text, pos)
-      const same = await ctx.db.query('entries').withIndex('by_user_origin_key', q => q.eq('userId', userId).eq('originKey', originKey)).first()
+      // Margin sends summaries and reflections as notes, so one on its way back may be either.
+      const keys = item.kind === 'note' ? [originKey, entryKey(work._id, 'summary', item.text, pos), entryKey(work._id, 'reflection', item.text, pos)] : [originKey]
+      let same = null
+      for (const key of keys) same ??= await ctx.db.query('entries').withIndex('by_user_origin_key', q => q.eq('userId', userId).eq('originKey', key)).first()
       if (same) {
         await ctx.db.patch(same._id, { hardcoverJournalId: item.journalId })
         continue
@@ -196,9 +212,19 @@ const quotes = (page: HardcoverJournal[]) => page.map(mapJournal).filter(item =>
 /** Brings the reader's Hardcover library in, with notes and reviews, and starts the sync. Safe to run again. */
 export const importLibrary = action({
   args: {},
-  handler: async (ctx): Promise<{ added: number; existing: number; notes: number }> => {
+  handler: async (ctx): Promise<Totals> => {
     const userId = await getAuthUserId(ctx)
     if (!userId) throw new ConvexError('Sign in to import your library')
+    return ctx.runAction(internal.hardcover.importFor, { userId })
+  },
+})
+
+type Totals = { added: number; existing: number; notes: number }
+
+/** The import itself. Only reads from Hardcover. */
+export const importFor = internalAction({
+  args: { userId: v.id('users') },
+  handler: async (ctx, { userId }): Promise<Totals> => {
     const startedAt = Date.now()
     const totals = { added: 0, existing: 0, notes: 0 }
 
@@ -251,6 +277,29 @@ export const recordSync = internalMutation({
   args: { id: v.id('integrations'), cursor: v.optional(v.string()), error: v.optional(v.string()) },
   handler: async (ctx, { id, cursor, error }) => {
     await ctx.db.patch(id, { ...(cursor ? { cursor, lastSyncAt: Date.now() } : {}), lastError: error })
+  },
+})
+
+/**
+ * Hourly, the whole library: Hardcover doesn't date its read records, so a date changed there can't be spotted
+ * by the two-minute check. Only reads from Hardcover. A change of Margin's still waiting to send wins, as ever.
+ */
+export const reconcile = internalAction({
+  args: {},
+  handler: async ctx => {
+    for (const link of await ctx.runQuery(internal.hardcover.connections, {})) {
+      try {
+        for (let offset = 0; ; offset += PAGE) {
+          const data = await gql<{ me: { user_books: HardcoverUserBook[] }[] }>(LIBRARY_QUERY, { limit: PAGE, offset })
+          const page = data.me?.[0]?.user_books ?? []
+          await ctx.runMutation(internal.hardcover.saveBooks, { userId: link.userId, items: mapped(page), update: true })
+          if (page.length < PAGE) break
+          await pace()
+        }
+      } catch (e) {
+        await ctx.runMutation(internal.hardcover.recordSync, { id: link._id, error: message(e) })
+      }
+    }
   },
 })
 
@@ -343,6 +392,25 @@ export const finish = internalMutation({
   },
 })
 
+/** Keeps Hardcover's id for a read it just created, so the next push updates it instead of adding another. */
+// ponytail: matched by position, so removing an earlier read mid-push could misfile it. The hourly pull corrects that.
+export const saveReadingId = internalMutation({
+  args: { readId: v.id('reads'), index: v.number(), hardcoverId: v.number() },
+  handler: async (ctx, { readId, index, hardcoverId }) => {
+    const read = await ctx.db.get(readId)
+    if (!read?.readings?.[index] || read.readings[index].hardcoverId) return
+    await ctx.db.patch(readId, { readings: read.readings.map((r, i) => (i === index ? { ...r, hardcoverId } : r)) })
+  },
+})
+
+export const clearDeleted = internalMutation({
+  args: { readId: v.id('reads'), ids: v.array(v.number()) },
+  handler: async (ctx, { readId, ids }) => {
+    const read = await ctx.db.get(readId)
+    if (read) await ctx.db.patch(readId, { deletedReadings: (read.deletedReadings ?? []).filter(id => !ids.includes(id)) })
+  },
+})
+
 export const fail = internalMutation({
   args: { id: v.id('hardcoverOutbox'), version: v.number(), error: v.string() },
   handler: async (ctx, { id, version, error }) => {
@@ -386,9 +454,44 @@ export const flush = internalAction({
             )
             check(book.update_user_book, 'the book')
 
-            if (read.status !== 'tbr') {
+            const gone = read.deletedReadings ?? []
+            for (const id of gone) {
+              await pace()
+              await gql('mutation($id: Int!) { delete_user_book_read(id: $id) { id } }', { id })
+            }
+            if (gone.length) await ctx.runMutation(internal.hardcover.clearDeleted, { readId: row.readId, ids: gone })
+
+            if (read.readings?.length) {
+              // Every read goes, each with its own dates. Only the latest carries the progress.
+              for (const [index, reading] of read.readings.entries()) {
+                const latest = index === read.readings.length - 1
+                const object = {
+                  ...(latest && read.status !== 'tbr' ? progressFields(read.progress.percent, remote.edition, remote.book, { page: read.progress.page, seconds: read.progress.seconds }) : null),
+                  ...readingDates(reading),
+                }
+                await pace()
+                // A latest read with no id may be Hardcover's own, from before Margin kept ids: never add a twin of it.
+                const theirs = remote.user_book_reads?.[0]?.id
+                const id = reading.hardcoverId ?? (latest && theirs && !read.readings.some(r => r.hardcoverId === theirs) ? theirs : undefined)
+                if (id) {
+                  const update = await gql<{ update_user_book_read: { error?: string } }>(
+                    'mutation($id: Int!, $object: DatesReadInput!) { update_user_book_read(id: $id, object: $object) { id error } }',
+                    { id, object },
+                  )
+                  check(update.update_user_book_read, 'the read')
+                  if (!reading.hardcoverId) await ctx.runMutation(internal.hardcover.saveReadingId, { readId: row.readId, index, hardcoverId: id })
+                } else {
+                  const insert = await gql<{ insert_user_book_read: { id?: number; error?: string } }>(
+                    'mutation($id: Int!, $read: DatesReadInput!) { insert_user_book_read(user_book_id: $id, user_book_read: $read) { id error } }',
+                    { id: read.hardcoverUserBookId, read: object },
+                  )
+                  check(insert.insert_user_book_read, 'the read')
+                  if (insert.insert_user_book_read.id) await ctx.runMutation(internal.hardcover.saveReadingId, { readId: row.readId, index, hardcoverId: insert.insert_user_book_read.id })
+                }
+              }
+            } else if (read.status !== 'tbr') {
               const fields = readFields(
-                { status: read.status, percent: read.progress.percent, startedAt: read.startedAt, finishedAt: read.finishedAt },
+                { status: read.status, percent: read.progress.percent, page: read.progress.page, seconds: read.progress.seconds, startedAt: read.startedAt, finishedAt: read.finishedAt },
                 remote.edition, remote.book,
               )
               await pace()

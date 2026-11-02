@@ -1,10 +1,12 @@
 import { Link } from '@tanstack/react-router'
-import { useMutation, useQuery } from 'convex/react'
-import { Camera, Check, Dices, MessageCircle, PenLine, Quote } from 'lucide-react'
+import { useQuery } from 'convex/react'
+import { Check } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { toastDue } from '../../lib/drawer-rules'
+import { ProgressForm } from '../book/ProgressForm'
+import { Reflection } from '../book/Reflection'
 import { Thumb } from '../thumb/Thumb'
 import { Typewriter } from '../typewriter/Typewriter'
 
@@ -27,20 +29,16 @@ function Masthead() {
 
 export function Desk() {
   const books = useQuery(api.library.myBooks)
-  const entries = useQuery(api.library.recentEntries)
-  const logProgress = useMutation(api.library.logProgress)
-  const [index, setIndex] = useState(0)
-  const [draft, setDraft] = useState<number | null>(null)
-  const [logging, setLogging] = useState(false)
-  const [saving, setSaving] = useState(false)
-  const [failed, setFailed] = useState(false)
-  const [stamp, setStamp] = useState<number | null>(null)
+  const entries = useQuery(api.library.allEntries)
+  const waiting = useQuery(api.reflect.waiting)
+  const [logging, setLogging] = useState<string | null>(null)
+  const [stamp, setStamp] = useState<string | null>(null)
   const [toast, setToast] = useState(false)
 
   const current = (books ?? []).filter(b => b.status === 'reading')
-  const book = current[Math.min(index, Math.max(current.length - 1, 0))]
+  const logged = current.find(b => b.readId === logging)
   const latest = entries?.[0]
-  const percent = draft ?? book?.percent ?? 0
+  const prompt = waiting?.[0]
 
   // Only once there's something in the drawer to offer.
   useEffect(() => {
@@ -65,14 +63,6 @@ export function Desk() {
     return () => clearTimeout(timer)
   }, [stamp])
 
-  const go = (i: number) => {
-    setIndex(i)
-    setLogging(false)
-    setDraft(null)
-    setStamp(null)
-    setFailed(false)
-  }
-
   if (books === undefined) return <div className="desk"><Masthead /><p role="status">Opening your desk…</p></div>
 
   if (books.length === 0) {
@@ -87,41 +77,26 @@ export function Desk() {
     )
   }
 
-  const save = async () => {
-    if (!book) return
-    setSaving(true)
-    setFailed(false)
-    try {
-      await logProgress({ readId: book.readId, percent })
-      setLogging(false)
-      setDraft(null)
-      setStamp(percent)
-      navigator.vibrate?.(15)
-    } catch {
-      setFailed(true)
-    } finally {
-      setSaving(false)
-    }
-  }
-
   return (
     <div className="desk">
       <Masthead />
 
-      {book ? (
+      {current.length > 0 ? (
         <section className="reading" aria-label="Books you're reading" style={{ gridTemplateColumns: `repeat(${Math.min(current.length, 2)}, minmax(0, 1fr))` }}>
-          {current.map((c, i) => {
-            const value = i === index && draft !== null ? draft : c.percent
-            return (
-              <button key={c.readId} type="button" className="reading-cell" aria-pressed={c.readId === book.readId} onClick={() => go(i)}>
+          {current.map(c => (
+            <div key={c.readId} className="reading-slot">
+              <Link to="/books/$bookSlug" params={{ bookSlug: c.slug }} className="reading-cell">
                 <span className="reading-title">{c.title}</span>
                 <span className="reading-sub">{c.format === 'audio' ? 'Audiobook' : c.author}</span>
                 <Thumb book={c} />
-                <span className="pct">{value}%</span>
-                <span className="bar" aria-hidden="true"><span style={{ transform: `scaleX(${value / 100})` }} /></span>
+                <span className="pct">{c.percent}%</span>
+                <span className="bar" aria-hidden="true"><span style={{ transform: `scaleX(${c.percent / 100})` }} /></span>
+              </Link>
+              <button type="button" className="reading-log" aria-expanded={logging === c.readId} onClick={() => setLogging(logging === c.readId ? null : c.readId)}>
+                <Check aria-hidden="true" strokeWidth={2.25} />Log progress
               </button>
-            )
-          })}
+            </div>
+          ))}
           <AnimatePresence>
             {stamp !== null && (
               <motion.span
@@ -132,7 +107,7 @@ export function Desk() {
                 exit={{ opacity: 0 }}
                 transition={{ type: 'spring', stiffness: 800, damping: 26 }}
               >
-                Logged {stamp}%
+                {stamp}
               </motion.span>
             )}
           </AnimatePresence>
@@ -140,15 +115,17 @@ export function Desk() {
       ) : (
         <div className="box stack">
           <p>You're not reading anything right now. Pick something from your TBR.</p>
-          <div className="btn-row"><Link to="/shelves" search={{ status: 'tbr' }} className="btn btn-solid">Open your TBR</Link></div>
+          <div className="btn-row"><Link to="/shelves/$shelfSlug" params={{ shelfSlug: 'tbr' }} className="btn btn-solid">Open your TBR</Link></div>
         </div>
       )}
+
+      {logged && <ProgressForm key={logged.readId} book={logged} onSaved={label => { setLogging(null); setStamp(label) }} />}
 
       <hr className="rule" />
 
       <section className="note" aria-labelledby="note-heading">
-        <h2 id="note-heading" className="head">Latest note</h2>
-        {latest ? (
+        <h2 id="note-heading" className="head">{prompt ? 'A question' : 'Latest note'}</h2>
+        {prompt ? <Reflection key={prompt.id} prompt={prompt} /> : latest ? (
           <div className="box">
             {latest.kind === 'excerpt' ? <p className="book-voice">{latest.text}</p> : <p className="hand">{latest.text}</p>}
             <p className="where">{latest.where}</p>
@@ -157,43 +134,6 @@ export function Desk() {
           <Typewriter text="Nothing here yet. Your notes, and your buddy's questions, will land on this sheet." />
         )}
       </section>
-
-      {book && (
-        <>
-          <div className="actions">
-            <button type="button" className="action" aria-expanded={logging} onClick={() => setLogging(!logging)}>
-              <Check aria-hidden="true" strokeWidth={2.25} />Log progress
-            </button>
-            <Link to="/capture" search={{ book: book.slug, kind: 'excerpt' }} className="action"><Quote aria-hidden="true" strokeWidth={2.25} />Add excerpt</Link>
-            <Link to="/capture/camera" className="action"><Camera aria-hidden="true" strokeWidth={2.25} />Camera</Link>
-            <Link to="/capture" search={{ book: book.slug, kind: 'note' }} className="action"><PenLine aria-hidden="true" strokeWidth={2.25} />Add note</Link>
-            <Link to="/books/$bookSlug/buddy" params={{ bookSlug: book.slug }} className="action">
-              <MessageCircle aria-hidden="true" strokeWidth={2.25} />Talk
-            </Link>
-          </div>
-
-          {logging && (
-            <form className="log box" onSubmit={e => { e.preventDefault(); void save() }}>
-              <label htmlFor="progress">
-                {book.title}: {percent}%
-                {book.format !== 'audio' && book.pages ? `, page ${Math.round((percent / 100) * book.pages)}` : ''}
-              </label>
-              <input
-                id="progress"
-                type="range"
-                min={0}
-                max={100}
-                value={percent}
-                onChange={e => setDraft(Number(e.target.value))}
-              />
-              <button type="submit" className="btn btn-solid" disabled={saving}>{saving ? 'Saving…' : 'Save progress'}</button>
-              {failed && <p role="alert">That didn't save. Check your connection and try again.</p>}
-            </form>
-          )}
-        </>
-      )}
-
-      <Link to="/drawer" className="btn drawer-link"><Dices aria-hidden="true" strokeWidth={2.25} />Open the drawer</Link>
 
       <AnimatePresence>
         {toast && latest && (

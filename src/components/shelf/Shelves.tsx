@@ -1,77 +1,30 @@
-import { Link, useNavigate, useSearch } from '@tanstack/react-router'
+import { Link, useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import { useQuery } from 'convex/react'
-import { Star, StarHalf } from 'lucide-react'
-import { useState } from 'react'
-import { Tick } from '../thumb/Marks'
+import { ArrowLeft, Layers } from 'lucide-react'
 import { api } from '../../../convex/_generated/api'
-import type { Book, Status } from '../../lib/books'
-import { Thumb } from '../thumb/Thumb'
+import { filterBooks, groupBooks, SHELVES, sortBooks, type GroupId, type ShelfSearch } from '../../lib/shelf'
+import { BookTable, Catalog, type Size } from './BookList'
+import { ShelfTools, useCatalogSize } from './ShelfTools'
+import type { Book } from '../../lib/books'
 
-const statuses: { id: Status | undefined; label: string }[] = [
-  { id: undefined, label: 'All' },
-  { id: 'reading', label: 'Reading' },
-  { id: 'tbr', label: 'TBR' },
-  { id: 'read', label: 'Read' },
-  { id: 'paused', label: 'Paused' },
-  { id: 'dnf', label: 'Stopped' },
-]
+const PREVIEW = 12
 
-const sizes = [
-  { id: 'small', label: 'Small', px: 68 },
-  { id: 'medium', label: 'Medium', px: 88 },
-  { id: 'large', label: 'Large', px: 116 },
-] as const
-type Size = (typeof sizes)[number]['id']
-
-const SIZE_KEY = 'margin.catalogSize'
-
-const savedSize = (): Size => {
-  try {
-    const value = localStorage.getItem(SIZE_KEY)
-    return sizes.some(s => s.id === value) ? (value as Size) : 'medium'
-  } catch {
-    return 'medium'
-  }
+function List({ books, search, size, onChange }: { books: Book[]; search: ShelfSearch; size: Size; onChange: (patch: Partial<ShelfSearch>) => void }) {
+  return search.view === 'table'
+    ? <BookTable books={books} sort={search.sort ?? 'recent'} dir={search.dir} onSort={(sort, dir) => onChange({ sort, dir })} />
+    : <Catalog books={books} size={size} />
 }
 
-export function Stars({ rating }: { rating: number }) {
-  return (
-    <span className="stars" role="img" aria-label={`${rating} stars`}>
-      {Array.from({ length: Math.floor(rating) }, (_, i) => <Star key={i} aria-hidden="true" fill="currentColor" />)}
-      {rating % 1 > 0 && <StarHalf aria-hidden="true" fill="currentColor" />}
-    </span>
-  )
-}
-
-function Selected({ book }: { book: Book }) {
-  return (
-    <aside className="selected" aria-label={`Selected: ${book.title}`}>
-      <Thumb book={book} marks={false} />
-      <div className="selected-text">
-        <p className="selected-title">{book.title}</p>
-        <p className="where">{book.author}</p>
-        {book.rating !== null && <Stars rating={book.rating} />}
-      </div>
-      <Link to="/books/$bookSlug" params={{ bookSlug: book.slug }} className="btn btn-solid">Open</Link>
-    </aside>
-  )
-}
-
+/** Every shelf at a glance, separated by reading status. Each one opens into its own page. */
 export function Shelves() {
-  const { status, view = 'catalog' } = useSearch({ from: '/shelves/' })
-  const books = useQuery(api.library.myBooks)
+  const search = useSearch({ from: '/shelves/' })
   const navigate = useNavigate({ from: '/shelves/' })
-  const [size, setSize] = useState(savedSize)
-  const [selected, setSelected] = useState<string | null>(null)
+  const books = useQuery(api.library.myBooks)
+  const [size, setSize] = useCatalogSize()
+  const onChange = (patch: Partial<ShelfSearch>) => navigate({ search: prev => ({ ...prev, ...patch }), replace: true })
 
-  const shown = (books ?? []).filter(b => !status || b.status === status)
-  const years = [...new Set(shown.map(b => b.year))].sort((a, b) => b - a)
-  const picked = books?.find(b => b.slug === selected)
-
-  const chooseSize = (next: Size) => {
-    setSize(next)
-    try { localStorage.setItem(SIZE_KEY, next) } catch { /* private window: it just won't persist */ }
-  }
+  const narrowed = !!(search.q || search.format || search.rating || search.genre)
+  const shown = sortBooks(filterBooks(books ?? [], search), search.sort, search.dir)
 
   return (
     <div className="stack shelves">
@@ -79,41 +32,6 @@ export function Shelves() {
         <h1 className="title-head">Shelves</h1>
         <p>{books === undefined ? '' : `${shown.length} ${shown.length === 1 ? 'book' : 'books'}`}</p>
       </header>
-
-      <div className="segments scroll-x" role="group" aria-label="Filter by status">
-        {statuses.map(s => (
-          <button
-            key={s.label}
-            type="button"
-            aria-pressed={status === s.id}
-            onClick={() => navigate({ search: prev => ({ ...prev, status: s.id }) })}
-          >
-            {s.label}
-          </button>
-        ))}
-      </div>
-
-      <div className="shelves-tools">
-        <div className="segments" role="group" aria-label="View">
-          {(['catalog', 'table'] as const).map(v => (
-            <button
-              key={v}
-              type="button"
-              aria-pressed={view === v}
-              onClick={() => navigate({ search: prev => ({ ...prev, view: v }) })}
-            >
-              {v === 'catalog' ? 'Catalog' : 'Table'}
-            </button>
-          ))}
-        </div>
-        {view === 'catalog' && (
-          <div className="segments" role="group" aria-label="Cell size">
-            {sizes.map(s => (
-              <button key={s.id} type="button" aria-pressed={size === s.id} onClick={() => chooseSize(s.id)}>{s.label}</button>
-            ))}
-          </div>
-        )}
-      </div>
 
       {books === undefined && <p role="status">Opening your shelves…</p>}
 
@@ -124,60 +42,83 @@ export function Shelves() {
         </div>
       )}
 
-      {books !== undefined && books.length > 0 && shown.length === 0 && (
-        <div className="box stack">
-          <p>No books with this status yet.</p>
-          <div className="btn-row">
-            <button type="button" className="btn" onClick={() => navigate({ search: prev => ({ ...prev, status: undefined }) })}>Show all books</button>
-          </div>
-        </div>
+      {books && books.length > 0 && (
+        <>
+          <Link to="/pile" className="btn pile-link"><Layers aria-hidden="true" strokeWidth={2.25} />The pile: everything you've read</Link>
+          <ShelfTools search={search} onChange={onChange} books={books} size={size} onSize={setSize} />
+          {shown.length === 0 && <p>No books match that.</p>}
+          {SHELVES.map(shelf => {
+            const all = shown.filter(b => b.status === shelf.status)
+            if (!all.length) return null
+            // A search shows everything it found. Otherwise each shelf is a sample of itself.
+            const list = narrowed ? all : all.slice(0, PREVIEW)
+            return (
+              <section key={shelf.slug} className="stack" aria-labelledby={`shelf-${shelf.slug}`}>
+                <h2 id={`shelf-${shelf.slug}`} className="year">
+                  <Link to="/shelves/$shelfSlug" params={{ shelfSlug: shelf.slug }} search={search}>{shelf.label} <span className="shelf-count">{all.length}</span></Link>
+                </h2>
+                <List books={list} search={search} size={size} onChange={onChange} />
+                {list.length < all.length && (
+                  <div className="btn-row"><Link to="/shelves/$shelfSlug" params={{ shelfSlug: shelf.slug }} search={search} className="btn">All {all.length} {shelf.label}</Link></div>
+                )}
+              </section>
+            )
+          })}
+        </>
       )}
+    </div>
+  )
+}
 
-      {view === 'table' && shown.length > 0 && (
-        <div className="table-wrap">
-          <table>
-            <thead><tr><th>Title</th><th>Author</th><th>Year</th><th>Rating</th></tr></thead>
-            <tbody>
-              {shown.map(b => (
-                <tr key={b.slug}>
-                  <td><Link to="/books/$bookSlug" params={{ bookSlug: b.slug }}>{b.title}</Link></td>
-                  <td>{b.author}</td>
-                  <td>{b.year}</td>
-                  <td>{b.rating ?? ''}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+/** One shelf in full. This is where books group by month, year, date published, days to read and so on. */
+export function Shelf() {
+  const { shelfSlug } = useParams({ from: '/shelves/$shelfSlug' })
+  const search = useSearch({ from: '/shelves/$shelfSlug' })
+  const navigate = useNavigate({ from: '/shelves/$shelfSlug' })
+  const books = useQuery(api.library.myBooks)
+  const [size, setSize] = useCatalogSize()
+  const shelf = SHELVES.find(s => s.slug === shelfSlug)
+  const onChange = (patch: Partial<ShelfSearch>) => navigate({ search: prev => ({ ...prev, ...patch }), replace: true })
 
-      {view === 'catalog' && years.map(year => (
-        <section key={year} aria-labelledby={`year-${year}`}>
-          <h2 id={`year-${year}`} className="year"><span>{year}</span></h2>
-          <div key={size} className="catalog" data-size={size} style={{ '--cell': `${sizes.find(s => s.id === size)!.px}px` } as React.CSSProperties}>
-            {shown.filter(b => b.year === year).map(b => (
-              <button
-                key={b.slug}
-                type="button"
-                className="cell"
-                aria-pressed={selected === b.slug}
-                aria-label={`${b.title} by ${b.author}`}
-                onClick={() => setSelected(selected === b.slug ? null : b.slug)}
-              >
-                <span className="cell-head">
-                  <span className="cell-title">{b.title}</span>
-                  {b.status === 'read' && <Tick />}
-                </span>
-                <Thumb book={b} />
-              </button>
+  if (!shelf) {
+    return (
+      <div className="narrow stack">
+        <h1 className="title-head">Shelf not found</h1>
+        <div className="btn-row"><Link to="/shelves" className="btn btn-solid">Go to Shelves</Link></div>
+      </div>
+    )
+  }
+
+  const here = (books ?? []).filter(b => b.status === shelf.status)
+  const shown = sortBooks(filterBooks(here, search), search.sort, search.dir)
+  const group: GroupId | 'none' = search.group ?? (shelf.status === 'read' ? 'year' : 'none')
+  const { group: _group, ...shared } = search
+
+  return (
+    <div className="stack shelves">
+      <Link to="/shelves" search={shared} className="back"><ArrowLeft aria-hidden="true" strokeWidth={2.25} />Shelves</Link>
+      <header className="shelves-head">
+        <h1 className="title-head">{shelf.label}</h1>
+        <p>{books === undefined ? '' : `${shown.length} ${shown.length === 1 ? 'book' : 'books'}`}</p>
+      </header>
+
+      {books === undefined && <p role="status">Opening your shelf…</p>}
+
+      {books && (
+        <>
+          {shelf.status === 'read' && <Link to="/pile" className="btn pile-link"><Layers aria-hidden="true" strokeWidth={2.25} />See them as a pile</Link>}
+          <ShelfTools search={search} onChange={onChange} books={here} size={size} onSize={setSize} group={group} />
+          {shown.length === 0 && <p>{here.length ? 'No books match that.' : 'Nothing on this shelf yet.'}</p>}
+          {group === 'none'
+            ? shown.length > 0 && <List books={shown} search={search} size={size} onChange={onChange} />
+            : groupBooks(shown, group).map(g => (
+              <section key={g.label} className="stack" aria-label={g.label}>
+                <h2 className="year"><span>{g.label} <span className="shelf-count">{g.books.length}</span></span></h2>
+                <List books={g.books} search={search} size={size} onChange={onChange} />
+              </section>
             ))}
-          </div>
-        </section>
-      ))}
-
-      <p className="where">Covers from <a href="https://openlibrary.org">Open Library</a></p>
-
-      {picked && <Selected book={picked} />}
+        </>
+      )}
     </div>
   )
 }

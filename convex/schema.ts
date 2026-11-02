@@ -32,6 +32,7 @@ export default defineSchema({
     artSmallUrl: v.optional(v.string()),
     artLargeUrl: v.optional(v.string()),
     pages: v.optional(v.number()),
+    audioSeconds: v.optional(v.number()),
     subjects: v.array(v.string()),
     originalLanguage: v.optional(v.string()),
   })
@@ -79,7 +80,13 @@ export default defineSchema({
     addedAt: v.optional(v.number()),
     startedAt: v.optional(v.number()),
     finishedAt: v.optional(v.number()),
-    progress: v.object({ percent: v.number(), page: v.optional(v.number()), chapter: v.optional(v.string()) }),
+    progress: v.object({ percent: v.number(), page: v.optional(v.number()), seconds: v.optional(v.number()), chapter: v.optional(v.string()) }),
+    // How this reader likes to log this book. Works out a default from the format until they choose.
+    progressUnit: v.optional(v.union(v.literal('page'), v.literal('time'), v.literal('percent'))),
+    // Each time through the book, oldest first. startedAt and finishedAt above are always the latest one's.
+    readings: v.optional(v.array(v.object({ hardcoverId: v.optional(v.number()), startedAt: v.optional(v.number()), finishedAt: v.optional(v.number()) }))),
+    // Reads removed here, still to be removed from Hardcover. Only ever explicit, so a stale copy can't delete anything.
+    deletedReadings: v.optional(v.array(v.number())),
     format,
     ownership: v.optional(ownership),
     rating: v.optional(v.number()),
@@ -116,6 +123,8 @@ export default defineSchema({
     readId: v.id('reads'),
     kind: entryKind,
     text: v.string(),
+    // A reflection keeps the question it answers.
+    question: v.optional(v.string()),
     parentId: v.optional(v.id('entries')),
     pos: v.object({
       page: v.optional(v.number()),
@@ -136,6 +145,17 @@ export default defineSchema({
     .index('by_user_origin_key', ['userId', 'originKey'])
     .index('by_user_journal', ['userId', 'hardcoverJournalId'])
     .searchIndex('search_text', { searchField: 'text', filterFields: ['userId', 'kind'] }),
+
+  // The question asked when a book is finished. One per read, however many times it's marked finished.
+  reflectionPrompts: defineTable({
+    userId: v.id('users'),
+    readId: v.id('reads'),
+    state: v.union(v.literal('writing'), v.literal('waiting'), v.literal('answered'), v.literal('skipped')),
+    question: v.optional(v.string()),
+    createdAt: v.number(),
+  })
+    .index('by_read', ['readId'])
+    .index('by_user_state', ['userId', 'state', 'createdAt']),
 
   shelves: defineTable({
     userId: v.id('users'),
