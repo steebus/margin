@@ -17,7 +17,9 @@ export function subjectPrompt(book: BookFacts, options: { hint?: string; avoid?:
 Book: "${book.title}" by ${book.authors.join(', ') || 'an unknown author'}${book.year ? ` (${book.year})` : ''}
 Genres: ${book.subjects.join(', ') || 'unknown'}
 
-Pick ONE concrete thing that is recognisably this book's world: an object, creature, plant, building or small place. Prefer one bold thing with a strong silhouette over a busy scene. Be specific and a little unexpected, not the first cliche for the genre.
+Pick ONE concrete thing that is recognisably this book's world: an object, creature, plant, building or small place. Someone who knows this book should recognise it at a glance, so choose its most iconic image from the premise, not a generic prop that could belong to any book. Prefer one bold thing with a strong silhouette over a busy scene. Plain, literal and concrete beats clever.
+
+It must stand alone on blank paper. Never a night sky, a room, a corridor, a wall, a tunnel or anything else that fills the whole frame or needs a background behind it.
 
 Rules:
 - Only use what a reader knows from the book's premise or its opening pages. Never a later event, twist, death, reveal or ending.

@@ -126,7 +126,7 @@ async function fetchResults() {
   for (const job of load('jobs.json', [])) {
     if (job.fetched) continue
     const d = describe(await (await fetch(`${API}/v1beta/${job.name}`, { headers })).json())
-    if (d.state !== 'JOB_STATE_SUCCEEDED' || !d.file) { console.log(`${job.name}: ${d.state}, not ready`); continue }
+    if (!d.state?.endsWith('_SUCCEEDED') || !d.file) { console.log(`${job.name}: ${d.state}, not ready`); continue }
     const local = `${RUN}/${job.name.replace(/\W/g, '_')}.jsonl`
     const res = await fetch(`${API}/download/v1beta/${d.file}:download?alt=media`, { headers })
     if (!res.ok) throw new Error(`Download failed: ${res.status}`)
