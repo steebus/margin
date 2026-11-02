@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import { useQuery } from 'convex/react'
+import { useQuery } from 'convex-helpers/react/cache/hooks'
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useState } from 'react'
 import { api } from '../../../convex/_generated/api'

@@ -1,5 +1,5 @@
 import { Link, useNavigate, useParams, useSearch } from '@tanstack/react-router'
-import { useQuery } from 'convex/react'
+import { useQuery } from 'convex-helpers/react/cache/hooks'
 import { ArrowLeft } from 'lucide-react'
 import { api } from '../../../convex/_generated/api'
 import { NotFoundBook } from './BookPage'

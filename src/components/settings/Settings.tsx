@@ -1,5 +1,6 @@
 import { useAuthActions } from '@convex-dev/auth/react'
-import { useAction, useConvex, useQuery } from 'convex/react'
+import { useAction, useConvex } from 'convex/react'
+import { useQuery } from 'convex-helpers/react/cache/hooks'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { errorText } from '../../lib/books'

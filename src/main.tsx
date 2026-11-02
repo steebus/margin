@@ -8,6 +8,7 @@ import './styles/app.css'
 import { ConvexAuthProvider } from '@convex-dev/auth/react'
 import { createRouter, RouterProvider } from '@tanstack/react-router'
 import { ConvexReactClient } from 'convex/react'
+import { ConvexQueryCacheProvider } from 'convex-helpers/react/cache/provider'
 import { MotionConfig } from 'motion/react'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
@@ -30,9 +31,12 @@ declare module '@tanstack/react-router' {
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ConvexAuthProvider client={convex}>
-      <MotionConfig reducedMotion="user">
-        <RouterProvider router={router} />
-      </MotionConfig>
+      {/* Each screen's data stays live for five minutes after leaving it, so going back shows it at once. */}
+      <ConvexQueryCacheProvider>
+        <MotionConfig reducedMotion="user">
+          <RouterProvider router={router} />
+        </MotionConfig>
+      </ConvexQueryCacheProvider>
     </ConvexAuthProvider>
   </StrictMode>,
 )

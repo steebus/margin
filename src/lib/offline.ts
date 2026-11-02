@@ -1,4 +1,5 @@
-import { useConvex, useQuery } from 'convex/react'
+import { useConvex } from 'convex/react'
+import { useQuery } from 'convex-helpers/react/cache/hooks'
 import { useEffect, useState } from 'react'
 import { api } from '../../convex/_generated/api'
 import { replay } from './outbox'

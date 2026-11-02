@@ -1,5 +1,5 @@
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
-import { useQuery } from 'convex/react'
+import { useQuery } from 'convex-helpers/react/cache/hooks'
 import { ArrowDown, ArrowUp, Plus, Search } from 'lucide-react'
 import { api } from '../../../convex/_generated/api'
 import { formatDate } from '../../lib/books'
