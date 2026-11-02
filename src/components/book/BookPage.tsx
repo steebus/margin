@@ -1,7 +1,8 @@
 import { Link, useParams } from '@tanstack/react-router'
 import { useMutation, useQuery } from 'convex/react'
 import { ArrowLeft } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
+import { slugify } from '../../../convex/lib/hardcover'
 import { api } from '../../../convex/_generated/api'
 import { formatDate, type Book, type Status } from '../../lib/books'
 import { formatClock, pagesPerDay } from '../../lib/progress'
@@ -33,7 +34,7 @@ export function NotFoundBook() {
 function bookFacts(book: Book, notes: number) {
   const days = daysToRead(book)
   const pace = pagesPerDay(book.pages, days)
-  return [
+  const rows: [string, ReactNode][] = [
     ['Pages', book.pages],
     ['Length', book.audioSeconds && formatClock(book.audioSeconds)],
     ['Published', book.published],
@@ -47,8 +48,9 @@ function bookFacts(book: Book, notes: number) {
     ['Notes and thoughts', notes],
     ['Genres', book.subjects.join(', ')],
     ['ISBN', book.isbn],
-    ['Recommended by', book.recommendedBy],
-  ].filter((row): row is [string, string | number] => !!row[1])
+    ['Recommended by', book.recommendedBy && <Link to="/people/$personSlug" params={{ personSlug: slugify(book.recommendedBy) }}>{book.recommendedBy}</Link>],
+  ]
+  return rows.filter(row => !!row[1])
 }
 
 /** The Hardcover lists a book is on, changed with a tick. */

@@ -574,8 +574,10 @@ td a { display: inline-flex; align-items: center; min-height: 44px; color: inher
   overflow: hidden;
   font-size: var(--title);
   line-height: 1.08;
-  overflow-wrap: break-word;
+  overflow-wrap: normal;
 }
+/* Slanted letters lean past their box, and the title's clip would cut them. */
+.spine[data-look='ribs'] .spine-title, .spine[data-look='tooled'] .spine-title { padding-right: 0.2em; }
 .spine-author { flex: 0 1 auto; min-width: 0; overflow: hidden; font: 400 0.9375rem/1.15 var(--book); text-overflow: ellipsis; white-space: nowrap; }
 
 /* A typeface per kind of book, each tuned to read at the same size. */
@@ -595,7 +597,11 @@ td a { display: inline-flex; align-items: center; min-height: 44px; color: inher
 .spine[data-look='paper']::before, .spine[data-look='paper']::after { width: 10px; background: var(--ink); }
 /* Label: solid, a paper label pasted on, title over author. */
 .spine[data-look='label'] { background: var(--ink); padding-block: 5px; }
-.spine[data-look='label'] .spine-label { flex-direction: column; align-items: center; padding: 1px 10px; outline: 1px solid var(--ink); outline-offset: -3px; background: var(--paper); color: var(--ink); text-align: center; }
+.spine[data-look='label'] .spine-label { flex-direction: column; align-items: center; padding: 6px 12px; outline: 1px solid var(--ink); outline-offset: -3px; background: var(--paper); color: var(--ink); text-align: center; }
+/* A thin book has no room to stack, so these two share a line like the rest. */
+.spine[data-thin][data-look='label'] .spine-label, .spine[data-thin][data-look='frame'] .spine-label { flex-direction: row; align-items: baseline; text-align: left; }
+.spine[data-thin][data-look='label'] .spine-label { padding-block: 3px; }
+.spine[data-thin][data-look='frame'] { padding-block: 4px; }
 /* Ribs: an old binding, raised bands across the spine. */
 .spine[data-look='ribs']::before, .spine[data-look='ribs']::after {
   width: 18px;
@@ -644,6 +650,26 @@ td a { display: inline-flex; align-items: center; min-height: 44px; color: inher
 
 @media (hover: hover) { .spine:hover { translate: 8px 0; } }
 .spine:focus-visible { z-index: 1; }
+
+/* On a phone the book gets most of the width, and its type steps down so a word is never split. */
+@media (max-width: 639px) {
+  .pile-row { grid-template-columns: minmax(0, 66%) minmax(0, 34%); column-gap: 8px; }
+  .spine { padding-inline: 26px; }
+  .spine-title { zoom: 0.72; }
+  .spine-author { font-size: 0.8125rem; }
+  .spine-label { gap: 0 8px; }
+  .spine[data-look='cloth'], .spine[data-look='paper'] { padding-inline: 22px; }
+  .spine[data-look='checks'] { padding-inline: 30px; }
+  .spine[data-look='checks']::before, .spine[data-look='checks']::after { width: 21px; background-size: 14px 14px; }
+  .spine[data-look='diamonds'] { padding-inline: 28px; }
+  .spine[data-look='diamonds']::before { left: 8px; }
+  .spine[data-look='diamonds']::after { right: 8px; }
+  .spine[data-look='ribs'] { padding-inline: 28px; }
+  .spine[data-look='label'], .spine[data-look='hatch'], .spine[data-look='stripes'], .spine[data-look='penguin'], .spine[data-look='tooled'], .spine[data-look='stitched'], .spine[data-look='frame'], .spine[data-look='dots'], .spine[data-look='pinstripe'] { padding-inline: 10px; }
+  .spine[data-look='label'] .spine-label, .spine[data-look='hatch'] .spine-label { padding-inline: 8px; }
+  .spine[data-look='block'] { padding-inline: 10px 0; }
+  .spine[data-look='block'] .spine-author { max-width: 38%; padding-inline: 6px; }
+}
 
 .pile-side { display: grid; align-content: start; gap: 1px; min-width: 0; overflow: hidden; padding-block: 3px; font-size: 0.875rem; line-height: 1.25; }
 .pile-side[data-year] { border-top: 4px solid var(--rule); margin-top: -2px; }

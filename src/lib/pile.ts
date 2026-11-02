@@ -48,6 +48,7 @@ export function spineOf(slug: string, pages: number | null) {
     // Bigger books print bigger, within reason. Room for two lines once the book is thick enough to hold them.
     titleSize: Math.round(Math.min(32, Math.max(20, height * 0.3))),
     titleLines: height < 84 ? 1 : 2,
+    thin: height < 92,
   }
 }
 

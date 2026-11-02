@@ -44,6 +44,7 @@ export function Pile() {
                   params={{ bookSlug: book.slug }}
                   className="spine"
                   data-look={spine.look}
+                  data-thin={spine.thin || undefined}
                   style={{ width: `${spine.width}%`, marginLeft: `${((100 - spine.width) * spine.shift) / 100}%` }}
                 >
                   <span className="spine-label">
