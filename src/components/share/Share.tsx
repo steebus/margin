@@ -1,7 +1,7 @@
 import { Link, useSearch } from '@tanstack/react-router'
 import { useEffect, useRef, useState } from 'react'
-import { books } from './sample'
-import { bookmarklet, readShare } from './share-read'
+import { books } from '../../sample/sample'
+import { bookmarklet, readShare } from '../../lib/share-read'
 
 // ponytail: the screens are real, the data isn't. Nothing is saved yet, and the books "read" from an Instagram post
 // are a fixed sample until the backend exists (SPEC 3.4). Replace SAMPLE_POST and the done state with Phase 1.

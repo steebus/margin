@@ -1,9 +1,9 @@
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { Star, StarHalf } from 'lucide-react'
 import { useState } from 'react'
-import { Tick } from './Marks'
-import { books, type Book, type Status } from './sample'
-import { Thumb } from './Thumb'
+import { Tick } from '../thumb/Marks'
+import { books, type Book, type Status } from '../../sample/sample'
+import { Thumb } from '../thumb/Thumb'
 
 const statuses: { id: Status | undefined; label: string }[] = [
   { id: undefined, label: 'All' },

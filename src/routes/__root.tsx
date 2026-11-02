@@ -1,6 +1,6 @@
 import { createRootRoute, Link, Outlet, useRouterState } from '@tanstack/react-router'
 import { Compass, LampDesk, Library, Camera, Moon, Sun } from 'lucide-react'
-import { setTheme, useTheme } from '../theme'
+import { setTheme, useTheme } from '../lib/theme'
 
 export const Route = createRootRoute({ component: Root })
 

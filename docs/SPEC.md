@@ -152,7 +152,7 @@ are cached. There's no hard budget; a cost meter is shown in Settings, with an a
 A book worth reading usually turns up somewhere else. Share it to Margin and it lands
 on the TBR list with where it came from. Same mechanism as Toodoo and Didactic: Android's
 share sheet (`share_target`) and a bookmarklet both open `/capture/share?url=&title=&text=`;
-the bookmarklet adds `popup=1` and closes its window when done. `src/share-read.ts` works out
+the bookmarklet adds `popup=1` and closes its window when done. `src/lib/share-read.ts` works out
 what was shared. What's pending survives a sign-in, as Toodoo's does.
 
 **From Goodreads: one book.** The title and author come from the shared words, then the

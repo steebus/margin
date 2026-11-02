@@ -1,8 +1,8 @@
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
-import { nextCard } from './drawer-rules'
-import { drawer, slugFor } from './sample'
+import { nextCard } from '../../lib/drawer-rules'
+import { drawer, slugFor } from '../../sample/sample'
 
 const kinds = [
   { id: undefined, label: 'All' },

@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { z } from 'zod'
-import { Share } from '../Share'
+import { Share } from '../components/share/Share'
 
 export const Route = createFileRoute('/capture/share')({
   validateSearch: z.object({

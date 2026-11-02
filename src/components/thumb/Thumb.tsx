@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { hatchWeights, toLuma } from './ink'
+import { hatchWeights, toLuma } from '../../lib/ink'
 import { Circle, Strike } from './Marks'
-import type { Book } from './sample'
-import { useTheme } from './theme'
+import type { Book } from '../../sample/sample'
+import { useTheme } from '../../lib/theme'
 
 // Each cover is fetched once per session and shared, across resizes and every screen.
 // A failure isn't kept, so the next time the cell appears it tries again.

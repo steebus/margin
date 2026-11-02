@@ -1,11 +1,11 @@
 import { Link, useParams } from '@tanstack/react-router'
 import { ArrowLeft } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
-import { NotFoundBook } from './BookPage'
-import { Arrow } from './Marks'
-import { books, current, threads, type Turn } from './sample'
-import { Thumb } from './Thumb'
-import { Typewriter } from './Typewriter'
+import { NotFoundBook } from '../book/BookPage'
+import { Arrow } from '../thumb/Marks'
+import { books, current, threads, type Turn } from '../../sample/sample'
+import { Thumb } from '../thumb/Thumb'
+import { Typewriter } from '../typewriter/Typewriter'
 
 export function Buddy() {
   const { bookSlug } = useParams({ from: '/books/$bookSlug/buddy' })

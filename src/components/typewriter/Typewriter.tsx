@@ -1,5 +1,5 @@
 ﻿import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { delayAfter, inkFor, wrapLines } from './typing'
+import { delayAfter, inkFor, wrapLines } from '../../lib/typing'
 
 // ponytail: one span per glyph, not the plan's one text node per line, because the
 // brief wants per-glyph ink. Notes are short. Render lines to canvas if a throttled trace complains.

@@ -1,8 +1,8 @@
 import { Link, useParams } from '@tanstack/react-router'
 import { ArrowLeft, MessageCircle, Plus } from 'lucide-react'
-import { books, cards, current, margins, threads } from './sample'
-import { Stars } from './Shelves'
-import { Thumb } from './Thumb'
+import { books, cards, current, margins, threads } from '../../sample/sample'
+import { Stars } from '../shelf/Shelves'
+import { Thumb } from '../thumb/Thumb'
 
 export function NotFoundBook() {
   return (

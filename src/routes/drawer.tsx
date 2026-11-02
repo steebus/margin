@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { z } from 'zod'
-import { Drawer } from '../Drawer'
+import { Drawer } from '../components/drawer/Drawer'
 
 export const Route = createFileRoute('/drawer')({
   validateSearch: z.object({

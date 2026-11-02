@@ -20,7 +20,8 @@ Steve chose this from impeccable's direction round, replacing the neobrutalist
 exploration. Your reading life as a fan convention catalog you mark up by hand:
 flat newsprint, one black ink, magenta rules as dividers, and blue biro for the
 reader's own words and marks. **Where this section conflicts with anything
-below, this section wins.** `DESIGN.md` records the built system.
+below, this section wins.** `DESIGN.md` records the built system. The mockups
+are references, treated as 80% targets for now (Steve, 2026-11-02).
 
 - **Biro marks carry meaning:** a circle is reading, a tick is finished, a strike
   is abandoned.

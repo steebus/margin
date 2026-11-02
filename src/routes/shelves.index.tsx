@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { z } from 'zod'
-import { Shelves } from '../Shelves'
+import { Shelves } from '../components/shelf/Shelves'
 
 const str = z.string().optional()
 
