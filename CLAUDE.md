@@ -5,6 +5,7 @@ Read `docs/SPEC.md`, `docs/PLAN.md`, `docs/DESIGN-DIRECTION.md` and `PRODUCT.md`
 - Check work with `npm run build`, `npm run lint` and `npm test`.
 - `src/routeTree.gen.ts` is generated from `src/routes/`. Don't edit it by hand.
 - `src/sample/` is demonstration data, and Phase 1 replaces it.
+- Books always show at the book ratio, 2:3, never square.
 - UI goes in `src/components/<object>/`, tested logic in `src/lib/`, design tokens in
   `src/styles/tokens.css`.
 - Mockups are references, treated as 80% targets for now: match their character, don't

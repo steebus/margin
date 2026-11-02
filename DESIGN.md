@@ -248,7 +248,7 @@ Five ruled cells on the Desk, each with a 26px icon over a gothic label. The exp
 Four equal gothic cells with icons, separated by rules. The current tab inverts to solid ink. It is fixed at the bottom on mobile (60px, safe-area aware) and static at the top from 900px (52px, icon beside label).
 
 ### Catalog Cell
-A square ruled cell holding the title and art, which runs to the rules at the bottom and sides. Small cells drop the title. Tapping selects, and a sticky bar offers details and Open. Year heads group cells, each followed by a magenta rule.
+A ruled cell holding the title and a 2:3 book-shaped picture, which runs to the rules at the bottom and sides. Small cells drop the title. Tapping selects, and a sticky bar offers details and Open. Year heads group cells, each followed by a magenta rule.
 
 ### Covers
 Every cover prints in one ink on bare paper, drawn to a canvas 1:1 with device pixels. A printed title stamp shows until the art lands, or if there's none.

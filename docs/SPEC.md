@@ -307,24 +307,24 @@ share it (`workArt { workId, state: queued|ready|failed|rejected, small, large, 
 
 **Generate at 1K, then shrink.** 1K is Gemini's cheapest tier on the suitable models
 (about $0.034 an image, or $0.017 in batch). Its native 512px tier is on a different
-model and costs more, so asking for less would cost more. Aspect ratio 1:1, which
-keeps cells compact and matches the mockup. Check prices before a large run.
+model and costs more, so asking for less would cost more. Every book is always shown at the book ratio,
+2:3, never square (Steve). Art is generated at 1:1 and seated at the bottom of a 2:3 page. Check prices before a large run.
 
 **Post-process, in this order:** greyscale, level the paper to white and the ink to black, then frame
 it: find where the ink is dense (blur and threshold, so stray strokes don't count), crop to that, fit
-to 122% of the width and 94% of the height, cut 6% off the bottom, and centre it at the bottom of a
-white square. The art runs off the bottom and lower sides, and the blank top stays. Then encode two
+to 122% of the width and 112% of the width in height, cut 6% off the bottom, and centre it at the
+bottom of a white 2:3 page. The art runs off the bottom and lower sides, and the blank top stays. Then encode two
 sizes as WebP at quality 60. Discard the original:
 regenerating one costs under 2 cents, and keeping them would use more storage than
 everything else combined.
 
 | Rendition | Used for | Size per image, measured |
 |---|---|---|
-| 256px | Grid cells on most screens | 6 to 17 KB |
-| 512px | Book page, large cells, high-density phones | 22 to 54 KB |
+| 256px | Grid cells on most screens | 8 to 18 KB |
+| 512px | Book page, large cells, high-density phones | 30 to 59 KB |
 
-Those are measured on 10 real generated drawings. At about 70 KB at worst for a book, 2,000
-books use at most about 138 MB of Convex's included 1 GB. `srcset` picks the size. Serve with long-lived caching, because art for a work never changes; a
+Those are measured on 10 real generated drawings. At about 77 KB at worst for a book, 2,000
+books use at most about 152 MB of Convex's included 1 GB. `srcset` picks the size. Serve with long-lived caching, because art for a work never changes; a
 regeneration gets a new file. Verify the real cache headers on Convex's file URLs.
 
 **One file, both themes.** Art is stored as a neutral drawing on white and printed onto

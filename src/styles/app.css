@@ -175,15 +175,15 @@ p a { color: inherit; text-underline-offset: 3px; }
 /* ---------- Thumbnails and marks ---------- */
 .thumb { position: relative; display: block; aspect-ratio: 2 / 3; container-type: inline-size; }
 /* Generated art is a greyscale drawing on pure white. It's printed onto the page, not placed on it. */
-.thumb[data-art] { aspect-ratio: 1; }
 .thumb-generated { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; mix-blend-mode: multiply; }
 :root[data-theme='dark'] .thumb-generated { filter: invert(1) brightness(0.88); mix-blend-mode: screen; }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) .thumb-generated { filter: invert(1) brightness(0.88); mix-blend-mode: screen; }
 }
 /* The title prints over the blank paper at the top of the art, and the art sits on the cell's floor. */
-.cell > .thumb { margin-top: auto; aspect-ratio: 1; }
-.cell:has(.thumb[data-art]) > .cell-head { z-index: 1; margin-bottom: -18%; }
+.cell > .thumb { margin-top: auto; }
+.cell:has(.thumb[data-art]) { position: relative; }
+.cell:has(.thumb[data-art]) > .cell-head { position: absolute; inset: 6px 6px auto; z-index: 1; }
 /* Art runs right up to the rules on the bottom and sides. Elsewhere it has no cell, so it gets its own rule. */
 .cell:has(.thumb[data-art]) > .thumb { width: calc(100% + 12px); margin: auto -6px -6px; }
 .book-head .thumb[data-art], .selected .thumb[data-art], .buddy-head .thumb[data-art], .reading-cell .thumb[data-art] { border: var(--line) solid var(--ink); }
