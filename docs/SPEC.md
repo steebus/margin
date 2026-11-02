@@ -125,6 +125,11 @@ reader of that book shares it (if multi-user).
    so and leans on the reader's own excerpts and notes instead of inventing
    content.
 
+**Built so far (2026-11-02), waiting on `ANTHROPIC_API_KEY`.** The conversation (Claude Sonnet 5.5, streaming, server-side refusal
+fallback), the spoiler rule (`visibleTo`, stated in the prompt from the read's own progress), the reader's notes and finished
+books as context, and the cost meter. Not built: the guide, milestones, memory, push, corrections. Until a guide exists, the rule
+is only an instruction to the model, not a cut in the data, so it needs the eval set before it can be trusted.
+
 **Models.** Research runs on the most capable model, the conversation on a
 mid-tier model, and routing and classification on the smallest. All prompts
 are cached. There's no hard budget; a cost meter is shown in Settings, with an alert when monthly spend passes **$20** (agreed).

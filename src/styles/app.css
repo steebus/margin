@@ -460,6 +460,8 @@ td a { display: inline-flex; align-items: center; min-height: 44px; color: inher
 
 .thread { display: grid; gap: 18px; }
 .turn-buddy { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+.turn-buddy .tw { white-space: pre-wrap; }
+.turn-mine { padding-left: 14px; border-left: 2px solid var(--biro); }
 .turn-reader { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 8px; padding-left: 4px; rotate: -0.8deg; }
 .citation {
   display: grid;

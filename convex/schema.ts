@@ -146,6 +146,19 @@ export default defineSchema({
     .index('by_user_journal', ['userId', 'hardcoverJournalId'])
     .searchIndex('search_text', { searchField: 'text', filterFields: ['userId', 'kind'] }),
 
+  // The conversation about one read. A reply is written into its row as it streams in.
+  buddyTurns: defineTable({
+    userId: v.id('users'),
+    readId: v.id('reads'),
+    role: v.union(v.literal('buddy'), v.literal('reader')),
+    text: v.string(),
+    state: v.union(v.literal('writing'), v.literal('done'), v.literal('failed')),
+    usage: v.optional(v.object({ input: v.number(), output: v.number(), cacheRead: v.number(), cacheWrite: v.number() })),
+    createdAt: v.number(),
+  })
+    .index('by_read', ['readId', 'createdAt'])
+    .index('by_user', ['userId', 'createdAt']),
+
   // The question asked when a book is finished. One per read, however many times it's marked finished.
   reflectionPrompts: defineTable({
     userId: v.id('users'),

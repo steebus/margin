@@ -67,6 +67,17 @@ function HardcoverImport() {
   )
 }
 
+function BuddySpend() {
+  const spend = useQuery(api.buddy.monthSpend)
+  if (!spend) return null
+  return (
+    <div className="box">
+      <p>Your buddy has cost about ${spend.dollars.toFixed(2)} this month.</p>
+      {spend.over && <p role="alert">That's past the ${spend.alert} you agreed to be told about.</p>}
+    </div>
+  )
+}
+
 function Export() {
   const convex = useConvex()
   const [busy, setBusy] = useState(false)
@@ -110,6 +121,10 @@ export function Settings() {
       <section className="stack" aria-labelledby="hardcover-heading">
         <h2 id="hardcover-heading" className="head">Hardcover</h2>
         <HardcoverImport />
+      </section>
+      <section className="stack" aria-labelledby="buddy-heading">
+        <h2 id="buddy-heading" className="head">Buddy</h2>
+        <BuddySpend />
       </section>
       <section className="stack" aria-labelledby="export-heading">
         <h2 id="export-heading" className="head">Export</h2>
