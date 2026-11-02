@@ -39,8 +39,8 @@ export function spineOf(slug: string, pages: number | null) {
   return {
     height,
     width: 86 + (seed % 15),
-    look: LOOKS[(seed >> 4) % LOOKS.length],
-    shift: (seed >> 8) % 100,
+    look: LOOKS[(seed >>> 4) % LOOKS.length],
+    shift: (seed >>> 8) % 100,
     lines: Math.max(1, Math.floor((height - 24) / LINE)),
   }
 }

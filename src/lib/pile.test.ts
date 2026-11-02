@@ -46,3 +46,12 @@ test('a spine drops the subtitle but keeps a colon that belongs to the title', (
   expect(spineTitle('Homo Deus: A Brief History of Tomorrow')).toBe('Homo Deus')
   expect(spineTitle('11/22/63')).toBe('11/22/63')
 })
+
+test('every book gets a real binding and a position within its column, whatever its name hashes to', () => {
+  for (let i = 0; i < 500; i++) {
+    const { look, shift, width } = spineOf(`book-${i}-${'x'.repeat(i % 40)}`, 300)
+    expect(['cloth', 'paper', 'label', 'ribs', 'hatch']).toContain(look)
+    expect(shift).toBeGreaterThanOrEqual(0)
+    expect(width).toBeLessThanOrEqual(100)
+  }
+})
