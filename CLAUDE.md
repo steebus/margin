@@ -10,6 +10,10 @@ Read `docs/SPEC.md`, `docs/PLAN.md`, `docs/DESIGN-DIRECTION.md` and `PRODUCT.md`
 - Mockups are references, treated as 80% targets for now: match their character, don't
   measure against them.
 - Work lands on `main`, which is what CI checks and Vercel deploys. The repo is public.
+- Convex has one environment: production (`shocking-octopus-128`), set in `.env.local`. There is no
+  dev deployment. Pushing to `main` deploys it; `npx convex deploy` does so directly. This is the
+  real library, so run `npx convex export` before any migration that rewrites data, and don't run
+  `npx convex dev`.
 - `.app` uses `overflow-x: clip`, so `scrollWidth` never reports overflow. Measure
   element rects against the viewport instead.
 - Don't give two files in `src/` names that differ only by case: `./Foo` resolves

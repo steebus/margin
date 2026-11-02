@@ -14,7 +14,7 @@ Margin, and does the buddy feel good? The import plumbing comes later.
 
 | Need | Where | Becomes |
 |---|---|---|
-| Convex project | dashboard.convex.dev | `CONVEX_DEPLOYMENT`, `VITE_CONVEX_URL`, deploy key for Vercel |
+| Convex project, production only (Steve, 2026-11-02) | dashboard.convex.dev | `CONVEX_DEPLOYMENT`, `VITE_CONVEX_URL`, deploy key for Vercel |
 | Vercel project linked to `steebus/margin` | vercel.com | production deploys from `main` |
 | Google Cloud OAuth client (web), app in *testing* mode, Steve as test user | console.cloud.google.com | `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET` (Convex env) |
 | Anthropic API key | console.anthropic.com | `ANTHROPIC_API_KEY` (Convex env) |
