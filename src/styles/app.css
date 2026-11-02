@@ -389,6 +389,12 @@ p a { color: inherit; text-underline-offset: 3px; }
 .list-links a { display: inline-flex; align-items: baseline; gap: 6px; min-height: 44px; padding: 10px 12px; border: var(--line) solid var(--ink); border-radius: 3px; color: inherit; font: 400 1.125rem/1 var(--head); letter-spacing: 0.02em; text-decoration: none; text-transform: uppercase; }
 @media (hover: hover) { .list-links a:hover { background: var(--soft); } }
 
+.save-view { justify-self: start; padding-inline: 0; }
+.view-name { min-width: 0; min-height: 48px; padding: 8px 12px; border: var(--line) solid var(--ink); border-radius: 3px; background: transparent; color: var(--ink); font: inherit; }
+/* Long shelves stay quick: the browser skips laying out what's far off screen. */
+.catalog > .cell { content-visibility: auto; contain-intrinsic-size: auto 240px; }
+.book-table tbody tr { content-visibility: auto; contain-intrinsic-size: auto 53px; }
+.pile-row { content-visibility: auto; contain-intrinsic-size: auto 90px; }
 .tools { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
 .tools-search { display: flex; align-items: center; gap: 8px; min-height: 48px; padding-inline: 12px; border: var(--line) solid var(--ink); border-radius: 3px; }
 .tools-search svg { width: 20px; height: 20px; }
@@ -526,6 +532,28 @@ td a { display: inline-flex; align-items: center; min-height: 44px; color: inher
 .page-text span { -webkit-tap-highlight-color: transparent; }
 .page-text span[data-on] { text-decoration: underline 3px var(--biro); text-underline-offset: 3px; }
 @media (hover: hover) { .page-text span:not([data-on]):hover { background: var(--soft); } }
+
+/* ---------- Stats: one ink, each mark labelled, nothing that relies on colour ---------- */
+.stats-range { max-width: 220px; }
+.tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0; border: var(--line) solid var(--ink); border-radius: 3px; }
+.tiles > div { display: grid; align-content: space-between; gap: 6px; min-width: 0; padding: 10px; }
+.tiles > div + div { border-left: var(--line) solid var(--ink); }
+.tiles dt { font: 400 1rem/1.05 var(--head); letter-spacing: 0.02em; text-transform: uppercase; }
+.tiles dd { margin: 0; font: 400 clamp(1.5rem, 7vw, 2.5rem)/1 var(--book); font-variant-numeric: lining-nums; overflow-wrap: normal; }
+.chart { display: grid; gap: 8px; margin: 0; }
+.columns { display: flex; align-items: stretch; gap: 2px; height: 170px; }
+.column { flex: 1 1 0; display: flex; flex-direction: column; gap: 4px; min-width: 0; padding: 0; border: 0; background: none; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.column-track { flex: 1; display: flex; align-items: flex-end; min-height: 0; border-bottom: var(--line) solid var(--ink); }
+.column-bar { display: block; width: 100%; min-height: 1px; border-radius: 3px 3px 0 0; background: var(--ink); }
+.column:hover .column-track, .column[aria-pressed='true'] .column-track { background: var(--soft); }
+.column-label { min-height: 1.1em; font: 400 0.8125rem/1.1 var(--book); font-variant-numeric: lining-nums; text-align: center; white-space: nowrap; }
+.chart-readout { min-height: 1.45em; font-variant-numeric: lining-nums; }
+.bars { display: grid; gap: 4px; margin: 0; }
+.bar-row { display: grid; grid-template-columns: minmax(0, 38%) minmax(0, 1fr); gap: 8px; align-items: center; }
+.bar-row dt { font-size: 0.9375rem; line-height: 1.15; }
+.bar-row dd { display: flex; align-items: center; gap: 6px; min-width: 0; margin: 0; }
+.bar-fill { flex: 0 1 auto; height: 16px; min-width: 1px; max-width: calc(100% - 3.5em); border-radius: 0 3px 3px 0; background: var(--ink); }
+.bar-value { flex: none; font-size: 0.9375rem; font-variant-numeric: lining-nums; }
 
 /* ---------- Notes ---------- */
 .notes-book { display: grid; gap: 10px; padding-bottom: 16px; border-bottom: 4px solid var(--rule); }

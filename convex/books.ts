@@ -110,7 +110,7 @@ export const myLists = query({
     const userId = await getAuthUserId(ctx)
     if (!userId) return []
     const rows = await ctx.db.query('shelves').withIndex('by_user_slug', q => q.eq('userId', userId)).collect()
-    return rows.map(s => ({ id: s._id, slug: s.slug, name: s.name })).sort((a, b) => a.name.localeCompare(b.name))
+    return rows.map(s => ({ id: s._id, slug: s.slug, name: s.name, filter: s.filter ?? null })).sort((a, b) => a.name.localeCompare(b.name))
   },
 })
 
@@ -124,5 +124,34 @@ export const setOnList = mutation({
     if (read.shelfIds.includes(listId) === on) return
     await ctx.db.patch(readId, { shelfIds: on ? [...read.shelfIds, listId] : read.shelfIds.filter(id => id !== listId) })
     await enqueueList(ctx, userId, readId, listId, on)
+  },
+})
+
+const RESERVED = ['reading', 'paused', 'tbr', 'read', 'stopped']
+
+/** Saves a filter as a smart shelf. It lives only in Margin: Hardcover's lists hold books, not filters. */
+export const saveView = mutation({
+  args: { name: v.string(), filter: v.string() },
+  handler: async (ctx, { name, filter }) => {
+    const userId = await getAuthUserId(ctx)
+    if (!userId) throw new ConvexError('Sign in to save this')
+    const label = name.trim().slice(0, 80)
+    if (!label) throw new ConvexError('A shelf needs a name')
+    const base = slugify(label) || 'shelf'
+    let slug = RESERVED.includes(base) ? `shelf-${base}` : base
+    for (let n = 2; await ctx.db.query('shelves').withIndex('by_user_slug', q => q.eq('userId', userId).eq('slug', slug)).first(); n++) slug = `${base}-${n}`
+    await ctx.db.insert('shelves', { userId, slug, name: label, filter: filter.slice(0, 2000) })
+    return slug
+  },
+})
+
+export const removeView = mutation({
+  args: { id: v.id('shelves') },
+  handler: async (ctx, { id }) => {
+    const userId = await getAuthUserId(ctx)
+    const shelf = await ctx.db.get(id)
+    if (!userId || shelf?.userId !== userId) throw new ConvexError('That shelf is not yours')
+    if (shelf.filter === undefined) throw new ConvexError('Lists are removed on Hardcover')
+    await ctx.db.delete(id)
   },
 })

@@ -55,7 +55,7 @@ function bookFacts(book: Book, notes: number) {
 
 /** The Hardcover lists a book is on, changed with a tick. */
 function Lists({ book }: { book: Book }) {
-  const lists = useQuery(api.books.myLists)
+  const lists = useQuery(api.books.myLists)?.filter(l => !l.filter)
   const setOnList = useMutation(api.books.setOnList)
   if (!lists?.length) return null
   return (

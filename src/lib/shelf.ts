@@ -156,3 +156,22 @@ export const shelfSearch = z.object({
   group: catching(z.enum([...groupIds, 'none'])),
 })
 export type ShelfSearch = z.infer<typeof shelfSearch>
+
+type Saved = ShelfSearch & { status?: Status }
+
+/** What a smart shelf keeps: the filter, in the same words as the URL, and the status shelf it came from. */
+export const savedFilter = (search: ShelfSearch, status?: Status) => JSON.stringify({ ...search, status })
+
+/** A smart shelf's filter. One that can't be read shows everything, which is plainly wrong, rather than crashing. */
+export function parseSaved(filter: string): Saved {
+  try {
+    const raw = JSON.parse(filter) as Saved
+    return { ...shelfSearch.parse(raw), status: SHELVES.find(s => s.status === raw.status)?.status }
+  } catch {
+    return {}
+  }
+}
+
+/** What's in the URL overrides what was saved, so a smart shelf can still be re-sorted or searched. */
+export const mergeSearch = (saved: ShelfSearch, search: ShelfSearch): ShelfSearch =>
+  ({ ...saved, ...Object.fromEntries(Object.entries(search).filter(([, v]) => v !== undefined)) })

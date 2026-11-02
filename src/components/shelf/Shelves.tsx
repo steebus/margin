@@ -1,10 +1,11 @@
 import { Link, useNavigate, useParams, useSearch } from '@tanstack/react-router'
-import { useQuery } from 'convex/react'
-import { ArrowLeft, Layers, Plus } from 'lucide-react'
+import { useMutation, useQuery } from 'convex/react'
+import { ArrowLeft, ChartColumn, Layers, Plus } from 'lucide-react'
 import { api } from '../../../convex/_generated/api'
 import { useBooks } from '../../lib/offline'
-import { filterBooks, groupBooks, SHELVES, sortBooks, type GroupId, type ShelfSearch } from '../../lib/shelf'
+import { filterBooks, groupBooks, mergeSearch, parseSaved, SHELVES, sortBooks, type GroupId, type ShelfSearch } from '../../lib/shelf'
 import { BookTable, Catalog, type Size } from './BookList'
+import { SaveView } from './SaveView'
 import { ShelfTools, useCatalogSize } from './ShelfTools'
 import type { Book } from '../../lib/books'
 
@@ -48,9 +49,11 @@ export function Shelves() {
         <>
           <div className="btn-row btn-row-fill">
             <Link to="/pile" className="btn"><Layers aria-hidden="true" strokeWidth={2.25} />The pile</Link>
+            <Link to="/stats" className="btn"><ChartColumn aria-hidden="true" strokeWidth={2.25} />Stats</Link>
             <Link to="/capture/add" className="btn"><Plus aria-hidden="true" strokeWidth={2.25} />Add a book</Link>
           </div>
           <ShelfTools search={search} onChange={onChange} books={books} size={size} onSize={setSize} />
+          <SaveView search={search} />
           {shown.length === 0 && <p>No books match that.</p>}
           {SHELVES.map(shelf => {
             const all = shown.filter(b => b.status === shelf.status)
@@ -71,12 +74,12 @@ export function Shelves() {
           })}
           {!!lists?.length && (
             <section className="stack" aria-labelledby="lists-heading">
-              <h2 id="lists-heading" className="year"><span>Lists</span></h2>
+              <h2 id="lists-heading" className="year"><span>Lists and saved shelves</span></h2>
               <ul className="list-links">
                 {lists.map(l => (
                   <li key={l.id}>
                     <Link to="/shelves/$shelfSlug" params={{ shelfSlug: l.slug }} search={search}>
-                      {l.name} <span className="shelf-count">{shown.filter(b => b.shelfIds.includes(l.id)).length}</span>
+                      {l.name} {!l.filter && <span className="shelf-count">{shown.filter(b => b.shelfIds.includes(l.id)).length}</span>}
                     </Link>
                   </li>
                 ))}
@@ -92,13 +95,16 @@ export function Shelves() {
 /** One shelf in full. This is where books group by month, year, date published, days to read and so on. */
 export function Shelf() {
   const { shelfSlug } = useParams({ from: '/shelves/$shelfSlug' })
-  const search = useSearch({ from: '/shelves/$shelfSlug' })
+  const url = useSearch({ from: '/shelves/$shelfSlug' })
   const navigate = useNavigate({ from: '/shelves/$shelfSlug' })
   const books = useBooks()
   const [size, setSize] = useCatalogSize()
   const lists = useQuery(api.books.myLists)
   const status = SHELVES.find(s => s.slug === shelfSlug)
   const list = lists?.find(l => l.slug === shelfSlug)
+  const removeView = useMutation(api.books.removeView)
+  const saved = list?.filter ? parseSaved(list.filter) : null
+  const search = saved ? mergeSearch(saved, url) : url
   const shelf = status ?? list
   const label = status?.label ?? list?.name ?? ''
   const onChange = (patch: Partial<ShelfSearch>) => navigate({ search: prev => ({ ...prev, ...patch }), replace: true })
@@ -113,10 +119,14 @@ export function Shelf() {
     )
   }
 
-  const here = (books ?? []).filter(b => (status ? b.status === status.status : b.shelfIds.includes(list!.id)))
+  const here = (books ?? []).filter(b => (
+    status ? b.status === status.status
+      : saved ? !saved.status || b.status === saved.status
+        : b.shelfIds.includes(list!.id)
+  ))
   const shown = sortBooks(filterBooks(here, search), search.sort, search.dir)
   const group: GroupId | 'none' = search.group ?? (status?.status === 'read' ? 'year' : 'none')
-  const { group: _group, ...shared } = search
+  const { group: _group, ...shared } = url
 
   return (
     <div className="stack shelves">
@@ -132,6 +142,9 @@ export function Shelf() {
         <>
           {status?.status === 'read' && <Link to="/pile" className="btn pile-link"><Layers aria-hidden="true" strokeWidth={2.25} />See them as a pile</Link>}
           <ShelfTools search={search} onChange={onChange} books={here} size={size} onSize={setSize} group={group} />
+          {saved
+            ? <button type="button" className="text-link save-view" onClick={() => { void removeView({ id: list!.id }); void navigate({ to: '/shelves' }) }}>Delete this saved shelf</button>
+            : status && <SaveView search={search} status={status.status} />}
           {shown.length === 0 && <p>{here.length ? 'No books match that.' : 'Nothing on this shelf yet.'}</p>}
           {group === 'none'
             ? shown.length > 0 && <List books={shown} search={search} size={size} onChange={onChange} />

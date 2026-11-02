@@ -182,6 +182,26 @@ test('an export holds every book and entry, and only the reader\'s own', async (
   await expect(t.query(api.library.exportAll, {})).rejects.toThrow()
 })
 
+test('a smart shelf saves under a free address, survives list syncs, and only goes when asked', async () => {
+  const t = setup()
+  const { userId, as } = await reader(t)
+  const other = await reader(t, 'Someone else')
+  expect(await as.mutation(api.books.saveView, { name: 'Great horror', filter: '{}' })).toBe('great-horror')
+  expect(await as.mutation(api.books.saveView, { name: 'Great horror', filter: '{}' })).toBe('great-horror-2')
+  expect(await as.mutation(api.books.saveView, { name: 'Read', filter: '{}' })).toBe('shelf-read')
+  await expect(as.mutation(api.books.saveView, { name: '  ', filter: '{}' })).rejects.toThrow()
+
+  await t.mutation(internal.hardcover.saveLists, { userId, lists: [{ hardcoverListId: 5, name: 'Own', slug: 'own', bookIds: [] }] })
+  const lists = await as.query(api.books.myLists, {})
+  expect(lists).toHaveLength(4)
+  const view = lists.find(l => l.slug === 'great-horror')!
+  const list = lists.find(l => l.slug === 'own')!
+  await expect(other.as.mutation(api.books.removeView, { id: view.id })).rejects.toThrow()
+  await expect(as.mutation(api.books.removeView, { id: list.id })).rejects.toThrow()
+  await as.mutation(api.books.removeView, { id: view.id })
+  expect(await as.query(api.books.myLists, {})).toHaveLength(3)
+})
+
 test('the import walks every page of Hardcover and saves the books', async () => {
   vi.stubEnv('HARDCOVER_API_KEY', 'test-token')
   vi.stubEnv('HARDCOVER_PACE_MS', '0')

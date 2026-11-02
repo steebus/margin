@@ -430,7 +430,7 @@ they open over their parent, and Back closes them.
 ```
 /                                   Desk
 /shelves                            every shelf, separated by status; ?q=&sort=&dir=&format=&rating=&genre=&view=catalog|table
-/shelves/:shelfSlug                 one status shelf (reading, paused, tbr, read, stopped) or list; the same, plus ?group=
+/shelves/:shelfSlug                 a status shelf (reading, paused, tbr, read, stopped), a list, or a saved filter; the same, plus ?group=
 /pile                               every finished book stacked by date, with notes down the side
 /notes                              all notes and reflections, by book; ?q=&kind=
 /books/:bookSlug                    book page (slug = title-author-shortid, e.g. house-of-leaves-danielewski-k3f9)
@@ -444,7 +444,7 @@ they open over their parent, and Back closes them.
 /drawer                             random entry; ?kind=&topic=
 /topics  /topics/:topicSlug         topic index and topic page
 /people/:personSlug                 a recommender and what came from them
-/stats                              ?range=&chart=
+/stats                              ?range=year
 /capture  /capture/add  /capture/camera  /capture/share   capture flows (share_target posts here)
 /review                             import match queue
 /imports/:jobId                     import job report
@@ -485,5 +485,5 @@ shelves, tags, integrations{provider, secretEnc, cursor, lastSyncAt}, importJobs
   animation has a `prefers-reduced-motion` path and none blocks input; the handwriting font is never used for UI
   controls.
 - **Performance.** First load on mid-range Android under 2.5s LCP;
-  the shelf view handles a 2,000-book library (virtualised).
+  the shelf view handles a 2,000-book library (the browser skips offscreen cells with `content-visibility`; real virtualising if that ever falls short).
 - **Export:** from Settings, full JSON, plus one Markdown file with a section per book.

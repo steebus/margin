@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest'
 import type { Book } from './books'
-import { dateOf, daysToRead, filterBooks, groupBooks, sortBooks } from './shelf'
+import { dateOf, daysToRead, filterBooks, groupBooks, mergeSearch, parseSaved, savedFilter, sortBooks } from './shelf'
 
 const day = (text: string) => Date.parse(text)
 const book = (over: Partial<Book>) => ({
@@ -63,4 +63,12 @@ test('days to read and published group into bands', () => {
   const slow = book({ startedAt: day('2024-01-01'), finishedAt: day('2024-09-03') })
   expect(groupBooks([slow, quick], 'days').map(g => g.label)).toEqual(['Under a week', 'Longer than three months'])
   expect(groupBooks([book({ published: 1965 }), book({ published: 2001 })], 'published').map(g => g.label)).toEqual(['2000s', '1960s'])
+})
+
+test('a smart shelf keeps its filter and status, and the URL can still override it', () => {
+  const saved = parseSaved(savedFilter({ genre: 'Horror', sort: 'rating' }, 'read'))
+  expect(saved).toMatchObject({ genre: 'Horror', sort: 'rating', status: 'read' })
+  expect(mergeSearch(saved, { sort: 'title', q: undefined })).toMatchObject({ genre: 'Horror', sort: 'title' })
+  expect(parseSaved('not json')).toEqual({})
+  expect(parseSaved('{"sort":"nonsense","status":"nonsense"}')).toEqual({ sort: undefined, status: undefined })
 })

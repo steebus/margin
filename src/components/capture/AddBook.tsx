@@ -27,7 +27,7 @@ export function ListChoice({ value, onChange }: { value: Id<'shelves'> | ''; onC
       <label htmlFor="add-list">Also on a list</label>
       <select id="add-list" value={value} onChange={e => onChange(e.target.value as Id<'shelves'> | '')}>
         <option value="">No list</option>
-        {lists.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
+        {lists.filter(l => !l.filter).map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
       </select>
     </div>
   )
