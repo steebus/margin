@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router'
 import { formatDate, type Book } from '../../lib/books'
 import { daysToRead, dateOf, SORTS, type Dir, type SortId } from '../../lib/shelf'
+import { useBookHold } from '../book/BookActions'
 import { Tick } from '../thumb/Marks'
 import { Thumb } from '../thumb/Thumb'
 
@@ -14,13 +15,18 @@ export type Size = (typeof SIZES)[number]['id']
 export function Catalog({ books, size }: { books: Book[]; size: Size }) {
   return (
     <div className="catalog" data-size={size} style={{ '--cell': `${SIZES.find(s => s.id === size)!.px}px` } as React.CSSProperties}>
-      {books.map(b => (
-        <Link key={b.slug} to="/books/$bookSlug" params={{ bookSlug: b.slug }} className="cell" aria-label={`${b.title} by ${b.author}`}>
-          <Thumb book={b} />
-          {b.status === 'read' && <span className="cell-tick"><Tick /></span>}
-        </Link>
-      ))}
+      {books.map(b => <Cell key={b.slug} book={b} />)}
     </div>
+  )
+}
+
+function Cell({ book }: { book: Book }) {
+  const hold = useBookHold(book)
+  return (
+    <Link to="/books/$bookSlug" params={{ bookSlug: book.slug }} className="cell" aria-label={`${book.title} by ${book.author}`} {...hold}>
+      <Thumb book={book} />
+      {book.status === 'read' && <span className="cell-tick"><Tick /></span>}
+    </Link>
   )
 }
 

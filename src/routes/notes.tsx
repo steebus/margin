@@ -3,6 +3,11 @@ import { z } from 'zod'
 import { Notes } from '../components/notes/Notes'
 
 export const Route = createFileRoute('/notes')({
-  validateSearch: z.object({ q: z.string().optional().catch(undefined), kind: z.string().optional().catch(undefined) }),
+  validateSearch: z.object({
+    q: z.string().optional().catch(undefined),
+    kind: z.string().optional().catch(undefined),
+    sort: z.enum(['book', 'written', 'read', 'title']).optional().catch(undefined),
+    dir: z.enum(['asc', 'desc']).optional().catch(undefined),
+  }),
   component: Notes,
 })

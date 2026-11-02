@@ -20,11 +20,26 @@ const current = () => resolveTheme(readSaved(), system().matches)
 
 let override: Theme | null = null
 
-export function setTheme(theme: Theme) {
-  override = theme
-  document.documentElement.dataset.theme = theme
-  try { localStorage.setItem(KEY, theme) } catch { /* private window: it lasts until the page closes */ }
+export type ThemeChoice = Theme | 'system'
+let chosen: ThemeChoice | null = null
+
+/** The reader's choice: light, dark, or whatever the system says. */
+export function setTheme(theme: ThemeChoice) {
+  chosen = theme
+  override = theme === 'system' ? null : theme
+  if (theme === 'system') delete document.documentElement.dataset.theme
+  else document.documentElement.dataset.theme = theme
+  try {
+    if (theme === 'system') localStorage.removeItem(KEY)
+    else localStorage.setItem(KEY, theme)
+  } catch { /* private window: it lasts until the page closes */ }
   listeners.forEach(listener => listener())
+}
+
+const currentChoice = (): ThemeChoice => {
+  if (chosen) return chosen
+  const saved = readSaved()
+  return saved === 'light' || saved === 'dark' ? saved : 'system'
 }
 
 function subscribe(listener: () => void) {
@@ -38,3 +53,5 @@ function subscribe(listener: () => void) {
 }
 
 export const useTheme = () => useSyncExternalStore(subscribe, () => override ?? current())
+
+export const useThemeChoice = () => useSyncExternalStore(subscribe, currentChoice)

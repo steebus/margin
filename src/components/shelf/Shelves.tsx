@@ -5,6 +5,7 @@ import { api } from '../../../convex/_generated/api'
 import { useBooks } from '../../lib/offline'
 import { filterBooks, groupBooks, mergeSearch, parseSaved, SHELVES, sortBooks, type GroupId, type ShelfSearch } from '../../lib/shelf'
 import { BookTable, Catalog, type Size } from './BookList'
+import { ReadingStrip } from './ReadingStrip'
 import { SaveView } from './SaveView'
 import { ShelfTools, useCatalogSize } from './ShelfTools'
 import type { Book } from '../../lib/books'
@@ -65,7 +66,10 @@ export function Shelves() {
                 <h2 id={`shelf-${shelf.slug}`} className="year">
                   <Link to="/shelves/$shelfSlug" params={{ shelfSlug: shelf.slug }} search={search}>{shelf.label} <span className="shelf-count">{all.length}</span></Link>
                 </h2>
-                <List books={list} search={search} size={size} onChange={onChange} />
+                {/* What you're reading gets room for its art, unless you've asked for a table. */}
+                {shelf.status === 'reading' && search.view !== 'table'
+                  ? <ReadingStrip books={list} />
+                  : <List books={list} search={search} size={size} onChange={onChange} />}
                 {list.length < all.length && (
                   <div className="btn-row"><Link to="/shelves/$shelfSlug" params={{ shelfSlug: shelf.slug }} search={search} className="btn">All {all.length} {shelf.label}</Link></div>
                 )}

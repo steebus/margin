@@ -96,3 +96,46 @@ test('a note can sit under its excerpt, only on the same book, and outlives it',
   expect(after?.entries.map(e => e.text)).toEqual(['My thought.'])
   expect(after?.entries[0].parentId).toBeNull()
 })
+
+test('an entry opens with its book and the notes under it, only for its owner', async () => {
+  const { t, as, readId } = await setup()
+  const { id } = await as.mutation(api.entries.addEntry, { readId, kind: 'excerpt', text: 'A line.', page: 3 })
+  await as.mutation(api.entries.addEntry, { readId, kind: 'note', text: 'My thought.', parentId: id })
+
+  const found = await as.query(api.entries.entry, { id })
+  expect(found).toMatchObject({ kind: 'excerpt', text: 'A line.', page: 3, position: 'Page 3', book: { slug: 'book-1' }, children: [{ text: 'My thought.' }] })
+  expect(await as.query(api.entries.entry, { id: 'not-an-id' })).toBeNull()
+
+  const otherId = await t.run(ctx => ctx.db.insert('users', { name: 'Sam' }))
+  expect(await t.withIdentity({ subject: `${otherId}|session` }).query(api.entries.entry, { id })).toBeNull()
+})
+
+test('editing an entry changes its words and place, and sends it to Hardcover again', async () => {
+  const { t, as, readId } = await setup()
+  const { id } = await as.mutation(api.entries.addEntry, { readId, kind: 'note', text: 'First go.', page: 3 })
+  await t.run(ctx => ctx.db.patch(id, { hardcoverJournalId: 77 }))
+
+  await as.mutation(api.entries.updateEntry, { id, text: '  Second go.  ', chapter: '4' })
+  const found = await as.query(api.entries.entry, { id })
+  expect(found).toMatchObject({ text: 'Second go.', page: null, chapter: '4', position: 'Chapter 4' })
+
+  const outbox = await t.run(ctx => ctx.db.query('hardcoverOutbox').collect())
+  expect(outbox.map(r => r.kind).sort()).toEqual(['deleteJournal', 'entry'])
+  expect(outbox.find(r => r.kind === 'deleteJournal')?.journalId).toBe(77)
+  expect((await t.run(ctx => ctx.db.get(id)))?.hardcoverJournalId).toBeUndefined()
+
+  // Saving the same words again changes nothing and sends nothing.
+  await as.mutation(api.entries.updateEntry, { id, text: 'Second go.', chapter: '4' })
+  expect(await t.run(ctx => ctx.db.query('hardcoverOutbox').collect())).toHaveLength(2)
+})
+
+test('an edit is refused when it is empty, a copy of another entry, or someone else’s', async () => {
+  const { t, as, readId } = await setup()
+  const { id } = await as.mutation(api.entries.addEntry, { readId, kind: 'note', text: 'One.' })
+  await as.mutation(api.entries.addEntry, { readId, kind: 'note', text: 'Two.' })
+  await expect(as.mutation(api.entries.updateEntry, { id, text: '  ' })).rejects.toThrow()
+  await expect(as.mutation(api.entries.updateEntry, { id, text: 'Two.' })).rejects.toThrow()
+  await expect(as.mutation(api.entries.updateEntry, { id, text: 'Fine.', page: 0 })).rejects.toThrow()
+  const otherId = await t.run(ctx => ctx.db.insert('users', { name: 'Sam' }))
+  await expect(t.withIdentity({ subject: `${otherId}|session` }).mutation(api.entries.updateEntry, { id, text: 'Mine now.' })).rejects.toThrow()
+})

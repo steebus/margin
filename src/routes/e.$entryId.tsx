@@ -1,6 +1,4 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { Placeholder } from '../components/placeholder/Placeholder'
+import { EntryPage } from '../components/notes/EntryPage'
 
-export const Route = createFileRoute('/e/$entryId')({
-  component: () => <Placeholder title="Entry" />,
-})
+export const Route = createFileRoute('/e/$entryId')({ component: EntryPage })

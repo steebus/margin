@@ -5,6 +5,7 @@ import { api } from '../../../convex/_generated/api'
 import { errorText } from '../../lib/books'
 import { download, toMarkdown } from '../../lib/export'
 import { forgetDevice } from '../../lib/offline'
+import { setTheme, useThemeChoice, type ThemeChoice } from '../../lib/theme'
 
 function Account() {
   const viewer = useQuery(api.users.viewer)
@@ -109,6 +110,24 @@ function Export() {
   )
 }
 
+const THEMES: { id: ThemeChoice; label: string }[] = [
+  { id: 'system', label: 'System' },
+  { id: 'light', label: 'Daylight' },
+  { id: 'dark', label: 'Night' },
+]
+
+function Appearance() {
+  const choice = useThemeChoice()
+  return (
+    <div className="box stack">
+      <div className="segments" role="group" aria-label="Theme">
+        {THEMES.map(t => <button key={t.id} type="button" aria-pressed={choice === t.id} onClick={() => setTheme(t.id)}>{t.label}</button>)}
+      </div>
+      <p className="where">System follows your phone or computer's light and dark setting.</p>
+    </div>
+  )
+}
+
 export function Settings() {
   return (
     <div className="narrow stack">
@@ -117,6 +136,10 @@ export function Settings() {
       <section className="stack" aria-labelledby="account-heading">
         <h2 id="account-heading" className="head">Account</h2>
         <Account />
+      </section>
+      <section className="stack" aria-labelledby="appearance-heading">
+        <h2 id="appearance-heading" className="head">Appearance</h2>
+        <Appearance />
       </section>
       <section className="stack" aria-labelledby="hardcover-heading">
         <h2 id="hardcover-heading" className="head">Hardcover</h2>

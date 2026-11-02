@@ -1,3 +1,4 @@
+import { Link } from '@tanstack/react-router'
 import { useMutation } from 'convex/react'
 import { Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
@@ -84,10 +85,10 @@ export function EntryList({ entries, readId, limit }: { entries: Entry[]; readId
         <li key={e.id}>
           <span className="entry-position">{entryLabel(e)}</span>
           <div className="entry-body">
-            <EntryText entry={e} />
+            <Link to="/e/$entryId" params={{ entryId: e.id }} className="note-link"><EntryText entry={e} /></Link>
             {entries.filter(c => c.parentId === e.id).reverse().map(c => (
               <div key={c.id} className="entry-child">
-                <p className="hand">{c.text}</p>
+                <Link to="/e/$entryId" params={{ entryId: c.id }} className="note-link"><p className="hand">{c.text}</p></Link>
                 <Delete entry={c} />
               </div>
             ))}

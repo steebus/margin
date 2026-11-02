@@ -60,6 +60,8 @@ export function Drawer() {
                   ? <blockquote className="book-voice">{entry.text}</blockquote>
                   : <p className="hand">{entry.text}</p>}
                 <p className="where">{entry.where}</p>
+                {/* The whole card opens the note, to read it in full, change it or delete it. */}
+                <Link to="/e/$entryId" params={{ entryId: entry.id }} className="drawer-open" aria-label={`Open this ${entry.kind}: ${entry.text.slice(0, 60)}`} />
               </motion.article>
             </AnimatePresence>
           </div>
