@@ -8,7 +8,7 @@ export default defineConfig({
     tanstackRouter({ target: 'react', autoCodeSplitting: true }),
     react(),
     VitePWA({
-      registerType: 'prompt', // a new version waits for the next launch, so nothing reloads mid-use
+      registerType: 'autoUpdate', // takes over as soon as it's installed. src/lib/updates.ts decides when the page reloads
       includeAssets: ['apple-touch-icon.png', 'favicon.svg'],
       manifest: {
         name: 'Margin',

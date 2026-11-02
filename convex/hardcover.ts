@@ -31,6 +31,10 @@ async function gql<T>(query: string, variables: Record<string, unknown> = {}): P
   if (res.status === 429) {
     await sleep(60_000)
     res = await send()
+  } else if (res.status >= 500) {
+    // Hardcover's gateway has the odd bad moment. One more go saves a failed import or push.
+    await sleep(5_000)
+    res = await send()
   }
   if (!res.ok) throw new ConvexError(`Hardcover answered ${res.status}.`)
   const json = await res.json()

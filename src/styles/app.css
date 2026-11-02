@@ -320,10 +320,8 @@ p a { color: inherit; text-underline-offset: 3px; }
 .log-field { display: grid; gap: 4px; font: 400 1.125rem/1 var(--head); letter-spacing: 0.02em; text-transform: uppercase; }
 .log-field input { width: 6.5em; min-height: 56px; padding: 8px 12px; border: var(--line) solid var(--ink); border-radius: 3px; background: transparent; color: var(--ink); font: 600 1.75rem/1 var(--book); font-variant-numeric: lining-nums; }
 .log-of { padding-bottom: 14px; font: 400 1.0625rem/1.2 var(--book); text-transform: none; letter-spacing: 0; }
-.log-field .log-of { display: none; }
-.log-fields:has(.log-field .log-of) .log-field { grid-template-columns: auto auto; align-items: end; column-gap: 10px; }
-.log-fields:has(.log-field .log-of) .log-field > span:first-child { grid-column: 1 / -1; }
-.log-field .log-of { display: block; }
+.log-field:has(.log-of) { grid-template-columns: auto auto; align-items: end; column-gap: 10px; }
+.log-field:has(.log-of) > span:first-child { grid-column: 1 / -1; }
 
 .reflection { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
 

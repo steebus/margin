@@ -11,7 +11,10 @@ import { ConvexReactClient } from 'convex/react'
 import { MotionConfig } from 'motion/react'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { watchForUpdates } from './lib/updates'
 import { routeTree } from './routeTree.gen'
+
+watchForUpdates()
 
 const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL as string)
 const router = createRouter({ routeTree, defaultViewTransition: true })
