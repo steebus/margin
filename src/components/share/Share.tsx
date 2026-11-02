@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { errorText } from '../../lib/books'
-import { shrinkPhoto } from '../../lib/photo'
+import { readPage } from '../../lib/ocr'
 import { bookmarklet, readShare } from '../../lib/share-read'
 import { bookLine, ListChoice, type Result } from '../capture/AddBook'
 
@@ -212,7 +212,7 @@ function FromPost({ url, code, handle: readHandle, words, popup }: { url: string
                 onChange={e => {
                   const file = e.target.files?.[0]
                   if (file) void reader(async () => {
-                    const page = await transcribe({ image: await shrinkPhoto(file) })
+                    const page = await readPage(file, transcribe)
                     if (!page.paragraphs.length) { setNote('No words could be read from that screenshot.'); return }
                     take(await readWords({ text: page.paragraphs.join('\n') }))
                   })

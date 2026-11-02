@@ -16,6 +16,52 @@ export async function shrinkPhoto(file: File) {
   return canvas.toDataURL('image/jpeg', 0.82).split(',')[1]
 }
 
+export type Read = { paragraphs: string[]; page: number | null; chapter: string | null }
+
+const END_OF_PARAGRAPH = 0.72
+
+/**
+ * Plain recognised text, tidied into what the model would have said: the header or footer lifted out, words split
+ * across lines rejoined, and a new paragraph wherever a line stops well short of the others.
+ */
+export function fromOcr(text: string): Read {
+  const blocks = text.split(/\n\s*\n/).map(b => b.split('\n').map(l => l.trim()).filter(Boolean)).filter(b => b.length)
+  let page: number | null = null
+  let chapter: string | null = null
+
+  const margin = (line: string) => {
+    const number = line.match(/^(\d{1,4})$|^\d{1,4}\s+\S|\S\s+(\d{1,4})$/)
+    const words = line.replace(/\d+/g, '').trim()
+    const shouting = !!words && words === words.toUpperCase() && line.length < 60
+    if (!number && !shouting) return false
+    const found = line.match(/\b\d{1,4}\b/)?.[0]
+    if (found && line.length < 60) page ??= Number(found)
+    if (/chapter|part\b/i.test(words)) chapter = words
+    return true
+  }
+  // Only the very top and bottom of a page can be its margin.
+  if (blocks[0]?.length === 1 && blocks.length > 1 && margin(blocks[0][0])) blocks.shift()
+  else if (blocks[0]?.[0] && blocks[0].length > 1 && margin(blocks[0][0]) && blocks[0][0].length < 60) blocks[0].shift()
+  const last = blocks.at(-1)
+  if (last?.length === 1 && blocks.length > 1 && last[0].length < 60 && margin(last[0])) blocks.pop()
+
+  const paragraphs = blocks.flatMap(block => {
+    const longest = Math.max(...block.map(l => l.length))
+    const out: string[] = []
+    let open = ''
+    for (const line of block) {
+      open = open.endsWith('-') ? open.slice(0, -1) + line : open ? `${open} ${line}` : line
+      if (line.length < longest * END_OF_PARAGRAPH) {
+        out.push(open)
+        open = ''
+      }
+    }
+    if (open) out.push(open)
+    return out
+  })
+  return { paragraphs, page, chapter }
+}
+
 /** Marking a passage by tapping its first and last word. A third tap starts again; tapping a lone word clears it. */
 export type Range = [number, number] | null
 export function nextRange(range: Range, word: number): Range {

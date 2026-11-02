@@ -9,6 +9,9 @@ export const failureText = (status: number, doing: string) =>
     ? `${doing} needs Gemini credit, and it has run out. Add some in Google AI Studio.`
     : `${doing} failed just now (${status}). Try again.`
 
+/** Gemini's own filter declined to repeat text it recognises as published. */
+export const REFUSED_AS_RECITATION = 'recitation'
+
 /** Asks the small model for JSON, and returns the words of its reply. A fraction of a penny. */
 export async function askGemini(parts: Part[], doing: string, temperature = 0) {
   const key = process.env.GEMINI_API_KEY
@@ -20,5 +23,6 @@ export async function askGemini(parts: Part[], doing: string, temperature = 0) {
   })
   if (!res.ok) throw new ConvexError(failureText(res.status, doing))
   const json = await res.json()
+  if (json.candidates?.[0]?.finishReason === 'RECITATION') throw new ConvexError(REFUSED_AS_RECITATION)
   return (json.candidates?.[0]?.content?.parts?.[0]?.text ?? '') as string
 }

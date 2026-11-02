@@ -5,10 +5,9 @@ import { useEffect, useMemo, useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useBooks } from '../../lib/offline'
 import { errorText, type Book } from '../../lib/books'
-import { nextRange, passage, shrinkPhoto, wordsOf, type Range } from '../../lib/photo'
+import { readPage } from '../../lib/ocr'
+import { nextRange, passage, wordsOf, type Range, type Read } from '../../lib/photo'
 import { Typewriter } from '../typewriter/Typewriter'
-
-type Read = { paragraphs: string[]; page: number | null; chapter: string | null }
 
 // Long enough to see it arrive, short enough that a full page doesn't hold anyone up.
 const TYPE_FOR_MS = 5000
@@ -126,7 +125,7 @@ export function Camera() {
     setRead(null)
     setReading(true)
     try {
-      const result = await transcribe({ image: await shrinkPhoto(file) })
+      const result = await readPage(file, transcribe)
       if (result.paragraphs.length) {
         setRead(result)
         setTyping(true)

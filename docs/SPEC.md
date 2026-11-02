@@ -134,6 +134,9 @@ are cached. There's no hard budget; a cost meter is shown in Settings, with an a
   (paragraphs, page number, chapter if a header names one), and the text is *typed onto the page* for a few seconds
   (the signature animation). Tap the first and last word to mark a passage, correct it if needed, save it as an excerpt,
   and add a handwritten-style note, which is attached to it. **The photo is never stored.**
+  Gemini's filter refuses some published text (`RECITATION`: tested on 2026-11-02 with the opening of *1984*), and it needs
+  credit and a connection. Whenever it can't help, the device reads the photo itself with Tesseract (`src/lib/ocr.ts`), which
+  downloads about 10 MB once. It's the reader's own photo of their own book, kept as a personal note.
 - **Quick share.** Share text or a screenshot from Kindle, Play Books, a
   browser, anywhere:
   - Android: Web Share Target in the PWA manifest. The service worker takes

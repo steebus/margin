@@ -28,7 +28,8 @@ export const MAX_MENTIONS = 8
 export const mentionsPrompt = (text: string) => `These words are from a social media post, or a screenshot of one. List the books they name.
 
 Rules:
-- Only books actually named. Don't guess at books from a description, and don't add others by the same author.
+- Only books the post is actually talking about as books. Don't guess at books from a description, and don't add others by the same author.
+- Leave out films, shows, people and pets, even if they share a name with a book.
 - Copy the title as a book would print it, and the author if the words give one.
 - confidence is from 0 to 1: how sure you are that this is a book's title.
 - At most ${MAX_MENTIONS} books, most likely first.
