@@ -7,8 +7,8 @@ and have a conversation with the book while you read it.
 - `docs/PLAN.md`: the build plan, phase by phase, with done-when checks
 - `docs/DESIGN-DIRECTION.md`: what it looks like and how it moves
 
-Status: Phase 1 in progress. Live with Google sign-in and the Hardcover import. Shelves, Desk, Book page
-and progress logging run on real data; the buddy, capture and the art pipeline are still to come.
+Status: Phase 1 in progress. Live and installable, with Google sign-in and the Hardcover import. Shelves, Desk,
+Book page, progress logging, excerpts and notes run on real data; the buddy and the art pipeline are still to come.
 
 ```
 npm install

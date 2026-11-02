@@ -1,6 +1,6 @@
 import { Link, useParams } from '@tanstack/react-router'
-import { useQuery } from 'convex/react'
-import { ArrowLeft, MessageCircle, Plus } from 'lucide-react'
+import { useMutation, useQuery } from 'convex/react'
+import { ArrowLeft, MessageCircle, Plus, Trash2 } from 'lucide-react'
 import { api } from '../../../convex/_generated/api'
 import { formatDate, type Status } from '../../lib/books'
 import { Stars } from '../shelf/Shelves'
@@ -21,6 +21,7 @@ export function NotFoundBook() {
 export function BookPage() {
   const { bookSlug } = useParams({ from: '/books/$bookSlug/' })
   const found = useQuery(api.library.bookBySlug, { slug: bookSlug })
+  const removeEntry = useMutation(api.entries.removeEntry)
 
   if (found === undefined) return <p role="status">Finding your book…</p>
   if (found === null) return <NotFoundBook />
@@ -78,6 +79,14 @@ export function BookPage() {
               <li key={e.id}>
                 <span className="entry-position">{e.kind === 'summary' ? `Summary${e.position ? `, ${e.position}` : ''}` : e.position}</span>
                 {e.kind === 'excerpt' ? <blockquote className="book-voice">{e.text}</blockquote> : <p className="hand">{e.text}</p>}
+                <button
+                  type="button"
+                  className="entry-delete"
+                  aria-label={`Delete: ${e.text.slice(0, 40)}`}
+                  onClick={() => { if (confirm('Delete this entry? This cannot be undone.')) void removeEntry({ id: e.id }) }}
+                >
+                  <Trash2 aria-hidden="true" strokeWidth={2} />
+                </button>
               </li>
             ))}
           </ul>
@@ -87,7 +96,7 @@ export function BookPage() {
       </section>
 
       <div className="btn-row btn-row-fill">
-        <Link to="/capture" className="btn"><Plus aria-hidden="true" strokeWidth={2.25} />Add entry</Link>
+        <Link to="/capture" search={{ book: book.slug }} className="btn"><Plus aria-hidden="true" strokeWidth={2.25} />Add entry</Link>
         <Link to="/books/$bookSlug/buddy" params={{ bookSlug: book.slug }} className="btn btn-solid">
           <MessageCircle aria-hidden="true" strokeWidth={2.25} />Talk about it
         </Link>

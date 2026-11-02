@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#d8d6cf"/>
+  <g stroke="#121212" stroke-width="20" stroke-linejoin="miter">
+    <!-- A solid black book -->
+    <path fill="#121212" d="M72 142h106v288H72z"/>
+    <path fill="#d8d6cf" stroke="none" d="M72 196h106v22H72zM72 358h106v22H72z"/>
+    <!-- A tall pale book, ruled across its spine -->
+    <path fill="#d8d6cf" d="M178 82h116v348H178z"/>
+    <path fill="none" d="M178 142h116M178 368h116"/>
+    <path fill="#121212" stroke="none" d="M208 188h56v130h-56z"/>
+    <!-- A short book leaning in front, with a label -->
+    <path fill="#d8d6cf" d="M300 212l112-24 42 222-112 24z"/>
+    <path fill="#121212" stroke="none" d="M334 248l56-12 12 62-56 12z"/>
+  </g>
+</svg>
