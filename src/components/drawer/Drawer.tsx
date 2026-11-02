@@ -1,8 +1,9 @@
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
+import { useQuery } from 'convex/react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
+import { api } from '../../../convex/_generated/api'
 import { nextCard } from '../../lib/drawer-rules'
-import { drawer, slugFor } from '../../sample/sample'
 
 const kinds = [
   { id: undefined, label: 'All' },
@@ -13,10 +14,11 @@ const kinds = [
 export function Drawer() {
   const { kind } = useSearch({ from: '/drawer' })
   const navigate = useNavigate({ from: '/drawer' })
+  const all = useQuery(api.library.recentEntries)
   const [card, setCard] = useState(0)
   const [hidden, setHidden] = useState<string[]>([])
 
-  const entries = drawer.filter(e => (!kind || e.kind === kind) && !hidden.includes(e.text))
+  const entries = (all ?? []).filter(e => (!kind || e.kind === kind) && !hidden.includes(e.id))
   const entry = entries[card % Math.max(entries.length, 1)]
 
   return (
@@ -41,12 +43,14 @@ export function Drawer() {
 
       <hr className="rule" />
 
-      {entry ? (
+      {all === undefined && <p role="status">Opening the drawer…</p>}
+
+      {entry && (
         <>
           <div className="drawer-slot">
             <AnimatePresence mode="popLayout" initial={false}>
               <motion.article
-                key={entry.text}
+                key={entry.id}
                 className="box drawer-card"
                 initial={{ y: 48, opacity: 0, rotate: 1.5 }}
                 animate={{ y: 0, opacity: 1, rotate: 0 }}
@@ -56,7 +60,6 @@ export function Drawer() {
                 {entry.kind === 'excerpt'
                   ? <blockquote className="book-voice">{entry.text}</blockquote>
                   : <p className="hand">{entry.text}</p>}
-                {entry.note && <p className="hand">{entry.note}</p>}
                 <p className="where">{entry.where}</p>
               </motion.article>
             </AnimatePresence>
@@ -70,24 +73,28 @@ export function Drawer() {
             >
               Shuffle
             </button>
-            <Link to="/books/$bookSlug/buddy" params={{ bookSlug: slugFor(entry.book) }} className="btn">Talk about this</Link>
-            <button type="button" className="btn" onClick={() => setHidden([...hidden, entry.text])}>Not this one again</button>
+            {entry.slug && <Link to="/books/$bookSlug/buddy" params={{ bookSlug: entry.slug }} className="btn">Talk about this</Link>}
+            <button type="button" className="btn" onClick={() => setHidden([...hidden, entry.id])}>Not this one again</button>
           </div>
         </>
-      ) : (
+      )}
+
+      {all !== undefined && !entry && (
         <div className="box stack">
-          <p>Nothing left in this drawer. Show everything again, or capture a new line.</p>
+          <p>{all.length ? 'Nothing left in this drawer.' : 'The drawer is empty. The lines and notes you keep will turn up here.'}</p>
           <div className="btn-row">
-            <button
-              type="button"
-              className="btn btn-solid"
-              onClick={() => {
-                setHidden([])
-                navigate({ search: prev => ({ ...prev, kind: undefined }) })
-              }}
-            >
-              Show everything
-            </button>
+            {all.length > 0 && (
+              <button
+                type="button"
+                className="btn btn-solid"
+                onClick={() => {
+                  setHidden([])
+                  navigate({ search: prev => ({ ...prev, kind: undefined }) })
+                }}
+              >
+                Show everything
+              </button>
+            )}
             <Link to="/capture" className="btn">Capture</Link>
           </div>
         </div>

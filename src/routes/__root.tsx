@@ -1,5 +1,7 @@
 import { createRootRoute, Link, Outlet, useRouterState } from '@tanstack/react-router'
+import { useConvexAuth } from 'convex/react'
 import { Compass, LampDesk, Library, Camera, Moon, Sun, UserRound } from 'lucide-react'
+import { SignIn } from '../components/settings/SignIn'
 import { setTheme, useTheme } from '../lib/theme'
 
 export const Route = createRootRoute({ component: Root })
@@ -24,25 +26,28 @@ function ThemeToggle() {
 
 function Root() {
   const path = useRouterState({ select: s => s.location.pathname })
+  const { isLoading, isAuthenticated } = useConvexAuth()
   return (
     <div className="app">
       <main className="page">
         <div className="corner">
-          <Link to="/settings" className="theme-toggle" aria-label="Settings and account" title="Settings and account">
-            <UserRound aria-hidden="true" strokeWidth={2.25} />
-          </Link>
+          {isAuthenticated && (
+            <Link to="/settings" className="theme-toggle" aria-label="Settings and account" title="Settings and account">
+              <UserRound aria-hidden="true" strokeWidth={2.25} />
+            </Link>
+          )}
           <ThemeToggle />
         </div>
-        <Outlet />
+        {isLoading ? <p role="status">Opening Margin…</p> : isAuthenticated ? <Outlet /> : <SignIn />}
       </main>
-      <nav className="tabs" aria-label="Main">
+      {isAuthenticated && <nav className="tabs" aria-label="Main">
         {tabs.map(({ to, label, Icon, match }) => (
           <Link key={to} to={to} aria-current={match(path) ? 'page' : undefined}>
             <Icon aria-hidden="true" strokeWidth={2.25} />
             {label}
           </Link>
         ))}
-      </nav>
+      </nav>}
     </div>
   )
 }

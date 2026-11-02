@@ -4,7 +4,6 @@ Read `docs/SPEC.md`, `docs/PLAN.md`, `docs/DESIGN-DIRECTION.md` and `PRODUCT.md`
 
 - Check work with `npm run build`, `npm run lint` and `npm test`.
 - `src/routeTree.gen.ts` is generated from `src/routes/`. Don't edit it by hand.
-- `src/sample/` is demonstration data, and Phase 1 replaces it.
 - Books always show at the book ratio, 2:3, never square.
 - UI goes in `src/components/<object>/`, tested logic in `src/lib/`, design tokens in
   `src/styles/tokens.css`.
@@ -19,8 +18,8 @@ Read `docs/SPEC.md`, `docs/PLAN.md`, `docs/DESIGN-DIRECTION.md` and `PRODUCT.md`
   element rects against the viewport instead.
 - Don't give two files in `src/` names that differ only by case: `./Foo` resolves
   to the wrong one on Windows.
-- `public/art-demo/` and `demoArt` in `src/sample/sample.ts` are hand-stored Gemini test drawings.
-  Delete them when the art pipeline lands (SPEC §3.11). `SAMPLE_POST` in `src/components/share/Share.tsx` is
+- `public/art-demo/` and `src/lib/art.ts` hold hand-stored Gemini test drawings. Delete the demo part
+  when the art pipeline lands (SPEC §3.11). `SAMPLE_POST` in `src/components/share/Share.tsx` is
   fake too, and nothing on the share screen is saved yet (SPEC §3.4.1).
 - `GEMINI_API_KEY` lives in the gitignored `.env`. Never print it.
 - Offscreen cells only load when the browser renders frames. In automated checks

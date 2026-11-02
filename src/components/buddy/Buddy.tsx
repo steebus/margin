@@ -1,32 +1,18 @@
 import { Link, useParams } from '@tanstack/react-router'
+import { useQuery } from 'convex/react'
 import { ArrowLeft } from 'lucide-react'
-import { useState, type FormEvent } from 'react'
+import { api } from '../../../convex/_generated/api'
 import { NotFoundBook } from '../book/BookPage'
-import { Arrow } from '../thumb/Marks'
-import { books, current, threads, type Turn } from '../../sample/sample'
 import { Thumb } from '../thumb/Thumb'
 import { Typewriter } from '../typewriter/Typewriter'
 
 export function Buddy() {
   const { bookSlug } = useParams({ from: '/books/$bookSlug/buddy' })
-  const book = books.find(b => b.slug === bookSlug)
-  const reading = current.find(c => c.book.slug === bookSlug)
-  const [turns, setTurns] = useState<Turn[]>(
-    () => threads[bookSlug] ?? (reading ? [{ who: 'buddy', text: reading.prompt }] : []),
-  )
-  const [reply, setReply] = useState('')
+  const found = useQuery(api.library.bookBySlug, { slug: bookSlug })
 
-  if (!book) return <NotFoundBook />
-
-  const lastBuddy = turns.findLastIndex(t => t.who === 'buddy')
-
-  const send = (e: FormEvent) => {
-    e.preventDefault()
-    const text = reply.trim()
-    if (!text) return
-    setTurns([...turns, { who: 'reader', text }])
-    setReply('')
-  }
+  if (found === undefined) return <p role="status">Finding your book…</p>
+  if (found === null) return <NotFoundBook />
+  const { book } = found
 
   return (
     <div className="narrow stack">
@@ -37,48 +23,13 @@ export function Buddy() {
         <Thumb book={book} />
         <div>
           <h1 className="buddy-title">{book.title}</h1>
-          {reading && <p className="where">Talking up to {reading.percent}%</p>}
+          <p className="where">{book.author}</p>
         </div>
       </header>
 
       <hr className="rule" />
 
-      <ol className="thread">
-        {turns.length === 0 && <li>Nothing to talk about yet. Start the book and your buddy will ask when you reach a milestone.</li>}
-        {turns.map((turn, i) =>
-          turn.who === 'buddy' ? (
-            <li key={i} className="turn-buddy">
-              {i === lastBuddy
-                ? <Typewriter text={turn.text} />
-                : <div className="tw"><p className="tw-static">{turn.text}</p></div>}
-              {turn.cites && (
-                <aside className="citation">
-                  <p className="hand">{turn.cites.note}</p>
-                  <p className="where">{turn.cites.where}</p>
-                </aside>
-              )}
-            </li>
-          ) : (
-            <li key={i} className="turn-reader">
-              <Arrow />
-              <p className="hand">{turn.text}</p>
-            </li>
-          ),
-        )}
-      </ol>
-
-      <form className="reply" onSubmit={send}>
-        <label htmlFor="reply" className="sr-only">Write your reply</label>
-        <input id="reply" value={reply} onChange={e => setReply(e.target.value)} placeholder="Write your reply" autoComplete="off" />
-        <button type="submit" className="btn btn-solid" disabled={!reply.trim()}>Send</button>
-      </form>
-      <button
-        type="button"
-        className="text-link"
-        onClick={() => setTurns([...turns, { who: 'reader', text: "That hasn't happened yet." }])}
-      >
-        That hasn't happened yet
-      </button>
+      <Typewriter text="Your buddy hasn't arrived yet. When it does, its questions about this book will be typed here." />
     </div>
   )
 }

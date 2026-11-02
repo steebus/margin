@@ -1,8 +1,12 @@
 import { Link, useParams } from '@tanstack/react-router'
+import { useQuery } from 'convex/react'
 import { ArrowLeft, MessageCircle, Plus } from 'lucide-react'
-import { books, cards, current, margins, threads } from '../../sample/sample'
+import { api } from '../../../convex/_generated/api'
+import { formatDate, type Status } from '../../lib/books'
 import { Stars } from '../shelf/Shelves'
 import { Thumb } from '../thumb/Thumb'
+
+const STATUS: Record<Status, string> = { tbr: 'On your TBR', reading: 'Reading', paused: 'Paused', read: 'Read', dnf: 'Stopped' }
 
 export function NotFoundBook() {
   return (
@@ -16,12 +20,18 @@ export function NotFoundBook() {
 
 export function BookPage() {
   const { bookSlug } = useParams({ from: '/books/$bookSlug/' })
-  const book = books.find(b => b.slug === bookSlug)
-  if (!book) return <NotFoundBook />
+  const found = useQuery(api.library.bookBySlug, { slug: bookSlug })
 
-  const reading = current.find(c => c.book.slug === book.slug)
-  const entries = margins[book.slug] ?? []
-  const library = book.slug === current[0].book.slug ? cards : []
+  if (found === undefined) return <p role="status">Finding your book…</p>
+  if (found === null) return <NotFoundBook />
+
+  const { book, entries } = found
+  const showProgress = book.status === 'reading' || book.status === 'paused'
+  const card = [
+    book.addedAt && { date: book.addedAt, event: 'Added' },
+    book.startedAt && { date: book.startedAt, event: 'Started' },
+    book.finishedAt && { date: book.finishedAt, event: 'Finished' },
+  ].filter(row => !!row)
 
   return (
     <div className="narrow stack">
@@ -32,29 +42,28 @@ export function BookPage() {
         <div className="book-head-text">
           <h1 className="book-title">{book.title}</h1>
           <p>{book.author}</p>
-          {reading && (
+          <p className="where">{STATUS[book.status]}{book.format === 'audio' ? ', audiobook' : ''}</p>
+          {showProgress && (
             <>
-              <p className="pct pct-large">{reading.percent}%</p>
-              <span className="bar" aria-hidden="true"><span style={{ transform: `scaleX(${reading.percent / 100})` }} /></span>
-              {reading.format === 'audiobook' && <p className="where">Audiobook</p>}
+              <p className="pct pct-large">{book.percent}%</p>
+              <span className="bar" aria-hidden="true"><span style={{ transform: `scaleX(${book.percent / 100})` }} /></span>
             </>
           )}
           {book.rating !== null && <Stars rating={book.rating} />}
-          {book.tags.length > 0 && <p className="tags">{book.tags.map(t => <span key={t} className="tag">{t}</span>)}</p>}
         </div>
       </header>
 
-      {library.length > 0 && (
+      {(card.length > 0 || book.recommendedBy) && (
         <table className="card-table">
           <caption>Library card</caption>
           <tbody>
-            {library.map(row => (
+            {card.map(row => (
               <tr key={row.event}>
-                <td><span className="date-stamp">{row.added}</span></td>
+                <td><span className="date-stamp">{formatDate(row.date)}</span></td>
                 <td>{row.event}</td>
               </tr>
             ))}
-            <tr><td colSpan={2}>Recommended by Sam: read it for the winter</td></tr>
+            {book.recommendedBy && <tr><td colSpan={2}>Recommended by {book.recommendedBy}</td></tr>}
           </tbody>
         </table>
       )}
@@ -66,10 +75,9 @@ export function BookPage() {
         {entries.length > 0 ? (
           <ul className="entries">
             {entries.map(e => (
-              <li key={e.note} data-summary={e.summary || undefined}>
-                <span className="entry-position">{e.summary ? `Summary, ${e.position.toLowerCase()}` : e.position}</span>
-                {e.quote && <blockquote className="book-voice">{e.quote}</blockquote>}
-                <p className="hand">{e.note}</p>
+              <li key={e.id}>
+                <span className="entry-position">{e.kind === 'summary' ? `Summary${e.position ? `, ${e.position}` : ''}` : e.position}</span>
+                {e.kind === 'excerpt' ? <blockquote className="book-voice">{e.text}</blockquote> : <p className="hand">{e.text}</p>}
               </li>
             ))}
           </ul>
@@ -81,8 +89,7 @@ export function BookPage() {
       <div className="btn-row btn-row-fill">
         <Link to="/capture" className="btn"><Plus aria-hidden="true" strokeWidth={2.25} />Add entry</Link>
         <Link to="/books/$bookSlug/buddy" params={{ bookSlug: book.slug }} className="btn btn-solid">
-          <MessageCircle aria-hidden="true" strokeWidth={2.25} />
-          Talk{threads[book.slug] ? '' : ' about it'}
+          <MessageCircle aria-hidden="true" strokeWidth={2.25} />Talk about it
         </Link>
       </div>
     </div>

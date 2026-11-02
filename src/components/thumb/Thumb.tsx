@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
+import { artFor, coverPath } from '../../lib/art'
 import { hatchWeights, toLuma } from '../../lib/ink'
 import { Circle, Strike } from './Marks'
-import type { Book } from '../../sample/sample'
 import { useTheme } from '../../lib/theme'
 
 // Each cover is fetched once per session and shared, across resizes and every screen.
@@ -26,11 +26,14 @@ function loadCover(url: string) {
   return cover
 }
 
-type Props = { coverId: number; onDone: (result: 'painted' | 'failed') => void }
+/** A stable number from an address, so a cover's pen strokes never change between visits. */
+const seedOf = (text: string) => [...text].reduce((sum, c) => (sum * 31 + c.charCodeAt(0)) >>> 0, 7)
+
+type Props = { coverUrl: string; onDone: (result: 'painted' | 'failed') => void }
 
 // ponytail: processes on the main thread as cells near the screen. It only runs until a book's
 // generated art lands, so this is fine; move it to a worker if a big import ever janks.
-function HatchedCover({ coverId, onDone }: Props) {
+function HatchedCover({ coverUrl, onDone }: Props) {
   const ref = useRef<HTMLCanvasElement>(null)
   const dark = useTheme() === 'dark'
   const done = useRef(onDone)
@@ -46,7 +49,7 @@ function HatchedCover({ coverId, onDone }: Props) {
       const unit = Math.max(window.devicePixelRatio || 1, 2.5)
       const w = Math.max(1, Math.round(canvas.clientWidth * unit))
       const h = Math.max(1, Math.round(canvas.clientHeight * unit))
-      loadCover(`https://covers.openlibrary.org/b/id/${coverId}-L.jpg`).then(img => {
+      loadCover(coverPath(coverUrl)).then(img => {
         if (cancelled) return
         canvas.width = w
         canvas.height = h
@@ -55,7 +58,7 @@ function HatchedCover({ coverId, onDone }: Props) {
         const fit = Math.max(w / img.width, h / img.height)
         ctx.drawImage(img, (w - img.width * fit) / 2, (h - img.height * fit) / 2, img.width * fit, img.height * fit)
         const pixels = ctx.getImageData(0, 0, w, h)
-        const weights = hatchWeights(toLuma(pixels.data), w, h, { seed: coverId, negative: dark, unit })
+        const weights = hatchWeights(toLuma(pixels.data), w, h, { seed: seedOf(coverUrl), negative: dark, unit })
         const ink = dark ? [230, 227, 218] : [18, 18, 18]
         for (let i = 0; i < weights.length; i++) {
           pixels.data.set(ink, i * 4)
@@ -67,7 +70,7 @@ function HatchedCover({ coverId, onDone }: Props) {
     }, { rootMargin: '300px' })
     observer.observe(canvas)
     return () => { cancelled = true; observer.disconnect() }
-  }, [coverId, dark])
+  }, [coverUrl, dark])
 
   return <canvas ref={ref} className="thumb-art" aria-hidden="true" />
 }
@@ -76,10 +79,12 @@ function HatchedCover({ coverId, onDone }: Props) {
  * A book's picture, best source first: generated art, then a cross-hatch of the real cover,
  * then the printed title. Each one covers for the next while it loads or if it fails.
  */
-export function Thumb({ book, marks = true }: { book: Book; marks?: boolean }) {
+type ThumbBook = { title: string; author: string; coverUrl: string | null; status: string }
+
+export function Thumb({ book, marks = true }: { book: ThumbBook; marks?: boolean }) {
   const [artFailed, setArtFailed] = useState(false)
   const [state, setState] = useState<'waiting' | 'painted' | 'failed'>('waiting')
-  const art = !artFailed && book.art
+  const art = !artFailed && artFor(book.title, book.author)
 
   return (
     <span className="thumb" data-art={art ? '' : undefined}>
@@ -97,7 +102,7 @@ export function Thumb({ book, marks = true }: { book: Book; marks?: boolean }) {
       ) : (
         <>
           {state !== 'painted' && <span className="thumb-stamp" aria-hidden="true">{book.title}</span>}
-          {book.coverId && state !== 'failed' && <HatchedCover coverId={book.coverId} onDone={setState} />}
+          {book.coverUrl && state !== 'failed' && <HatchedCover coverUrl={book.coverUrl} onDone={setState} />}
         </>
       )}
       {marks && book.status === 'reading' && <Circle />}

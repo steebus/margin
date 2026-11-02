@@ -2,5 +2,8 @@
   "installCommand": "npm ci",
   "buildCommand": "npx convex deploy --cmd 'npm run build' --cmd-url-env-var-name VITE_CONVEX_URL",
   "outputDirectory": "dist",
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "rewrites": [
+    { "source": "/hc-covers/:path*", "destination": "https://assets.hardcover.app/:path*" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }

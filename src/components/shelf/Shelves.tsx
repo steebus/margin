@@ -1,8 +1,10 @@
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
+import { useQuery } from 'convex/react'
 import { Star, StarHalf } from 'lucide-react'
 import { useState } from 'react'
 import { Tick } from '../thumb/Marks'
-import { books, type Book, type Status } from '../../sample/sample'
+import { api } from '../../../convex/_generated/api'
+import type { Book, Status } from '../../lib/books'
 import { Thumb } from '../thumb/Thumb'
 
 const statuses: { id: Status | undefined; label: string }[] = [
@@ -49,7 +51,6 @@ function Selected({ book }: { book: Book }) {
         <p className="selected-title">{book.title}</p>
         <p className="where">{book.author}</p>
         {book.rating !== null && <Stars rating={book.rating} />}
-        {book.tags.length > 0 && <p className="tags">{book.tags.map(t => <span key={t} className="tag">{t}</span>)}</p>}
       </div>
       <Link to="/books/$bookSlug" params={{ bookSlug: book.slug }} className="btn btn-solid">Open</Link>
     </aside>
@@ -58,13 +59,14 @@ function Selected({ book }: { book: Book }) {
 
 export function Shelves() {
   const { status, view = 'catalog' } = useSearch({ from: '/shelves/' })
+  const books = useQuery(api.library.myBooks)
   const navigate = useNavigate({ from: '/shelves/' })
   const [size, setSize] = useState(savedSize)
   const [selected, setSelected] = useState<string | null>(null)
 
-  const shown = books.filter(b => !status || b.status === status)
+  const shown = (books ?? []).filter(b => !status || b.status === status)
   const years = [...new Set(shown.map(b => b.year))].sort((a, b) => b - a)
-  const picked = books.find(b => b.slug === selected)
+  const picked = books?.find(b => b.slug === selected)
 
   const chooseSize = (next: Size) => {
     setSize(next)
@@ -75,7 +77,7 @@ export function Shelves() {
     <div className="stack shelves">
       <header className="shelves-head">
         <h1 className="title-head">Shelves</h1>
-        <p>{shown.length} {shown.length === 1 ? 'book' : 'books'}</p>
+        <p>{books === undefined ? '' : `${shown.length} ${shown.length === 1 ? 'book' : 'books'}`}</p>
       </header>
 
       <div className="segments scroll-x" role="group" aria-label="Filter by status">
@@ -113,7 +115,16 @@ export function Shelves() {
         )}
       </div>
 
-      {shown.length === 0 && (
+      {books === undefined && <p role="status">Opening your shelves…</p>}
+
+      {books?.length === 0 && (
+        <div className="box stack">
+          <p>Your shelves are empty. Bring your books in from Hardcover to start.</p>
+          <div className="btn-row"><Link to="/settings" className="btn btn-solid">Go to Settings</Link></div>
+        </div>
+      )}
+
+      {books !== undefined && books.length > 0 && shown.length === 0 && (
         <div className="box stack">
           <p>No books with this status yet.</p>
           <div className="btn-row">

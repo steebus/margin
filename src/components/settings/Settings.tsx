@@ -1,55 +1,57 @@
 import { useAuthActions } from '@convex-dev/auth/react'
-import { useConvexAuth, useQuery } from 'convex/react'
+import { useAction, useQuery } from 'convex/react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
+import { errorText } from '../../lib/books'
 
 function Account() {
-  const { isLoading, isAuthenticated } = useConvexAuth()
-  const viewer = useQuery(api.users.viewer, isAuthenticated ? {} : 'skip')
-  const { signIn, signOut } = useAuthActions()
-  const [busy, setBusy] = useState(false)
-  const [failed, setFailed] = useState(false)
+  const viewer = useQuery(api.users.viewer)
+  const { signOut } = useAuthActions()
+  return (
+    <div className="box stack">
+      <p>Signed in as <strong>{viewer?.name ?? viewer?.email ?? '…'}</strong></p>
+      {viewer?.name && viewer.email && <p className="where">{viewer.email}</p>}
+      <div className="btn-row">
+        <button type="button" className="btn" onClick={() => void signOut()}>Sign out</button>
+      </div>
+    </div>
+  )
+}
 
-  const run = async (action: () => Promise<unknown>) => {
-    setBusy(true)
-    setFailed(false)
+function HardcoverImport() {
+  const importLibrary = useAction(api.hardcover.importLibrary)
+  const books = useQuery(api.library.myBooks)
+  const [running, setRunning] = useState(false)
+  const [result, setResult] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  const run = async () => {
+    setRunning(true)
+    setResult(null)
+    setError(null)
     try {
-      await action()
-    } catch {
-      setFailed(true)
+      const { added, existing } = await importLibrary({})
+      setResult(`Added ${added} ${added === 1 ? 'book' : 'books'}. ${existing} were already here.`)
+    } catch (e) {
+      setError(errorText(e, "The import didn't finish. Nothing is lost: run it again to pick up the rest."))
     } finally {
-      setBusy(false)
+      setRunning(false)
     }
   }
 
-  if (isLoading) return <p role="status">Checking your account…</p>
-
   return (
     <div className="box stack">
-      {isAuthenticated ? (
-        <>
-          <p>Signed in as <strong>{viewer?.name ?? viewer?.email ?? '…'}</strong></p>
-          {viewer?.name && viewer.email && <p className="where">{viewer.email}</p>}
-          <div className="btn-row">
-            <button type="button" className="btn" disabled={busy} onClick={() => run(signOut)}>Sign out</button>
-          </div>
-        </>
-      ) : (
-        <>
-          <p>Sign in to keep your books, notes and conversations.</p>
-          <div className="btn-row">
-            <button
-              type="button"
-              className="btn btn-solid"
-              disabled={busy}
-              onClick={() => run(() => signIn('google', { redirectTo: `${window.location.origin}/settings` }))}
-            >
-              Sign in with Google
-            </button>
-          </div>
-        </>
-      )}
-      {failed && <p role="alert">That didn't work. Check your connection and try again.</p>}
+      <p>
+        {books === undefined ? 'Counting your books…' : `${books.length} ${books.length === 1 ? 'book' : 'books'} on your shelves.`}
+      </p>
+      <p className="where">Copies your Hardcover library here. It changes nothing on Hardcover, and it's safe to run again.</p>
+      <div className="btn-row">
+        <button type="button" className="btn btn-solid" disabled={running} onClick={() => void run()}>
+          {running ? 'Importing, about a minute…' : 'Import from Hardcover'}
+        </button>
+      </div>
+      {result && <p role="status">{result}</p>}
+      {error && <p role="alert">{error}</p>}
     </div>
   )
 }
@@ -62,6 +64,10 @@ export function Settings() {
       <section className="stack" aria-labelledby="account-heading">
         <h2 id="account-heading" className="head">Account</h2>
         <Account />
+      </section>
+      <section className="stack" aria-labelledby="hardcover-heading">
+        <h2 id="hardcover-heading" className="head">Hardcover</h2>
+        <HardcoverImport />
       </section>
     </div>
   )

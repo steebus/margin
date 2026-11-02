@@ -1,6 +1,7 @@
 import { Link, useSearch } from '@tanstack/react-router'
+import { useQuery } from 'convex/react'
 import { useEffect, useRef, useState } from 'react'
-import { books } from '../../sample/sample'
+import { api } from '../../../convex/_generated/api'
 import { bookmarklet, readShare } from '../../lib/share-read'
 
 // ponytail: the screens are real, the data isn't. Nothing is saved yet, and the books "read" from an Instagram post
@@ -12,8 +13,6 @@ const SAMPLE_POST = [
   { title: 'Stoner', author: 'John Williams' },
   { title: 'Cloud Cuckoo Land', author: 'Anthony Doerr' },
 ]
-
-const onShelves = (title: string) => books.some(b => b.title === title)
 
 function Done({ message, popup }: { message: string; popup: boolean }) {
   useEffect(() => {
@@ -64,7 +63,10 @@ function FromGoodreads({ title: readTitle, author: readAuthor, popup }: { title:
 }
 
 function FromInstagram({ handle: readHandle, popup }: { handle: string | null; popup: boolean }) {
-  const [picked, setPicked] = useState(() => SAMPLE_POST.filter(b => !onShelves(b.title)).map(b => b.title))
+  const books = useQuery(api.library.myBooks)
+  const onShelves = (title: string) => (books ?? []).some(b => b.title === title)
+  const [unticked, setUnticked] = useState<string[]>([])
+  const picked = SAMPLE_POST.map(b => b.title).filter(t => !onShelves(t) && !unticked.includes(t))
   const [handle, setHandle] = useState(readHandle ?? '')
   const [done, setDone] = useState(false)
   const count = picked.length
@@ -84,7 +86,7 @@ function FromInstagram({ handle: readHandle, popup }: { handle: string | null; p
                 type="checkbox"
                 disabled={owned}
                 checked={picked.includes(b.title)}
-                onChange={e => setPicked(e.target.checked ? [...picked, b.title] : picked.filter(t => t !== b.title))}
+                onChange={e => setUnticked(e.target.checked ? unticked.filter(t => t !== b.title) : [...unticked, b.title])}
               />
               <span>
                 <span className="choice-title">{b.title}</span>
