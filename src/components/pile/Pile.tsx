@@ -48,7 +48,7 @@ export function Pile() {
                   style={{ width: `${spine.width}%`, marginLeft: `${((100 - spine.width) * spine.shift) / 100}%` }}
                 >
                   <span className="spine-label">
-                    <span className="spine-title" data-face={faceOf(book.subjects)} style={{ WebkitLineClamp: spine.height < 72 ? 1 : 2 }}>{spineTitle(book.title)}</span>
+                    <span className="spine-title" data-face={faceOf(book.subjects)} style={{ WebkitLineClamp: spine.titleLines, '--title': `${spine.titleSize}px` } as React.CSSProperties}>{spineTitle(book.title)}</span>
                     <span className="spine-author">{book.author}</span>
                   </span>
                 </Link>

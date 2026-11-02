@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest'
 import type { Book } from './books'
-import { faceOf, pileNote, pileOf, spineOf, spineTitle } from './pile'
+import { faceOf, LOOKS, pileNote, pileOf, spineOf, spineTitle } from './pile'
 
 const book = (slug: string, readings: Book['readings'], status = 'read') => ({ slug, title: slug, status, readings }) as Book
 
@@ -50,8 +50,15 @@ test('a spine drops the subtitle but keeps a colon that belongs to the title', (
 test('every book gets a real binding and a position within its column, whatever its name hashes to', () => {
   for (let i = 0; i < 500; i++) {
     const { look, shift, width } = spineOf(`book-${i}-${'x'.repeat(i % 40)}`, 300)
-    expect(['cloth', 'paper', 'label', 'ribs', 'hatch']).toContain(look)
+    expect(LOOKS).toContain(look)
     expect(shift).toBeGreaterThanOrEqual(0)
     expect(width).toBeLessThanOrEqual(100)
   }
+})
+
+test('all fifteen bindings turn up, and bigger books print bigger', () => {
+  expect(LOOKS).toHaveLength(15)
+  const seen = new Set(Array.from({ length: 800 }, (_, i) => spineOf(`a-book-${i}`, 300).look))
+  expect(seen.size).toBe(15)
+  expect(spineOf('a', 1000).titleSize).toBeGreaterThan(spineOf('a', 100).titleSize)
 })

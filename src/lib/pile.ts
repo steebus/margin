@@ -25,7 +25,10 @@ export function pileOf(books: Book[]): PileRow[] {
 
 const seedOf = (text: string) => [...text].reduce((sum, c) => (sum * 31 + c.charCodeAt(0)) >>> 0, 7)
 
-const LOOKS = ['cloth', 'paper', 'label', 'ribs', 'hatch'] as const
+export const LOOKS = [
+  'cloth', 'paper', 'label', 'ribs', 'hatch', 'stripes', 'block', 'dots', 'pinstripe', 'frame',
+  'penguin', 'diamonds', 'tooled', 'checks', 'stitched',
+] as const
 const UNKNOWN_PAGES = 300
 const LINE = 18
 
@@ -42,6 +45,9 @@ export function spineOf(slug: string, pages: number | null) {
     look: LOOKS[(seed >>> 4) % LOOKS.length],
     shift: (seed >>> 8) % 100,
     lines: Math.max(1, Math.floor((height - 24) / LINE)),
+    // Bigger books print bigger, within reason. Room for two lines once the book is thick enough to hold them.
+    titleSize: Math.round(Math.min(32, Math.max(20, height * 0.3))),
+    titleLines: height < 84 ? 1 : 2,
   }
 }
 

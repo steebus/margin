@@ -527,14 +527,13 @@ td a { display: inline-flex; align-items: center; min-height: 44px; color: inher
 .pile-row { display: grid; grid-template-columns: minmax(0, 60%) minmax(0, 40%); column-gap: 12px; }
 .pile-book { display: flex; min-width: 0; }
 .spine {
-  --edge: var(--ink);
   position: relative;
   display: flex;
   align-items: center;
-  justify-content: center;
   min-width: 0;
   margin-top: calc(var(--line) * -1);
-  padding: 3px 30px;
+  padding: 3px 34px;
+  overflow: hidden;
   border: var(--line) solid var(--ink);
   border-radius: 2px;
   background: var(--paper);
@@ -542,49 +541,89 @@ td a { display: inline-flex; align-items: center; min-height: 44px; color: inher
   text-decoration: none;
   transition: translate 160ms cubic-bezier(0.22, 1, 0.36, 1);
 }
-/* The rules across each end of the spine. */
+/* What each end of the spine carries. */
 .spine::before, .spine::after { content: ''; position: absolute; top: 0; bottom: 0; }
 .spine::before { left: 7px; }
 .spine::after { right: 7px; }
-.spine-label { display: grid; gap: 1px; min-width: 0; width: 100%; text-align: center; }
+/* As on a real spine: title first, author at the far end. If they can't share a line, the author drops below. */
+.spine-label { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0 14px; min-width: 0; width: 100%; }
 .spine-title {
+  --title: 22px;
   display: -webkit-box;
+  flex: 0 1 auto;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+  min-width: 0;
   overflow: hidden;
-  font-size: 1.125rem;
+  font-size: var(--title);
   line-height: 1.08;
   overflow-wrap: break-word;
 }
-.spine-author { overflow: hidden; font: 400 0.8125rem/1.15 var(--book); text-overflow: ellipsis; white-space: nowrap; }
+.spine-author { flex: 0 1 auto; min-width: 0; overflow: hidden; font: 400 0.9375rem/1.15 var(--book); text-overflow: ellipsis; white-space: nowrap; }
 
-/* A typeface per kind of book. */
-.spine-title[data-face='horror'] { font-family: 'Pirata One', var(--head); font-size: 1.3125rem; }
-.spine-title[data-face='future'] { font-family: 'Oxanium', var(--head); font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; font-size: 0.9375rem; }
-.spine-title[data-face='fantasy'] { font-family: 'Cinzel', var(--book); font-weight: 600; font-size: 1rem; }
-.spine-title[data-face='crime'] { font-family: 'Special Elite', var(--buddy); font-size: 1.0625rem; }
-.spine-title[data-face='fact'] { font-family: var(--head); letter-spacing: 0.03em; text-transform: uppercase; font-size: 1.3125rem; }
+/* A typeface per kind of book, each tuned to read at the same size. */
+.spine-title[data-face='horror'] { font-family: 'Pirata One', var(--head); font-size: calc(var(--title) * 1.1); }
+.spine-title[data-face='future'] { font-family: 'Oxanium', var(--head); font-weight: 500; font-size: calc(var(--title) * 0.82); letter-spacing: 0.04em; text-transform: uppercase; }
+.spine-title[data-face='fantasy'] { font-family: 'Cinzel', var(--book); font-weight: 600; font-size: calc(var(--title) * 0.86); }
+.spine-title[data-face='crime'] { font-family: 'Special Elite', var(--buddy); font-size: calc(var(--title) * 0.92); }
+.spine-title[data-face='fact'] { font-family: var(--head); font-size: calc(var(--title) * 1.16); letter-spacing: 0.03em; text-transform: uppercase; }
 .spine-title[data-face='novel'] { font-family: 'Playfair Display', var(--book); font-weight: 700; }
 .spine-title[data-face='plain'] { font-family: var(--book); font-weight: 600; }
 
-/* Five bindings. Cloth: solid, with a pair of tooled rules at each end. */
-.spine[data-look='cloth'] { --edge: var(--paper); background: var(--ink); color: var(--paper); box-shadow: inset 0 0 0 1px var(--ink), inset 0 2px 0 -1px var(--paper); }
+/* Fifteen bindings, all one ink on one paper. */
+/* Cloth: solid, a pair of tooled rules at each end. */
+.spine[data-look='cloth'] { background: var(--ink); color: var(--paper); box-shadow: inset 0 2px 0 -1px var(--paper); }
 .spine[data-look='cloth']::before, .spine[data-look='cloth']::after { width: 8px; border-inline: 1.5px solid var(--paper); }
-/* Paper: a plain wrapper with a solid band at each end. */
+/* Paper: a plain wrapper, a solid band at each end. */
 .spine[data-look='paper']::before, .spine[data-look='paper']::after { width: 10px; background: var(--ink); }
-/* Label: solid, with a paper label pasted on, ruled twice. */
-.spine[data-look='label'] { background: var(--ink); }
-.spine[data-look='label'] .spine-label { padding: 2px 8px; border: 3px double var(--ink); outline: 2px solid var(--paper); background: var(--paper); color: var(--ink); }
-/* Ribs: an old binding, with raised bands across the spine. */
+/* Label: solid, a paper label pasted on, title over author. */
+.spine[data-look='label'] { background: var(--ink); padding-block: 5px; }
+.spine[data-look='label'] .spine-label { flex-direction: column; align-items: center; padding: 1px 10px; outline: 1px solid var(--ink); outline-offset: -3px; background: var(--paper); color: var(--ink); text-align: center; }
+/* Ribs: an old binding, raised bands across the spine. */
 .spine[data-look='ribs']::before, .spine[data-look='ribs']::after {
   width: 18px;
   background: linear-gradient(to right, var(--ink) 0 3px, transparent 3px 7px, var(--ink) 7px 10px, transparent 10px 14px, var(--ink) 14px 17px, transparent 17px);
 }
 .spine[data-look='ribs']::after { scale: -1 1; }
 .spine[data-look='ribs'] .spine-title { font-style: italic; }
-/* Hatch: engraved cross-hatching, as the drawings are, with a label to keep the type clear. */
-.spine[data-look='hatch'] { background: repeating-linear-gradient(45deg, var(--ink) 0 1px, transparent 1px 4px), repeating-linear-gradient(-45deg, var(--ink) 0 1px, transparent 1px 4px); padding-inline: 14px; }
-.spine[data-look='hatch'] .spine-label { padding: 2px 8px; border: var(--line) solid var(--ink); background: var(--paper); }
+/* Hatch: cross-hatched cloth, as the drawings are, with a long label. */
+.spine[data-look='hatch'] { background: repeating-linear-gradient(45deg, var(--ink) 0 1px, transparent 1px 4px), repeating-linear-gradient(-45deg, var(--ink) 0 1px, transparent 1px 4px); padding: 5px 14px; }
+.spine[data-look='hatch'] .spine-label { padding: 1px 10px; border: var(--line) solid var(--ink); background: var(--paper); }
+/* Stripes: heavy rules along both long edges. */
+.spine[data-look='stripes'] { box-shadow: inset 0 5px 0 var(--paper), inset 0 9px 0 var(--ink), inset 0 -5px 0 var(--paper), inset 0 -9px 0 var(--ink); padding-inline: 16px; }
+/* Block: paper with a solid block at the far end, which the author sits on. */
+.spine[data-look='block'] { padding-inline: 14px 0; padding-block: 0; }
+.spine[data-look='block'] .spine-label { flex-wrap: nowrap; align-items: stretch; height: 100%; }
+.spine[data-look='block'] .spine-title { align-self: center; flex: 1 1 auto; }
+.spine[data-look='block'] .spine-author { display: flex; flex: none; align-items: center; max-width: 42%; padding-inline: 10px; background: var(--ink); color: var(--paper); white-space: normal; }
+/* Dots: a halftone ground, with the type knocked out of it. */
+.spine[data-look='dots'] { background: radial-gradient(circle, var(--ink) 1.3px, transparent 1.6px) 0 0 / 6px 6px; padding-inline: 12px; }
+.spine[data-look='dots'] .spine-title, .spine[data-look='dots'] .spine-author { padding-inline: 8px; background: var(--paper); }
+/* Pinstripe: fine lines down the cloth, type knocked out. */
+.spine[data-look='pinstripe'] { background: repeating-linear-gradient(to right, var(--ink) 0 1px, transparent 1px 5px); padding-inline: 12px; }
+.spine[data-look='pinstripe'] .spine-title, .spine[data-look='pinstripe'] .spine-author { padding-inline: 8px; background: var(--paper); }
+/* Frame: a double rule right round, title centred over author. */
+.spine[data-look='frame'] { outline: 3px double var(--ink); outline-offset: -7px; padding: 8px 16px; }
+.spine[data-look='frame'] .spine-label { flex-direction: column; align-items: center; text-align: center; }
+/* Penguin: solid bands top and bottom, the type on a paper band between them. */
+.spine[data-look='penguin'] { box-shadow: inset 0 9px 0 var(--ink), inset 0 -9px 0 var(--ink); padding: 10px 16px; }
+/* Diamonds: solid, with a paper lozenge at each end. */
+.spine[data-look='diamonds'] { background: var(--ink); color: var(--paper); padding-inline: 38px; }
+.spine[data-look='diamonds']::before, .spine[data-look='diamonds']::after { top: 50%; bottom: auto; width: 12px; height: 12px; background: var(--paper); translate: 0 -50%; rotate: 45deg; }
+.spine[data-look='diamonds']::before { left: 13px; }
+.spine[data-look='diamonds']::after { right: 13px; }
+/* Tooled: solid, one fine rule inside the edge, italic title. */
+.spine[data-look='tooled'] { background: var(--ink); color: var(--paper); outline: 1px solid var(--paper); outline-offset: -5px; padding-inline: 16px; }
+.spine[data-look='tooled'] .spine-title { font-style: italic; }
+/* Checks: paper, with a chequered block at each end. */
+.spine[data-look='checks'] { padding-inline: 42px; }
+.spine[data-look='checks']::before, .spine[data-look='checks']::after { width: 28px; background: conic-gradient(var(--ink) 25%, transparent 0 50%, var(--ink) 0 75%, transparent 0) 0 0 / 14px 14px; }
+.spine[data-look='checks']::before { left: 0; }
+.spine[data-look='checks']::after { right: 0; }
+/* Stitched: solid, a dashed line of stitching along both long edges. */
+.spine[data-look='stitched'] { background: var(--ink); color: var(--paper); padding-inline: 16px; }
+.spine[data-look='stitched']::before { inset: 4px 0 auto; border-top: 1.5px dashed var(--paper); }
+.spine[data-look='stitched']::after { inset: auto 0 4px; border-bottom: 1.5px dashed var(--paper); }
 
 @media (hover: hover) { .spine:hover { translate: 8px 0; } }
 .spine:focus-visible { z-index: 1; }
@@ -624,8 +663,7 @@ td a { display: inline-flex; align-items: center; min-height: 44px; color: inher
   .reading, .desk .actions { grid-column: 1; }
   .tools-row { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
   .pile-row { grid-template-columns: minmax(0, 58%) minmax(0, 42%); column-gap: 20px; }
-  .spine-title { font-size: 1.25rem; }
-  .spine-author { font-size: 0.875rem; }
+  .spine-author { font-size: 1rem; }
   .reading-cell { grid-template-columns: 88px minmax(0, 1fr); padding: 12px; gap: 12px; }
   .reading-title { font-size: 1.125rem; }
   .reading-sub { font-size: 0.9375rem; }
