@@ -1,8 +1,8 @@
 # Cover art prompt
 
 Sent to `gemini-3.1-flash-lite-image` at 1K and 1:1, with `style-reference.png` as the reference image. `{{subject}}` comes from
-the small text model. Post-process with: greyscale, `-level 10%,85%`, resize, WebP quality 60. Don't trim: the blank top
-is part of the design.
+the small text model. Post-process with: greyscale, `-level 10%,85%`, trim, fit to 98% width and 78% height, seat at the
+bottom of a white square, WebP quality 60.
 
 ```
 Draw one small ink illustration for a printed book catalog.
