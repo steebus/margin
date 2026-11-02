@@ -49,3 +49,28 @@ export const prepare = internalMutation({
     if (read) await requestGuide(ctx, read.userId, read)
   },
 })
+
+/**
+ * For the eval set: researches a guide for any book, finished ones included, so a reader who knows the ending can
+ * check what each position would let through. Costs about 87 cents. Run by hand: `convex run guides:research`.
+ */
+export const research = internalMutation({
+  args: { readId: v.id('reads') },
+  handler: async (ctx, { readId }) => {
+    const read = await ctx.db.get(readId)
+    if (!read || await guideFor(ctx, read.workId)) return
+    const guideId = await ctx.db.insert('guides', { workId: read.workId, userId: read.userId, state: 'writing', version: GUIDE_VERSION, createdAt: Date.now() })
+    await ctx.scheduler.runAfter(0, internal.guideNode.write, { guideId })
+  },
+})
+
+/** A guide as stored, for the eval script. */
+export const show = internalQuery({
+  args: { readId: v.id('reads') },
+  handler: async (ctx, { readId }) => {
+    const read = await ctx.db.get(readId)
+    const work = read && await ctx.db.get(read.workId)
+    const guide = work && await guideFor(ctx, work._id)
+    return guide && { title: work.title, author: work.authors[0] ?? 'Unknown', state: guide.state, guide: guide.guide ?? null, error: guide.error ?? null, usage: guide.usage ?? null }
+  },
+})
