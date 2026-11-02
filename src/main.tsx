@@ -15,6 +15,8 @@ import { watchForUpdates } from './lib/updates'
 import { routeTree } from './routeTree.gen'
 
 watchForUpdates()
+// The old drawings cache held opaque responses, which count as ~7 MB each. Gone once it's deleted.
+void globalThis.caches?.delete('drawings')
 
 const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL as string)
 const router = createRouter({ routeTree, defaultViewTransition: true })

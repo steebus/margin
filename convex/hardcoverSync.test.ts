@@ -446,3 +446,12 @@ test('putting a book on a list and taking it off both reach Hardcover', async ()
   await flushTimers(t.action(internal.hardcover.flush, {}))
   expect(writes(calls).find(c => c.query.includes('delete_list_book'))?.variables).toEqual({ id: 31 })
 })
+
+test('the sync only writes what moved, whatever order the fields come in', async () => {
+  const { changes } = await import('./hardcover')
+  const doc = { status: 'reading', progress: { percent: 10, page: 20 }, rating: undefined }
+  expect(changes(doc, { status: 'reading', progress: { page: 20, percent: 10 }, rating: undefined })).toBe(false)
+  expect(changes(doc, { progress: { percent: 11, page: 20 } })).toBe(true)
+  expect(changes(doc, { rating: 4 })).toBe(true)
+  expect(changes(doc, { startedAt: undefined })).toBe(false)
+})

@@ -111,6 +111,8 @@ export function Thumb({ book, marks = true }: { book: ThumbBook; marks?: boolean
           srcSet={`${art.small} 256w, ${art.large} 512w`}
           sizes="(min-width: 900px) 240px, 34vw"
           alt=""
+          // CORS mode, so the service worker caches a real response: an opaque one counts as ~7 MB of storage each.
+          crossOrigin="anonymous"
           loading="lazy"
           decoding="async"
           onError={() => setArtFailed(true)}

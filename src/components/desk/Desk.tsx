@@ -31,6 +31,7 @@ export function Desk() {
   const entries = useEntries()
   const waiting = useQuery(api.reflect.waiting)
   const [toast, setToast] = useState(false)
+  const [pick] = useState(Math.random) // chosen once, so a data update doesn't swap the note while it shows
 
   const current = (books ?? []).filter(b => b.status === 'reading')
   const latest = entries?.[0]
@@ -103,7 +104,7 @@ export function Desk() {
             transition={{ type: 'spring', stiffness: 420, damping: 30 }}
           >
             <p className="toast-head">From the drawer</p>
-            <p className="book-voice">{entries![Math.floor(Math.random() * entries!.length)].text}</p>
+            <p className="book-voice">{entries![Math.floor(pick * entries!.length)].text}</p>
             <div className="btn-row">
               <Link to="/drawer" className="btn btn-solid">Open the drawer</Link>
               <button type="button" className="btn" onClick={() => setToast(false)}>Dismiss</button>

@@ -35,7 +35,7 @@ export default defineConfig({
           // Drawings never change: a new one gets a new address. Kept here, they load at once and work offline.
           urlPattern: ({ url }) => url.pathname.startsWith('/api/storage/'),
           handler: 'CacheFirst',
-          options: { cacheName: 'drawings', expiration: { maxEntries: 3000, maxAgeSeconds: 31_536_000 }, cacheableResponse: { statuses: [0, 200] } },
+          options: { cacheName: 'drawings-v2', expiration: { maxEntries: 3000, maxAgeSeconds: 31_536_000 }, cacheableResponse: { statuses: [200] } },
         }, {
           // Covers never change, so each is fetched once, and they work offline.
           urlPattern: ({ url }) => url.pathname.startsWith('/hc-covers/') || url.pathname.startsWith('/art-demo/'),

@@ -96,6 +96,12 @@ const bookItem = v.object({
  * Saves books from Hardcover. An import leaves existing reads alone. A sync (`update`) applies what changed,
  * unless Margin has a change of its own still waiting to send.
  */
+// A write wakes every screen reading that row, so the sync only writes what moved. Exported for its test.
+const stable = (value: unknown) => JSON.stringify(value, (_, x) =>
+  x && typeof x === 'object' && !Array.isArray(x) ? Object.fromEntries(Object.entries(x).sort(([a], [b]) => a < b ? -1 : 1)) : x)
+export const changes = (doc: object, patch: object) =>
+  Object.entries(patch).some(([k, v]) => stable(v) !== stable((doc as Record<string, unknown>)[k]))
+
 export const saveBooks = internalMutation({
   args: { userId: v.id('users'), items: v.array(bookItem), update: v.optional(v.boolean()) },
   handler: async (ctx, { userId, items, update }) => {
@@ -107,7 +113,7 @@ export const saveBooks = internalMutation({
       const { slug: _slug, ...metadata } = work
       // A slug never changes once minted, because links depend on it.
       const workId = known?._id ?? await ctx.db.insert('works', work)
-      if (known) await ctx.db.patch(known._id, metadata)
+      if (known && changes(known, metadata)) await ctx.db.patch(known._id, metadata)
 
       const mine = await ctx.db.query('reads').withIndex('by_user_work', q => q.eq('userId', userId).eq('workId', workId)).first()
       let readId = mine?._id
@@ -116,7 +122,7 @@ export const saveBooks = internalMutation({
         const waiting = await ctx.db.query('hardcoverOutbox').withIndex('by_read', q => q.eq('readId', mine._id)).first()
         if (update && !waiting) {
           const percent = read.progressKnown !== false && progressChanged(mine.progress.percent, read.percent) ? read.percent : mine.progress.percent
-          await ctx.db.patch(mine._id, {
+          const patch = {
             status: read.status,
             rating: read.rating,
             // When Hardcover sent its reads they're the truth, so a date cleared there clears here.
@@ -125,7 +131,8 @@ export const saveBooks = internalMutation({
             ...(read.readings ? { readings: read.readings } : {}),
             progress: percent === mine.progress.percent ? mine.progress : { percent, page: read.page, seconds: read.seconds },
             hardcoverUserBookId: read.hardcoverUserBookId,
-          })
+          }
+          if (changes(mine, patch)) await ctx.db.patch(mine._id, patch)
           if (percent !== mine.progress.percent) {
             await ctx.db.insert('progressLog', { userId, readId: mine._id, at: Date.now(), percent, page: read.page, origin: 'hardcover' })
             await checkMilestones(ctx, mine, mine.progress.percent, percent)

@@ -313,6 +313,13 @@ the phone.
 **Done when:** every surface has passed critique, Lighthouse scores 90+ for
 a11y and performance on mobile, and Steve has nothing left that annoys him.
 
+## Held for after the build (Steve, 2026-11-03)
+
+- **Pile:** thinner books; on a phone, unfurl summaries only in the middle area to save space. Not loving the book style.
+- **Missing data:** a list of books with missing start dates and similar gaps.
+- **Grouping:** note, quote, progress and camera are similar actions and could sit together.
+- **Audible sync:** a new import source, alongside Phase 5.
+
 ---
 
 ## Risks
