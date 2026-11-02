@@ -310,19 +310,21 @@ share it (`workArt { workId, state: queued|ready|failed|rejected, small, large, 
 model and costs more, so asking for less would cost more. Aspect ratio 1:1, which
 keeps cells compact and matches the mockup. Check prices before a large run.
 
-**Post-process, in this order:** greyscale, level the paper to white and the ink to black, trim the
-margin the model leaves, fit to 98% of the width and 78% of the height, seat it at the bottom of a
-white square so the blank top stays, then encode two sizes as WebP at quality 60. Discard the original:
+**Post-process, in this order:** greyscale, level the paper to white and the ink to black, then frame
+it: find where the ink is dense (blur and threshold, so stray strokes don't count), crop to that, fit
+to 122% of the width and 94% of the height, cut 6% off the bottom, and centre it at the bottom of a
+white square. The art runs off the bottom and lower sides, and the blank top stays. Then encode two
+sizes as WebP at quality 60. Discard the original:
 regenerating one costs under 2 cents, and keeping them would use more storage than
 everything else combined.
 
 | Rendition | Used for | Size per image, measured |
 |---|---|---|
-| 256px | Grid cells on most screens | 3 to 11 KB |
-| 512px | Book page, large cells, high-density phones | 13 to 41 KB |
+| 256px | Grid cells on most screens | 6 to 17 KB |
+| 512px | Book page, large cells, high-density phones | 22 to 54 KB |
 
-Those are measured on 10 real generated drawings. At about 52 KB at worst for a book, 2,000
-books use at most about 104 MB of Convex's included 1 GB. `srcset` picks the size. Serve with long-lived caching, because art for a work never changes; a
+Those are measured on 10 real generated drawings. At about 70 KB at worst for a book, 2,000
+books use at most about 138 MB of Convex's included 1 GB. `srcset` picks the size. Serve with long-lived caching, because art for a work never changes; a
 regeneration gets a new file. Verify the real cache headers on Convex's file URLs.
 
 **One file, both themes.** Art is stored as a neutral drawing on white and printed onto

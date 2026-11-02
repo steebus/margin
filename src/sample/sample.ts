@@ -23,12 +23,11 @@ const demoArt = new Set([
   'House of Leaves', 'Stoner', 'Kindred', 'Gilead', 'To the Lighthouse',
 ])
 
-export const books = library.map((b, i) => {
+export const books = library.map(b => {
   const slug = slugify(`${b.title} ${b.author.split(' ').at(-1)}`)
   return {
     ...b,
     status: b.status as Status,
-    code: `A-${i + 1}`,
     slug,
     rating: ratings[b.title] ?? null,
     tags: tags[b.title] ?? [],

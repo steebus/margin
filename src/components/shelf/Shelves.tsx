@@ -125,11 +125,10 @@ export function Shelves() {
       {view === 'table' && shown.length > 0 && (
         <div className="table-wrap">
           <table>
-            <thead><tr><th>Code</th><th>Title</th><th>Author</th><th>Year</th><th>Rating</th></tr></thead>
+            <thead><tr><th>Title</th><th>Author</th><th>Year</th><th>Rating</th></tr></thead>
             <tbody>
               {shown.map(b => (
                 <tr key={b.slug}>
-                  <td>{b.code}</td>
                   <td><Link to="/books/$bookSlug" params={{ bookSlug: b.slug }}>{b.title}</Link></td>
                   <td>{b.author}</td>
                   <td>{b.year}</td>
@@ -151,12 +150,11 @@ export function Shelves() {
                 type="button"
                 className="cell"
                 aria-pressed={selected === b.slug}
-                aria-label={`${b.title} by ${b.author}, code ${b.code}`}
+                aria-label={`${b.title} by ${b.author}`}
                 onClick={() => setSelected(selected === b.slug ? null : b.slug)}
               >
                 <span className="cell-head">
                   <span className="cell-title">{b.title}</span>
-                  <span className="cell-code">{b.code}</span>
                   {b.status === 'read' && <Tick />}
                 </span>
                 <Thumb book={b} />

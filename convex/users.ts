@@ -1,0 +1,13 @@
+import { getAuthUserId } from '@convex-dev/auth/server'
+import { query } from './_generated/server'
+
+/** Whoever is signed in, or null. */
+export const viewer = query({
+  args: {},
+  handler: async ctx => {
+    const userId = await getAuthUserId(ctx)
+    if (!userId) return null
+    const user = await ctx.db.get(userId)
+    return user && { name: user.name ?? null, email: user.email ?? null }
+  },
+})

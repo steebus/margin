@@ -1,5 +1,5 @@
 import { createRootRoute, Link, Outlet, useRouterState } from '@tanstack/react-router'
-import { Compass, LampDesk, Library, Camera, Moon, Sun } from 'lucide-react'
+import { Compass, LampDesk, Library, Camera, Moon, Sun, UserRound } from 'lucide-react'
 import { setTheme, useTheme } from '../lib/theme'
 
 export const Route = createRootRoute({ component: Root })
@@ -27,7 +27,12 @@ function Root() {
   return (
     <div className="app">
       <main className="page">
-        <ThemeToggle />
+        <div className="corner">
+          <Link to="/settings" className="theme-toggle" aria-label="Settings and account" title="Settings and account">
+            <UserRound aria-hidden="true" strokeWidth={2.25} />
+          </Link>
+          <ThemeToggle />
+        </div>
         <Outlet />
       </main>
       <nav className="tabs" aria-label="Main">
