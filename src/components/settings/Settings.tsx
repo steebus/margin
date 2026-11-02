@@ -21,6 +21,7 @@ function Account() {
 function HardcoverImport() {
   const importLibrary = useAction(api.hardcover.importLibrary)
   const books = useQuery(api.library.myBooks)
+  const sync = useQuery(api.hardcover.syncStatus)
   const [running, setRunning] = useState(false)
   const [result, setResult] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -30,8 +31,8 @@ function HardcoverImport() {
     setResult(null)
     setError(null)
     try {
-      const { added, existing } = await importLibrary({})
-      setResult(`Added ${added} ${added === 1 ? 'book' : 'books'}. ${existing} were already here.`)
+      const { added, existing, notes } = await importLibrary({})
+      setResult(`Added ${added} ${added === 1 ? 'book' : 'books'}, and ${notes} new notes, quotes and reviews. ${existing} books were already here.`)
     } catch (e) {
       setError(errorText(e, "The import didn't finish. Nothing is lost: run it again to pick up the rest."))
     } finally {
@@ -44,10 +45,18 @@ function HardcoverImport() {
       <p>
         {books === undefined ? 'Counting your books…' : `${books.length} ${books.length === 1 ? 'book' : 'books'} on your shelves.`}
       </p>
-      <p className="where">Copies your Hardcover library here. It changes nothing on Hardcover, and it's safe to run again.</p>
+      {sync?.lastSyncAt ? (
+        <p className="where">
+          Syncing both ways, last checked {new Date(sync.lastSyncAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.
+          {sync.pending > 0 && ` ${sync.pending} waiting to send.`}
+        </p>
+      ) : (
+        <p className="where">Run this once to bring in your books, notes and reviews and to start syncing both ways.</p>
+      )}
+      {sync?.lastError && <p role="alert">Hardcover sync problem: {sync.lastError} It will keep retrying.</p>}
       <div className="btn-row">
         <button type="button" className="btn btn-solid" disabled={running} onClick={() => void run()}>
-          {running ? 'Importing, about a minute…' : 'Import from Hardcover'}
+          {running ? 'Importing, a minute or two…' : 'Import from Hardcover'}
         </button>
       </div>
       {result && <p role="status">{result}</p>}

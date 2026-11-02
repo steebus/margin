@@ -10,7 +10,7 @@ const sourceKind = v.union(
   v.literal('person'), v.literal('podcast'), v.literal('article'), v.literal('bookshop'), v.literal('library'),
   v.literal('social'), v.literal('algorithm'), v.literal('citation'), v.literal('other'),
 )
-const entryKind = v.union(v.literal('excerpt'), v.literal('note'), v.literal('summary'), v.literal('reflection'))
+const entryKind = v.union(v.literal('excerpt'), v.literal('note'), v.literal('summary'), v.literal('reflection'), v.literal('review'))
 const origin = v.union(
   v.literal('manual'), v.literal('camera'), v.literal('share'), v.literal('kindle'),
   v.literal('kobo'), v.literal('playbooks'), v.literal('hardcover'),
@@ -123,11 +123,13 @@ export default defineSchema({
     // Keyed on work, normalised text and position, so re-importing is always safe.
     originKey: v.string(),
     imageId: v.optional(v.id('_storage')),
+    hardcoverJournalId: v.optional(v.number()),
     createdAt: v.number(),
   })
     .index('by_read', ['readId', 'createdAt'])
     .index('by_user', ['userId', 'createdAt'])
     .index('by_user_origin_key', ['userId', 'originKey'])
+    .index('by_user_journal', ['userId', 'hardcoverJournalId'])
     .searchIndex('search_text', { searchField: 'text', filterFields: ['userId', 'kind'] }),
 
   shelves: defineTable({
@@ -138,6 +140,34 @@ export default defineSchema({
     filter: v.optional(v.string()),
     hardcoverListId: v.optional(v.number()),
   }).index('by_user_slug', ['userId', 'slug']),
+
+  // One row per connected reader. Sync starts once the first import has run.
+  integrations: defineTable({
+    userId: v.id('users'),
+    provider: v.literal('hardcover'),
+    hardcoverUserId: v.number(),
+    cursor: v.string(),
+    lastSyncAt: v.optional(v.number()),
+    lastError: v.optional(v.string()),
+  })
+    .index('by_user', ['userId'])
+    .index('by_provider', ['provider']),
+
+  // Changes waiting to reach Hardcover. A read's row always pushes its latest state, so changes coalesce.
+  hardcoverOutbox: defineTable({
+    userId: v.id('users'),
+    kind: v.union(v.literal('read'), v.literal('entry'), v.literal('deleteJournal')),
+    readId: v.optional(v.id('reads')),
+    entryId: v.optional(v.id('entries')),
+    journalId: v.optional(v.number()),
+    version: v.number(),
+    attempts: v.number(),
+    nextAt: v.number(),
+    lastError: v.optional(v.string()),
+  })
+    .index('by_next', ['nextAt'])
+    .index('by_user', ['userId'])
+    .index('by_read', ['readId']),
 
   tags: defineTable({
     userId: v.id('users'),

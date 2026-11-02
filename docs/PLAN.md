@@ -240,6 +240,9 @@ under 15 seconds, and sharing a Kindle highlight files it to the right book.
 
 ## Phase 4: Hardcover two-way (2 sessions)
 
+Built early, on 2026-11-02, because Steve wanted it tight (SPEC §3.5). Still to do here: list sync, the
+`/review` queue for weak matches, author facts, and the token pasted in-app rather than in the Convex env.
+
 1. **Connect.** Token connect, stored encrypted.
 2. **Full pull.** Library, statuses, dates, ratings, progress, lists and
    reading journal.
@@ -249,14 +252,14 @@ under 15 seconds, and sharing a Kindle highlight files it to the right book.
    notes go up as journal entries, controlled by a per-entry toggle (default
    on).
 5. **Sync.**
-   - A cron pull every 30 minutes.
+   - A cron pull every 2 minutes, and changes pushed within seconds.
    - Conflicts: the newest timestamp wins, per field.
    - Margin owns entries.
    - Author facts (gender, nationality) are pulled into `authors`.
 
 **Done when:**
 - [ ] Progress logged in Margin appears on Hardcover.
-- [ ] Progress logged on Hardcover appears in Margin within 30 minutes.
+- [ ] Progress logged on Hardcover appears in Margin within 2 minutes.
 - [ ] A re-pull creates no duplicates.
 
 ## Phase 5: Backfill imports (2–3 sessions)

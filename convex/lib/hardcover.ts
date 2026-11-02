@@ -1,7 +1,7 @@
 // Turns Hardcover's records into Margin's. Pure, so it can be tested and run against real data without saving anything.
 export const LIBRARY_QUERY = `query Library($limit: Int!, $offset: Int!) {
   me { user_books(limit: $limit, offset: $offset, order_by: {id: asc}) {
-    id status_id rating first_started_reading_date last_read_date date_added recommended_by owned
+    id status_id rating first_started_reading_date last_read_date date_added recommended_by owned review_raw reviewed_at
     edition { isbn_13 isbn_10 pages reading_format_id }
     book { id title pages release_year cached_contributors cached_image cached_tags }
     user_book_reads(order_by: {id: desc}, limit: 1) { progress progress_pages started_at finished_at }
@@ -17,6 +17,8 @@ export type HardcoverUserBook = {
   date_added?: string | null
   recommended_by?: string | null
   owned?: boolean | null
+  review_raw?: string | null
+  reviewed_at?: string | null
   edition?: { isbn_13?: string | null; isbn_10?: string | null; pages?: number | null; reading_format_id?: number | null } | null
   book?: {
     id: number
@@ -77,11 +79,79 @@ export function mapUserBook(ub: HardcoverUserBook) {
       startedAt: day(ub.first_started_reading_date) ?? day(latest?.started_at),
       finishedAt: status === 'read' ? day(ub.last_read_date) ?? day(latest?.finished_at) : undefined,
       percent,
+      // Whether Hardcover actually said, so a read with no progress record never wipes what Margin knows.
+      progressKnown: status === 'read' || status === 'tbr' || latest?.progress != null,
       page: latest?.progress_pages ?? undefined,
       format: FORMAT[ub.edition?.reading_format_id as keyof typeof FORMAT] ?? ('print' as const),
       owned: ub.owned ?? false,
       rating: ub.rating ?? undefined,
       recommendedBy: ub.recommended_by?.trim() || undefined,
+      review: ub.review_raw?.trim() ? { text: ub.review_raw.trim(), at: day(ub.reviewed_at) } : undefined,
     },
   }
 }
+
+export const JOURNAL_FIELDS = 'id event entry metadata book_id action_at'
+
+export type HardcoverJournal = {
+  id: number
+  event?: string | null
+  entry?: string | null
+  book_id?: number | null
+  action_at?: string | null
+  metadata?: { position?: { type?: string | null; value?: number | null; percent?: number | null } | null } | null
+}
+
+/** A quote or note from the reading journal, or null for anything else in there, such as "rated". */
+export function mapJournal(j: HardcoverJournal) {
+  const kind = j.event === 'quote' ? ('excerpt' as const) : j.event === 'note' ? ('note' as const) : null
+  const text = j.entry?.trim()
+  if (!kind || !text || !j.book_id) return null
+  const position = j.metadata?.position
+  const page = position?.type === 'pages' && position.value ? Math.round(position.value) : undefined
+  const percent = position?.percent != null ? Math.min(100, Math.max(0, Math.round(position.percent))) : undefined
+  return { journalId: j.id, hardcoverBookId: j.book_id, kind, text, page, percent: page ? undefined : percent, at: Date.parse(j.action_at ?? '') || undefined }
+}
+
+const STATUS_ID = { tbr: 1, reading: 2, read: 3, paused: 4, dnf: 5 } as const
+export const statusId = (status: keyof typeof STATUS_ID) => STATUS_ID[status]
+
+type Length = { pages?: number | null; audio_seconds?: number | null }
+
+/** Hardcover records progress as pages or seconds, not percent. Null when it has no length for this book. */
+export function progressFields(percent: number, edition?: Length | null, book?: Length | null) {
+  const portion = percent / 100
+  if (edition?.audio_seconds) return { progress_seconds: Math.round(portion * edition.audio_seconds) }
+  if (edition?.pages) return { progress_pages: Math.round(portion * edition.pages) }
+  if (book?.pages) return { progress_pages: Math.round(portion * book.pages) }
+  if (book?.audio_seconds) return { progress_seconds: Math.round(portion * book.audio_seconds) }
+  return null
+}
+
+const isoDay = (time?: number) => (time ? new Date(time).toISOString().slice(0, 10) : undefined)
+
+/** What goes in a read record: only ever fields Margin knows. */
+export function readFields(read: { status: string; percent: number; startedAt?: number; finishedAt?: number }, edition?: Length | null, book?: Length | null) {
+  return {
+    ...progressFields(read.percent, edition, book),
+    started_at: isoDay(read.startedAt),
+    finished_at: read.status === 'read' ? isoDay(read.finishedAt) : undefined,
+  }
+}
+
+/** A Margin entry as a journal record. Private on Hardcover, as Steve's existing ones are. */
+export function journalObject(entry: { kind: string; text: string; page?: number; percent?: number; createdAt: number }, hardcoverBookId: number) {
+  const position = entry.page ? { type: 'pages', value: entry.page } : entry.percent != null ? { type: 'percent', value: entry.percent, percent: entry.percent } : undefined
+  return {
+    book_id: hardcoverBookId,
+    event: entry.kind === 'excerpt' ? 'quote' : 'note',
+    entry: entry.text,
+    privacy_setting_id: 3,
+    tags: [],
+    action_at: isoDay(entry.createdAt),
+    metadata: position ? { position } : {},
+  }
+}
+
+/** Ignores rounding differences between pages and percent, so a sync never nudges progress back and forth. */
+export const progressChanged = (mine: number, theirs: number) => Math.abs(mine - theirs) > 1

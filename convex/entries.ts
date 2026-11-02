@@ -2,6 +2,7 @@ import { getAuthUserId } from '@convex-dev/auth/server'
 import { ConvexError, v } from 'convex/values'
 import { mutation } from './_generated/server'
 import { entryKey } from './lib/entryKey'
+import { enqueueEntry, enqueueJournalDelete } from './lib/outbox'
 
 const MAX_LENGTH = 20_000
 
@@ -29,6 +30,7 @@ export const addEntry = mutation({
     const same = await ctx.db.query('entries').withIndex('by_user_origin_key', q => q.eq('userId', userId).eq('originKey', originKey)).first()
     if (same) return { id: same._id, duplicate: true }
     const id = await ctx.db.insert('entries', { userId, readId, kind, text: words, pos, origin: 'manual', originKey, createdAt: Date.now() })
+    await enqueueEntry(ctx, userId, id, readId)
     return { id, duplicate: false }
   },
 })
@@ -40,6 +42,8 @@ export const removeEntry = mutation({
     if (!userId) throw new ConvexError('Sign in to change this')
     const entry = await ctx.db.get(id)
     if (!entry || entry.userId !== userId) throw new ConvexError('That entry is not yours')
+    if (entry.kind === 'review') throw new ConvexError('Change your review on Hardcover')
+    await enqueueJournalDelete(ctx, userId, id, entry.hardcoverJournalId)
     await ctx.db.delete(id)
   },
 })

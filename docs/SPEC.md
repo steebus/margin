@@ -207,6 +207,19 @@ block one.
   re-importing is always safe.
 - **Hardcover conflicts:** per field, the newest timestamp wins. Margin is the
   source of truth for entries.
+- **How the Hardcover sync works.**
+  - To Hardcover: every change to status, progress, rating, or a new or deleted note joins an outbox and is
+    sent within seconds, with backoff and retries. A book's outbox row pushes its latest state, so
+    changes coalesce and retrying is safe.
+  - From Hardcover: there are no webhooks, so a cron asks every 2 minutes for what changed, using the reading
+    journal and `user_books.updated_at`. Asking again is harmless, because applying a change twice does nothing.
+  - Conflicts: a change still waiting in the outbox wins over Hardcover. Otherwise the latest arrival wins. A
+    difference of 1% in progress is ignored, because pages round differently from percentages.
+  - Notes match on Hardcover's journal id, then on book, words and place, so one sent from Margin never
+    comes back as a second copy.
+  - Not synced: a note deleted on Hardcover stays in Margin, because deletions aren't reported. A book removed
+    from Hardcover stays too. Reviews come in but are edited on Hardcover.
+  - Pace: about one request every 4.5 seconds, because the limit Hardcover reports is 15.
 - **Backfill** brings in the history only. No buddy notes are generated for
   books that are already finished.
 

@@ -36,12 +36,12 @@ test('signed out, there is nothing to see and nothing can be done', async () => 
 test('importing twice creates no duplicates and keeps what the reader did since', async () => {
   const t = setup()
   const { userId, as } = await reader(t)
-  expect(await t.mutation(internal.hardcover.saveBooks, { userId, items: [item(1), item(2)] })).toEqual({ added: 2, existing: 0 })
+  expect(await t.mutation(internal.hardcover.saveBooks, { userId, items: [item(1), item(2)] })).toEqual({ added: 2, existing: 0, notes: 0 })
 
   const before = await as.query(api.library.myBooks, {})
   await as.mutation(api.library.logProgress, { readId: before[0].readId, percent: 62 })
 
-  expect(await t.mutation(internal.hardcover.saveBooks, { userId, items: [item(1), item(2), item(3)] })).toEqual({ added: 1, existing: 2 })
+  expect(await t.mutation(internal.hardcover.saveBooks, { userId, items: [item(1), item(2), item(3)] })).toEqual({ added: 1, existing: 2, notes: 0 })
   const after = await as.query(api.library.myBooks, {})
   expect(after).toHaveLength(3)
   expect(after.find(b => b.readId === before[0].readId)?.percent).toBe(62)
@@ -104,15 +104,18 @@ test('the shelf year comes from finishing, then starting, then adding', async ()
 
 test('the import walks every page of Hardcover and saves the books', async () => {
   vi.stubEnv('HARDCOVER_API_KEY', 'test-token')
-  const fetchMock = vi.fn(async () => new Response(JSON.stringify({
-    data: { me: [{ user_books: [{ id: 5, status_id: 2, book: { id: 50, title: 'From Hardcover' } }, { id: 6, status_id: 6, book: { id: 60 } }] }] },
-  })))
+  vi.stubEnv('HARDCOVER_PACE_MS', '0')
+  const library = [{ id: 5, status_id: 2, book: { id: 50, title: 'From Hardcover' } }, { id: 6, status_id: 6, book: { id: 60 } }]
+  const fetchMock = vi.fn(async (_url: string, init: { body: string }) => {
+    const { query } = JSON.parse(init.body)
+    const data = query.includes('{ me { id } }') ? { me: [{ id: 1 }] } : query.includes('reading_journals') ? { reading_journals: [{ id: 9, event: 'note', entry: 'A note.', book_id: 50 }] } : { me: [{ user_books: library }] }
+    return new Response(JSON.stringify({ data }))
+  })
   vi.stubGlobal('fetch', fetchMock)
   const t = setup()
   const { as } = await reader(t)
 
-  expect(await as.action(api.hardcover.importLibrary, {})).toEqual({ added: 1, existing: 0 })
-  expect(fetchMock).toHaveBeenCalledTimes(1)
+  expect(await as.action(api.hardcover.importLibrary, {})).toEqual({ added: 1, existing: 0, notes: 1 })
   const [book] = await as.query(api.library.myBooks, {})
   expect(book).toMatchObject({ title: 'From Hardcover', status: 'reading', author: 'Unknown author' })
   vi.unstubAllEnvs()

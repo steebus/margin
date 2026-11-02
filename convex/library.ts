@@ -2,6 +2,7 @@ import { getAuthUserId } from '@convex-dev/auth/server'
 import { ConvexError, v } from 'convex/values'
 import { mutation, query } from './_generated/server'
 import { positionOf, toBook } from './lib/books'
+import { enqueueRead } from './lib/outbox'
 
 /** Every book on the signed-in reader's shelves. Empty when signed out. */
 export const myBooks = query({
@@ -42,7 +43,7 @@ export const recentEntries = query({
   handler: async ctx => {
     const userId = await getAuthUserId(ctx)
     if (!userId) return []
-    const entries = await ctx.db.query('entries').withIndex('by_user', q => q.eq('userId', userId)).order('desc').take(200)
+    const entries = await ctx.db.query('entries').withIndex('by_user', q => q.eq('userId', userId)).order('desc').take(500)
     return Promise.all(entries.map(async e => {
       const read = await ctx.db.get(e.readId)
       const work = read && await ctx.db.get(read.workId)
@@ -71,5 +72,38 @@ export const logProgress = mutation({
     const page = work?.pages ? Math.round((clamped / 100) * work.pages) : undefined
     await ctx.db.patch(readId, { progress: { percent: clamped, page } })
     await ctx.db.insert('progressLog', { userId, readId, at: Date.now(), percent: clamped, page, origin: 'manual' })
+    await enqueueRead(ctx, userId, readId)
+  },
+})
+
+export const setStatus = mutation({
+  args: { readId: v.id('reads'), status: v.union(v.literal('tbr'), v.literal('reading'), v.literal('paused'), v.literal('read'), v.literal('dnf')) },
+  handler: async (ctx, { readId, status }) => {
+    const userId = await getAuthUserId(ctx)
+    if (!userId) throw new ConvexError('Sign in to change this')
+    const read = await ctx.db.get(readId)
+    if (!read || read.userId !== userId) throw new ConvexError('That book is not on your shelves')
+    if (read.status === status) return
+    const now = Date.now()
+    await ctx.db.patch(readId, {
+      status,
+      startedAt: status === 'reading' || status === 'read' ? read.startedAt ?? now : read.startedAt,
+      finishedAt: status === 'read' ? read.finishedAt ?? now : undefined,
+      progress: status === 'read' ? { percent: 100, page: read.progress.page } : read.progress,
+    })
+    await enqueueRead(ctx, userId, readId)
+  },
+})
+
+export const setRating = mutation({
+  args: { readId: v.id('reads'), rating: v.union(v.number(), v.null()) },
+  handler: async (ctx, { readId, rating }) => {
+    const userId = await getAuthUserId(ctx)
+    if (!userId) throw new ConvexError('Sign in to change this')
+    const read = await ctx.db.get(readId)
+    if (!read || read.userId !== userId) throw new ConvexError('That book is not on your shelves')
+    if (rating !== null && !(rating >= 0.5 && rating <= 5 && rating * 2 === Math.round(rating * 2))) throw new ConvexError('A rating is from half a star to five, in half stars')
+    await ctx.db.patch(readId, { rating: rating ?? undefined })
+    await enqueueRead(ctx, userId, readId)
   },
 })

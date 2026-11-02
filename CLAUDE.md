@@ -21,6 +21,8 @@ Read `docs/SPEC.md`, `docs/PLAN.md`, `docs/DESIGN-DIRECTION.md` and `PRODUCT.md`
 - `public/art-demo/` and `src/lib/art.ts` hold hand-stored Gemini test drawings. Delete the demo part
   when the art pipeline lands (SPEC §3.11). `SAMPLE_POST` in `src/components/share/Share.tsx` is
   fake too, and nothing on the share screen is saved yet (SPEC §3.4.1).
+- Margin writes to Steve's real Hardcover account through the outbox (SPEC §3.5). Tests stub `fetch`; never point
+  them, or a test script, at the real API with mutations.
 - `GEMINI_API_KEY` lives in the gitignored `.env`. Never print it.
 - Offscreen cells only load when the browser renders frames. In automated checks
   scroll with the real wheel and force frames, or lazy covers look broken.
