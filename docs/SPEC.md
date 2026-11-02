@@ -279,7 +279,7 @@ into every prompt. Three layers:
 3. **Tools** (Claude tool use, backed by Convex queries). The buddy pulls
    anything else on demand:
    - `search_entries(query, {bookId?, topicId?, kind?, dateRange?})`: hybrid
-     search, Convex full-text index + vector index (Voyage embeddings on every
+     search, Convex full-text index + vector index (Gemini embeddings on every
      entry, topic and guide theme), merged by reciprocal rank fusion
    - `get_book(bookId)` returns the read's facts, rating, source and book memory
    - `list_books(filter)` filters on any library field (the same filter
@@ -409,7 +409,7 @@ Convex ── queries/mutations (library, entries, graph)
        ├─ Workflow component: book research, imports (resumable, step-retried)
        ├─ scheduler/crons: Hardcover sync, milestone checks
        ├─ file storage: photos, uploaded export files
-       ├─ vector index: topics, entries (Voyage embeddings; Anthropic has no embedding model)
+       ├─ vector index: topics, entries (Gemini embeddings, on the key Margin already has; Anthropic has no embedding model. Steve, 2026-11-02: no Voyage, no AI gateway)
        ├─ search index + vector index: entries, topics, guide themes (hybrid retrieval, §3.8)
        ├─ crons: Web Push for absence and delay nudges (VAPID)
        └─ HTTP actions: capture endpoint (token), OAuth callbacks

@@ -18,7 +18,6 @@ Margin, and does the buddy feel good? The import plumbing comes later.
 | Vercel project linked to `steebus/margin` | vercel.com | production deploys from `main` |
 | Google Cloud OAuth client (web), app in *testing* mode, Steve as test user | console.cloud.google.com | `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET` (Convex env) |
 | Anthropic API key | console.anthropic.com | `ANTHROPIC_API_KEY` (Convex env) |
-| Voyage API key (embeddings, Phase 2) | voyageai.com | `VOYAGE_API_KEY` (Convex env) |
 | Hardcover API token (Phase 1) | hardcover.app → Settings → API | pasted in-app, encrypted at rest |
 | Gemini API key, with billing on (Phase 1) | aistudio.google.com | `GEMINI_API_KEY` (Convex env) |
 | VAPID key pair (Phase 2 push) | `npx web-push generate-vapid-keys` | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` |
@@ -194,7 +193,8 @@ itself.
      `related_topics`, `get_guide`, `get_thread`.
    - Citations render as entry cards.
 6. **Memory.**
-   - Voyage embeddings plus a full-text index on entries.
+   - A full-text index on entries first. Gemini embeddings added only if keyword search visibly misses things
+     (Steve, 2026-11-02: Gemini rather than Voyage, and calls go to each provider directly, not through Vercel's AI Gateway).
    - Hybrid search with reciprocal rank fusion.
    - The small model writes rolling book, topic and profile summaries after
      each session.
