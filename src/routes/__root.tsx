@@ -2,6 +2,7 @@ import { createRootRoute, Link, Outlet, useRouterState } from '@tanstack/react-r
 import { useConvexAuth } from 'convex/react'
 import { Archive, LampDesk, Library, Moon, NotebookPen, PenLine, Sun, UserRound } from 'lucide-react'
 import { SignIn } from '../components/settings/SignIn'
+import { useOnline, useReplayOutbox } from '../lib/offline'
 import { setTheme, useTheme } from '../lib/theme'
 
 export const Route = createRootRoute({ component: Root })
@@ -28,20 +29,24 @@ function ThemeToggle() {
 function Root() {
   const path = useRouterState({ select: s => s.location.pathname })
   const { isLoading, isAuthenticated } = useConvexAuth()
+  const online = useOnline()
+  useReplayOutbox(isAuthenticated)
+  // With no connection, sign-in can't be confirmed, so the shell opens on what this device already holds.
+  const inside = isAuthenticated || (!online && isLoading)
   return (
     <div className="app">
       <main className="page">
         <div className="corner">
-          {isAuthenticated && (
+          {inside && (
             <Link to="/settings" className="theme-toggle" aria-label="Settings and account" title="Settings and account">
               <UserRound aria-hidden="true" strokeWidth={2.25} />
             </Link>
           )}
           <ThemeToggle />
         </div>
-        {isLoading ? <p role="status">Opening Margin…</p> : isAuthenticated ? <Outlet /> : <SignIn />}
+        {inside ? <Outlet /> : isLoading ? <p role="status">Opening Margin…</p> : <SignIn />}
       </main>
-      {isAuthenticated && <nav className="tabs" aria-label="Main">
+      {inside && <nav className="tabs" aria-label="Main">
         {tabs.map(({ to, label, Icon, match }) => (
           <Link key={to} to={to} aria-current={match(path) ? 'page' : undefined}>
             <Icon aria-hidden="true" strokeWidth={2.25} />

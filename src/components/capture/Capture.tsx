@@ -1,8 +1,11 @@
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
-import { useMutation, useQuery } from 'convex/react'
+import { useMutation } from 'convex/react'
+import { Camera as CameraIcon, Plus } from 'lucide-react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
+import { useBooks } from '../../lib/offline'
 import { errorText, type Book } from '../../lib/books'
+import { sendOrKeep } from '../../lib/outbox'
 
 const KINDS = [
   { id: 'excerpt', label: 'Excerpt', prompt: 'The line, as the book has it' },
@@ -35,13 +38,19 @@ function Form({ books }: { books: Book[] }) {
     setError(null)
     setSaved(null)
     try {
-      const { duplicate } = await addEntry({
+      const args = {
         readId: chosen.readId,
         kind,
         text: words,
         ...(number === undefined ? {} : audio ? { percent: number } : { page: number }),
+      }
+      const sent = await sendOrKeep('addEntry', args, () => addEntry(args))
+      setSaved({
+        slug: chosen.slug,
+        message: sent.kept
+          ? `Kept on this device. It goes to ${chosen.title} when you're back online.`
+          : sent.result.duplicate ? `Already saved to ${chosen.title}.` : `Saved to ${chosen.title}.`,
       })
-      setSaved({ slug: chosen.slug, message: duplicate ? `Already saved to ${chosen.title}.` : `Saved to ${chosen.title}.` })
       setText('')
       setPlace('')
       navigator.vibrate?.(15)
@@ -118,7 +127,7 @@ function Form({ books }: { books: Book[] }) {
 }
 
 export function Capture() {
-  const books = useQuery(api.library.myBooks)
+  const books = useBooks()
   return (
     <div className="narrow stack">
       <h1 className="title-head">Capture</h1>
@@ -130,7 +139,13 @@ export function Capture() {
           <div className="btn-row"><Link to="/settings" className="btn btn-solid">Go to Settings</Link></div>
         </div>
       )}
-      {books && books.length > 0 && <Form books={books} />}
+      {books && books.length > 0 && (
+        <>
+          <Link to="/capture/add" className="btn"><Plus aria-hidden="true" strokeWidth={2.25} />Add a book</Link>
+          <Link to="/capture/camera" className="btn action-camera"><CameraIcon aria-hidden="true" strokeWidth={2.25} />Photograph a page</Link>
+          <Form books={books} />
+        </>
+      )}
     </div>
   )
 }

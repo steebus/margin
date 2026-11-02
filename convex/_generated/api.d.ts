@@ -11,6 +11,8 @@
 import type * as art from "../art.js";
 import type * as artNode from "../artNode.js";
 import type * as auth from "../auth.js";
+import type * as books from "../books.js";
+import type * as capture from "../capture.js";
 import type * as crons from "../crons.js";
 import type * as entries from "../entries.js";
 import type * as hardcover from "../hardcover.js";
@@ -19,12 +21,16 @@ import type * as lib_artFrame from "../lib/artFrame.js";
 import type * as lib_artPrompt from "../lib/artPrompt.js";
 import type * as lib_books from "../lib/books.js";
 import type * as lib_entryKey from "../lib/entryKey.js";
+import type * as lib_gemini from "../lib/gemini.js";
 import type * as lib_hardcover from "../lib/hardcover.js";
 import type * as lib_outbox from "../lib/outbox.js";
 import type * as lib_redirects from "../lib/redirects.js";
 import type * as lib_reflection from "../lib/reflection.js";
+import type * as lib_shareRead from "../lib/shareRead.js";
+import type * as lib_transcript from "../lib/transcript.js";
 import type * as library from "../library.js";
 import type * as reflect from "../reflect.js";
+import type * as share from "../share.js";
 import type * as users from "../users.js";
 
 import type {
@@ -37,6 +43,8 @@ declare const fullApi: ApiFromModules<{
   art: typeof art;
   artNode: typeof artNode;
   auth: typeof auth;
+  books: typeof books;
+  capture: typeof capture;
   crons: typeof crons;
   entries: typeof entries;
   hardcover: typeof hardcover;
@@ -45,12 +53,16 @@ declare const fullApi: ApiFromModules<{
   "lib/artPrompt": typeof lib_artPrompt;
   "lib/books": typeof lib_books;
   "lib/entryKey": typeof lib_entryKey;
+  "lib/gemini": typeof lib_gemini;
   "lib/hardcover": typeof lib_hardcover;
   "lib/outbox": typeof lib_outbox;
   "lib/redirects": typeof lib_redirects;
   "lib/reflection": typeof lib_reflection;
+  "lib/shareRead": typeof lib_shareRead;
+  "lib/transcript": typeof lib_transcript;
   library: typeof library;
   reflect: typeof reflect;
+  share: typeof share;
   users: typeof users;
 }>;
 

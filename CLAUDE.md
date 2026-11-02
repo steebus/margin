@@ -18,8 +18,6 @@ Read `docs/SPEC.md`, `docs/PLAN.md`, `docs/DESIGN-DIRECTION.md` and `PRODUCT.md`
   element rects against the viewport instead.
 - Don't give two files in `src/` names that differ only by case: `./Foo` resolves
   to the wrong one on Windows.
-- `SAMPLE_POST` in `src/components/share/Share.tsx` is
-  fake too, and nothing on the share screen is saved yet (SPEC §3.4.1).
 - Margin writes to Steve's real Hardcover account through the outbox (SPEC §3.5). Tests stub `fetch`; never point
   them, or a test script, at the real API with mutations.
 - Bulk art: `node --experimental-strip-types scripts/art-batch.mjs subjects|submit|status|fetch|ingest`. It costs real

@@ -2,6 +2,7 @@ import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { useQuery } from 'convex/react'
 import { Search } from 'lucide-react'
 import { api } from '../../../convex/_generated/api'
+import { useBooks, useEntries } from '../../lib/offline'
 import { NOTE_KINDS } from '../book/BookNotes'
 import { entryLabel, EntryText } from '../book/EntryList'
 import { Reflection } from '../book/Reflection'
@@ -13,8 +14,8 @@ const LATEST = 2
 export function Notes() {
   const { q, kind } = useSearch({ from: '/notes' })
   const navigate = useNavigate({ from: '/notes' })
-  const entries = useQuery(api.library.allEntries)
-  const books = useQuery(api.library.myBooks)
+  const entries = useEntries()
+  const books = useBooks()
   const waiting = useQuery(api.reflect.waiting)
 
   const words = q?.trim().toLowerCase().split(/\s+/).filter(Boolean) ?? []

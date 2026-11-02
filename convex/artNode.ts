@@ -5,6 +5,7 @@ import sharp from 'sharp'
 import { internal } from './_generated/api'
 import { internalAction } from './_generated/server'
 import { frameArt } from './lib/artFrame'
+import { failureText } from './lib/gemini'
 import { IMAGE_MODEL, imagePrompt, parseSubject, subjectPrompt, TEXT_MODEL } from './lib/artPrompt'
 
 const API = 'https://generativelanguage.googleapis.com/v1beta'
@@ -15,7 +16,7 @@ async function askForSubject(key: string, prompt: string) {
     headers: { 'x-goog-api-key': key, 'Content-Type': 'application/json' },
     body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseMimeType: 'application/json', temperature: 0.9 } }),
   })
-  if (!res.ok) throw new Error(`Choosing a subject failed (${res.status})`)
+  if (!res.ok) throw new Error(failureText(res.status, 'Choosing a subject'))
   const json = await res.json()
   return parseSubject(json.candidates?.[0]?.content?.parts?.[0]?.text ?? '')
 }
@@ -30,7 +31,7 @@ async function draw(key: string, prompt: string, reference: string) {
       response_format: { type: 'image', mime_type: 'image/jpeg', aspect_ratio: '1:1', image_size: '1K' },
     }),
   })
-  if (!res.ok) throw new Error(`Drawing failed (${res.status})`)
+  if (!res.ok) throw new Error(failureText(res.status, 'Drawing'))
   const json = await res.json()
   let data: string | undefined = json.output_image?.data
   for (const step of json.steps ?? []) for (const block of step.content ?? []) if (block.type === 'image' && block.data) data = block.data

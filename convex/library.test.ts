@@ -167,6 +167,21 @@ test('starting a finished book again is a re-read, and finishing closes it', asy
   expect(book.readings[1].finishedAt).toBeTruthy()
 })
 
+test('an export holds every book and entry, and only the reader\'s own', async () => {
+  const t = setup()
+  const { userId, as } = await reader(t)
+  const other = await reader(t, 'Someone else')
+  await t.mutation(internal.hardcover.saveBooks, { userId, items: [item(1)] })
+  await t.mutation(internal.hardcover.saveBooks, { userId: other.userId, items: [{ ...item(2), read: { ...item(2).read, hardcoverUserBookId: 99 } }] })
+  const [{ readId }] = await as.query(api.library.myBooks, {})
+  await as.mutation(api.entries.addEntry, { readId, kind: 'note', text: 'Mine.' })
+
+  const all = await as.query(api.library.exportAll, {})
+  expect(all.books.map(b => b.slug)).toEqual(['book-1'])
+  expect(all.entries).toMatchObject([{ text: 'Mine.', kind: 'note', readId }])
+  await expect(t.query(api.library.exportAll, {})).rejects.toThrow()
+})
+
 test('the import walks every page of Hardcover and saves the books', async () => {
   vi.stubEnv('HARDCOVER_API_KEY', 'test-token')
   vi.stubEnv('HARDCOVER_PACE_MS', '0')

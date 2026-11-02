@@ -16,6 +16,7 @@ import { Route as PileRouteImport } from './routes/pile'
 import { Route as ReviewRouteImport } from './routes/review'
 import { Route as StatsRouteImport } from './routes/stats'
 import { Route as CaptureIndexRouteImport } from './routes/capture.index'
+import { Route as CaptureAddRouteImport } from './routes/capture.add'
 import { Route as CaptureCameraRouteImport } from './routes/capture.camera'
 import { Route as CaptureShareRouteImport } from './routes/capture.share'
 import { Route as EEntryIdRouteImport } from './routes/e.$entryId'
@@ -68,6 +69,11 @@ const StatsRoute = StatsRouteImport.update({
 const CaptureIndexRoute = CaptureIndexRouteImport.update({
   id: '/capture/',
   path: '/capture/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CaptureAddRoute = CaptureAddRouteImport.update({
+  id: '/capture/add',
+  path: '/capture/add',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CaptureCameraRoute = CaptureCameraRouteImport.update({
@@ -171,6 +177,7 @@ export interface FileRoutesByFullPath {
   '/pile': typeof PileRoute
   '/review': typeof ReviewRoute
   '/stats': typeof StatsRoute
+  '/capture/add': typeof CaptureAddRoute
   '/capture/camera': typeof CaptureCameraRoute
   '/capture/share': typeof CaptureShareRoute
   '/e/$entryId': typeof EEntryIdRoute
@@ -198,6 +205,7 @@ export interface FileRoutesByTo {
   '/pile': typeof PileRoute
   '/review': typeof ReviewRoute
   '/stats': typeof StatsRoute
+  '/capture/add': typeof CaptureAddRoute
   '/capture/camera': typeof CaptureCameraRoute
   '/capture/share': typeof CaptureShareRoute
   '/e/$entryId': typeof EEntryIdRoute
@@ -226,6 +234,7 @@ export interface FileRoutesById {
   '/pile': typeof PileRoute
   '/review': typeof ReviewRoute
   '/stats': typeof StatsRoute
+  '/capture/add': typeof CaptureAddRoute
   '/capture/camera': typeof CaptureCameraRoute
   '/capture/share': typeof CaptureShareRoute
   '/e/$entryId': typeof EEntryIdRoute
@@ -255,6 +264,7 @@ export interface FileRouteTypes {
     | '/pile'
     | '/review'
     | '/stats'
+    | '/capture/add'
     | '/capture/camera'
     | '/capture/share'
     | '/e/$entryId'
@@ -282,6 +292,7 @@ export interface FileRouteTypes {
     | '/pile'
     | '/review'
     | '/stats'
+    | '/capture/add'
     | '/capture/camera'
     | '/capture/share'
     | '/e/$entryId'
@@ -309,6 +320,7 @@ export interface FileRouteTypes {
     | '/pile'
     | '/review'
     | '/stats'
+    | '/capture/add'
     | '/capture/camera'
     | '/capture/share'
     | '/e/$entryId'
@@ -337,6 +349,7 @@ export interface RootRouteChildren {
   PileRoute: typeof PileRoute
   ReviewRoute: typeof ReviewRoute
   StatsRoute: typeof StatsRoute
+  CaptureAddRoute: typeof CaptureAddRoute
   CaptureCameraRoute: typeof CaptureCameraRoute
   CaptureShareRoute: typeof CaptureShareRoute
   EEntryIdRoute: typeof EEntryIdRoute
@@ -407,6 +420,13 @@ declare module '@tanstack/react-router' {
       path: '/capture'
       fullPath: '/capture/'
       preLoaderRoute: typeof CaptureIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/capture/add': {
+      id: '/capture/add'
+      path: '/capture/add'
+      fullPath: '/capture/add'
+      preLoaderRoute: typeof CaptureAddRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/capture/camera': {
@@ -545,6 +565,7 @@ const rootRouteChildren: RootRouteChildren = {
   PileRoute: PileRoute,
   ReviewRoute: ReviewRoute,
   StatsRoute: StatsRoute,
+  CaptureAddRoute: CaptureAddRoute,
   CaptureCameraRoute: CaptureCameraRoute,
   CaptureShareRoute: CaptureShareRoute,
   EEntryIdRoute: EEntryIdRoute,

@@ -51,6 +51,27 @@ function bookFacts(book: Book, notes: number) {
   ].filter((row): row is [string, string | number] => !!row[1])
 }
 
+/** The Hardcover lists a book is on, changed with a tick. */
+function Lists({ book }: { book: Book }) {
+  const lists = useQuery(api.books.myLists)
+  const setOnList = useMutation(api.books.setOnList)
+  if (!lists?.length) return null
+  return (
+    <details className="tools-filters">
+      <summary>Lists{book.shelfIds.length ? ` (${book.shelfIds.length})` : ''}</summary>
+      <fieldset className="choices">
+        <legend className="sr-only">Lists this book is on</legend>
+        {lists.map(l => (
+          <label key={l.id} className="choice">
+            <input type="checkbox" checked={book.shelfIds.includes(l.id)} onChange={e => void setOnList({ readId: book.readId, listId: l.id, on: e.target.checked })} />
+            {l.name}
+          </label>
+        ))}
+      </fieldset>
+    </details>
+  )
+}
+
 export function BookPage() {
   const { bookSlug } = useParams({ from: '/books/$bookSlug/' })
   const found = useQuery(api.library.bookBySlug, { slug: bookSlug })
@@ -115,6 +136,8 @@ export function BookPage() {
         </div>
       </div>
 
+      <Lists book={book} />
+
       <table className="card-table">
         <caption>Library card</caption>
         <tbody>
@@ -130,7 +153,7 @@ export function BookPage() {
 
       <section className="stack" aria-labelledby="margin-heading">
         <h2 id="margin-heading" className="head">In the margin</h2>
-        {entries.length > 0 ? <EntryList entries={[...entries].reverse().slice(0, PREVIEW)} /> : <p>Nothing in the margin yet. Add a line you underlined, or a thought about it.</p>}
+        {entries.length > 0 ? <EntryList entries={[...entries].reverse()} readId={book.readId} limit={PREVIEW} /> : <p>Nothing in the margin yet. Add a line you underlined, or a thought about it.</p>}
         {entries.length > 0 && (
           <div className="btn-row">
             <Link to="/books/$bookSlug/entries" params={{ bookSlug: book.slug }} className="btn">{entries.length === 1 ? 'Open in notes and thoughts' : `All ${entries.length} notes and thoughts`}</Link>

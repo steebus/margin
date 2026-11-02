@@ -1,14 +1,15 @@
 import { getAuthUserId } from '@convex-dev/auth/server'
 import { ConvexError, v } from 'convex/values'
 import { internal } from './_generated/api'
-import { action, internalAction, internalMutation, internalQuery, query } from './_generated/server'
+import type { Id } from './_generated/dataModel'
+import { action, internalAction, internalMutation, internalQuery, query, type ActionCtx } from './_generated/server'
 import { entryKey } from './lib/entryKey'
 import { askForReflection } from './lib/reflection'
 import {
-  JOURNAL_FIELDS, journalObject, LIBRARY_QUERY, mapJournal, mapUserBook, progressChanged, progressFields, readFields, readingDates, statusId,
-  type HardcoverJournal, type HardcoverUserBook,
+  JOURNAL_FIELDS, journalObject, LIBRARY_QUERY, LISTS_QUERY, listSlug, mapJournal, mapSearch, mapUserBook, newUserBook, progressChanged, SEARCH_QUERY, progressFields, readFields, readingDates, statusId,
+  type HardcoverJournal, type HardcoverList, type HardcoverUserBook, type SearchDocument,
 } from './lib/hardcover'
-import { retryDelayMs } from './lib/outbox'
+import { enqueueRead, retryDelayMs } from './lib/outbox'
 
 const PAGE = 100
 const CLAIM = 3
@@ -16,7 +17,14 @@ const CURSOR_OVERLAP_MS = 60_000
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 // One request every 4.5 seconds. Hardcover reports a limit of 15, without saying over what period.
-const pace = () => sleep(Number(process.env.HARDCOVER_PACE_MS ?? 4500))
+export const pace = () => sleep(Number(process.env.HARDCOVER_PACE_MS ?? 4500))
+
+export type Found = ReturnType<typeof mapSearch>[number]
+
+export async function searchHardcover(words: string): Promise<Found[]> {
+  const data = await gql<{ search: { results?: { hits?: { document: SearchDocument }[] } } }>(SEARCH_QUERY, { q: words })
+  return mapSearch((data.search?.results?.hits ?? []).map(h => h.document))
+}
 
 async function gql<T>(query: string, variables: Record<string, unknown> = {}): Promise<T> {
   const key = process.env.HARDCOVER_API_KEY
@@ -258,8 +266,56 @@ export const importFor = internalAction({
       if (page.length < PAGE) break
     }
 
+    await pace()
+    await pullLists(ctx, userId)
     await ctx.runMutation(internal.hardcover.connect, { userId, hardcoverUserId, cursor: new Date(startedAt - CURSOR_OVERLAP_MS).toISOString() })
     return totals
+  },
+})
+
+async function pullLists(ctx: ActionCtx, userId: Id<'users'>) {
+  const data = await gql<{ me: { lists?: HardcoverList[] }[] }>(LISTS_QUERY)
+  const lists = data.me?.[0]?.lists
+  // A reply with no lists field says nothing, and mustn't read as "every list was deleted".
+  if (!Array.isArray(lists)) return
+  await ctx.runMutation(internal.hardcover.saveLists, {
+    userId,
+    lists: lists.map(l => ({
+      hardcoverListId: l.id,
+      name: l.name?.trim() || 'Untitled list',
+      slug: listSlug(l),
+      bookIds: (l.list_books ?? []).flatMap(b => (b.book_id ? [b.book_id] : [])),
+    })),
+  })
+}
+
+/** Makes Margin's lists match Hardcover's. A book with a list change still waiting to send keeps what it has. */
+export const saveLists = internalMutation({
+  args: { userId: v.id('users'), lists: v.array(v.object({ hardcoverListId: v.number(), name: v.string(), slug: v.string(), bookIds: v.array(v.number()) })) },
+  handler: async (ctx, { userId, lists }) => {
+    const shelves = await ctx.db.query('shelves').withIndex('by_user_slug', q => q.eq('userId', userId)).collect()
+    const idFor = new Map<number, Id<'shelves'>>()
+    for (const list of lists) {
+      const known = shelves.find(s => s.hardcoverListId === list.hardcoverListId)
+      if (known) {
+        if (known.name !== list.name) await ctx.db.patch(known._id, { name: list.name })
+        idFor.set(list.hardcoverListId, known._id)
+      } else {
+        idFor.set(list.hardcoverListId, await ctx.db.insert('shelves', { userId, slug: list.slug, name: list.name, hardcoverListId: list.hardcoverListId }))
+      }
+    }
+    const gone = shelves.filter(s => s.hardcoverListId && !idFor.has(s.hardcoverListId))
+    const waiting = new Set((await ctx.db.query('hardcoverOutbox').withIndex('by_user', q => q.eq('userId', userId)).collect())
+      .filter(row => row.kind === 'listBook' || row.kind === 'unlistBook').map(row => row.readId))
+    const reads = await ctx.db.query('reads').withIndex('by_user_status', q => q.eq('userId', userId)).collect()
+    for (const read of reads) {
+      if (waiting.has(read._id)) continue
+      const work = await ctx.db.get(read.workId)
+      const shelfIds = lists.filter(l => work?.hardcoverId && l.bookIds.includes(work.hardcoverId)).map(l => idFor.get(l.hardcoverListId)!)
+      const same = shelfIds.length === read.shelfIds.length && shelfIds.every(id => read.shelfIds.includes(id))
+      if (!same) await ctx.db.patch(read._id, { shelfIds })
+    }
+    for (const shelf of gone) await ctx.db.delete(shelf._id)
   },
 })
 
@@ -300,6 +356,8 @@ export const reconcile = internalAction({
           if (page.length < PAGE) break
           await pace()
         }
+        await pace()
+        await pullLists(ctx, link.userId)
       } catch (e) {
         await ctx.runMutation(internal.hardcover.recordSync, { id: link._id, error: message(e) })
       }
@@ -371,6 +429,27 @@ export const claim = internalMutation({
 export const readState = internalQuery({
   args: { readId: v.id('reads') },
   handler: async (ctx, { readId }) => ctx.db.get(readId),
+})
+
+export const bookState = internalQuery({
+  args: { readId: v.id('reads'), shelfId: v.optional(v.id('shelves')) },
+  handler: async (ctx, { readId, shelfId }) => {
+    const read = await ctx.db.get(readId)
+    const work = read && await ctx.db.get(read.workId)
+    const shelf = shelfId && await ctx.db.get(shelfId)
+    return read && { read, hardcoverBookId: work?.hardcoverId, hardcoverListId: shelf?.hardcoverListId }
+  },
+})
+
+/** Keeps the id Hardcover gave a book added here, and sends anything that happened to it in the meantime. */
+export const linkRead = internalMutation({
+  args: { readId: v.id('reads'), hardcoverUserBookId: v.number() },
+  handler: async (ctx, { readId, hardcoverUserBookId }) => {
+    const read = await ctx.db.get(readId)
+    if (!read) return
+    await ctx.db.patch(readId, { hardcoverUserBookId })
+    if (read.status !== 'tbr' || read.rating) await enqueueRead(ctx, read.userId, readId)
+  },
 })
 
 export const entryState = internalQuery({
@@ -512,6 +591,51 @@ export const flush = internalAction({
                   { id: read.hardcoverUserBookId, read: fields },
                 )
                 check(insert.insert_user_book_read, 'the progress')
+              }
+            }
+          }
+          await ctx.runMutation(internal.hardcover.finish, { id: row._id, version: row.version })
+        } else if (row.kind === 'addBook' && row.readId) {
+          const state = await ctx.runQuery(internal.hardcover.bookState, { readId: row.readId })
+          if (state?.hardcoverBookId && !state.read.hardcoverUserBookId) {
+            await pace()
+            const onHardcover = await gql<{ me: { user_books?: { id: number }[] }[] }>(
+              'query($b: Int!) { me { user_books(where: {book_id: {_eq: $b}}, limit: 1) { id } } }',
+              { b: state.hardcoverBookId },
+            )
+            // Already there, perhaps from another device: never add it twice.
+            let id = onHardcover.me?.[0]?.user_books?.[0]?.id
+            if (!id) {
+              await pace()
+              const made = await gql<{ insert_user_book: { id?: number; error?: string } }>(
+                'mutation($object: UserBookCreateInput!) { insert_user_book(object: $object) { id error } }',
+                { object: newUserBook({ hardcoverBookId: state.hardcoverBookId, status: state.read.status, who: state.read.source?.who, addedAt: state.read.addedAt, rating: state.read.rating }) },
+              )
+              check(made.insert_user_book, 'the new book')
+              id = made.insert_user_book.id
+              if (!id) throw new ConvexError('Hardcover did not say what it called the new book.')
+            }
+            await ctx.runMutation(internal.hardcover.linkRead, { readId: row.readId, hardcoverUserBookId: id })
+          }
+          await ctx.runMutation(internal.hardcover.finish, { id: row._id, version: row.version })
+        } else if ((row.kind === 'listBook' || row.kind === 'unlistBook') && row.readId) {
+          const state = await ctx.runQuery(internal.hardcover.bookState, { readId: row.readId, shelfId: row.shelfId })
+          if (state?.hardcoverBookId && state.hardcoverListId) {
+            await pace()
+            if (row.kind === 'listBook') {
+              const added = await gql<{ insert_list_book: { id?: number; error?: string } }>(
+                'mutation($object: ListBookInput!) { insert_list_book(object: $object) { id } }',
+                { object: { book_id: state.hardcoverBookId, list_id: state.hardcoverListId } },
+              )
+              check(added.insert_list_book, 'the list')
+            } else {
+              const found = await gql<{ me: { lists?: { list_books?: { id: number }[] }[] }[] }>(
+                'query($l: Int!, $b: Int!) { me { lists(where: {id: {_eq: $l}}) { list_books(where: {book_id: {_eq: $b}}) { id } } } }',
+                { l: state.hardcoverListId, b: state.hardcoverBookId },
+              )
+              for (const entry of found.me?.[0]?.lists?.[0]?.list_books ?? []) {
+                await pace()
+                await gql('mutation($id: Int!) { delete_list_book(id: $id) { id } }', { id: entry.id })
               }
             }
           }

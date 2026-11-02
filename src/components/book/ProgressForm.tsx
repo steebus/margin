@@ -2,6 +2,7 @@ import { useMutation } from 'convex/react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { errorText, type Book } from '../../lib/books'
+import { sendOrKeep } from '../../lib/outbox'
 import { formatClock, toClock, unitFor, unitsFor, type Unit } from '../../lib/progress'
 
 const LABEL: Record<Unit, string> = { page: 'Page', time: 'Time', percent: '%' }
@@ -35,9 +36,10 @@ export function ProgressForm({ book, onSaved }: { book: Book; onSaved?: (label: 
     setSaving(true)
     setError(null)
     try {
-      await logProgress({ readId: book.readId, ...at })
+      const args = { readId: book.readId, ...at }
+      const sent = await sendOrKeep('logProgress', args, () => logProgress(args))
       navigator.vibrate?.(15)
-      onSaved?.(atEnd ? 'Finished' : unit === 'page' ? `Page ${page}` : unit === 'time' ? formatClock(seconds) : `${percent}%`)
+      onSaved?.(sent.kept ? 'Kept for when you\'re online' : atEnd ? 'Finished' : unit === 'page' ? `Page ${page}` : unit === 'time' ? formatClock(seconds) : `${percent}%`)
     } catch (e) {
       setError(errorText(e, "That didn't save. Check your connection and try again."))
     } finally {

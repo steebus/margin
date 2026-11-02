@@ -42,6 +42,7 @@ export function toBook(read: Doc<'reads'>, work: Doc<'works'>) {
     subjects: work.subjects,
     isbn: work.isbns[0] ?? null,
     readings: readingsOf(read),
+    shelfIds: read.shelfIds,
     page: read.progress.page ?? (work.pages ? Math.round((percent / 100) * work.pages) : null),
     rating: read.rating ?? null,
     coverUrl: work.coverUrl ?? null,

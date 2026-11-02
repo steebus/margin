@@ -1,6 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { Placeholder } from '../components/placeholder/Placeholder'
+import { z } from 'zod'
+import { Camera } from '../components/capture/Camera'
 
 export const Route = createFileRoute('/capture/camera')({
-  component: () => <Placeholder title="Camera" />,
+  validateSearch: z.object({ book: z.string().optional().catch(undefined) }),
+  component: Camera,
 })

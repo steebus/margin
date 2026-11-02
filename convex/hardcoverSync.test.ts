@@ -15,7 +15,14 @@ function fakeHardcover(answers: Record<string, unknown> = {}) {
     const { query, variables } = JSON.parse(init.body)
     calls.push({ query, variables })
     const data: Record<string, unknown> = {}
-    if (query.includes('update_user_book_read')) data.update_user_book_read = { id: 1 }
+    if (query.includes('search(query')) data.search = { results: { hits: ((answers.search ?? []) as object[]).map(document => ({ document })) } }
+    else if (query.includes('insert_user_book(')) data.insert_user_book = { id: 4242 }
+    else if (query.includes('insert_list_book')) data.insert_list_book = { id: 9 }
+    else if (query.includes('delete_list_book')) data.delete_list_book = { id: 9 }
+    else if (query.includes('lists(where')) data.me = [{ lists: [{ list_books: answers.onList ?? [] }] }]
+    else if (query.includes('lists(limit')) data.me = [{ lists: answers.lists ?? [] }]
+    else if (query.includes('user_books(where: {book_id')) data.me = [{ user_books: answers.already ?? [] }]
+    else if (query.includes('update_user_book_read')) data.update_user_book_read = { id: 1 }
     else if (query.includes('insert_user_book_read')) data.insert_user_book_read = { id: 1 }
     else if (query.includes('update_user_book(')) data.update_user_book = { id: 1 }
     else if (query.includes('insert_reading_journal')) data.insert_reading_journal = { id: 777 }
@@ -347,4 +354,95 @@ test('a logged page goes to Hardcover exactly, not rounded through percent', () 
   expect(progressFields(25, { pages: 1000 }, null, { page: 246 })).toEqual({ progress_pages: 246 })
   expect(progressFields(25, { audio_seconds: 1000 }, null, { seconds: 251 })).toEqual({ progress_seconds: 251 })
   expect(progressFields(100, { pages: 1000 }, null, { page: 246 })).toEqual({ progress_pages: 1000 })
+})
+
+const piranesi = { id: '175280', title: 'Piranesi', author_names: ['Susanna Clarke'], release_year: 2020, pages: 245, isbns: ['9781526622433'], genres: ['Fantasy'], image: { url: 'https://a/p.jpg' }, users_count: 9000 }
+const studyGuide = { id: '984550', title: 'Piranesi by Susanna Clarke', author_names: ['Someone Else'], pages: 13, users_count: 2 }
+
+test('search puts the book itself above its study guides, and says what is already here', async () => {
+  fakeHardcover({ search: [studyGuide, piranesi] })
+  const { as } = await setup()
+  const found = await as.action(api.books.search, { q: 'Piranesi' })
+  expect(found.map(f => f.book.hardcoverId)).toEqual([175280, 984550])
+  expect(found[0]).toMatchObject({ onShelves: false, book: { title: 'Piranesi', authors: ['Susanna Clarke'], pages: 245, subjects: ['Fantasy'] } })
+  await expect(convexTest(schema, import.meta.glob('./**/*.ts')).action(api.books.search, { q: 'x' })).rejects.toThrow()
+})
+
+const addable = { hardcoverId: 175280, slug: 'piranesi-clarke-3rna', title: 'Piranesi', authors: ['Susanna Clarke'], isbns: [], subjects: ['Fantasy'], pages: 245 }
+
+test('a new book lands on the shelves and goes to Hardcover with its source, and adding it again changes nothing', async () => {
+  const calls = fakeHardcover()
+  const { t, as, outbox } = await setup()
+  const [first] = await as.mutation(api.books.addBooks, { books: [addable], status: 'tbr', source: { kind: 'social', who: '@bookish', url: 'https://www.instagram.com/p/x/' } })
+  expect(first).toEqual({ slug: 'piranesi-clarke-3rna', added: true })
+  await flushTimers(t.action(internal.hardcover.flush, {}))
+
+  expect(writes(calls).find(c => c.query.includes('insert_user_book('))?.variables.object).toMatchObject({ book_id: 175280, status_id: 1, recommended_by: '@bookish' })
+  expect(await outbox()).toEqual([])
+  const book = (await as.query(api.library.myBooks, {})).find(b => b.slug === addable.slug)!
+  expect(book).toMatchObject({ status: 'tbr', recommendedBy: '@bookish', pages: 245 })
+  expect((await t.run(ctx => ctx.db.get(book.readId)))!.hardcoverUserBookId).toBe(4242)
+  expect(await t.run(ctx => ctx.db.query('people').collect())).toMatchObject([{ name: '@bookish' }])
+
+  const [again] = await as.mutation(api.books.addBooks, { books: [addable], status: 'read' })
+  expect(again.added).toBe(false)
+  expect((await as.query(api.library.myBooks, {})).find(b => b.slug === addable.slug)!.status).toBe('tbr')
+})
+
+test('a book already on Hardcover is linked, not added twice', async () => {
+  const calls = fakeHardcover({ already: [{ id: 777 }] })
+  const { t, as } = await setup()
+  await as.mutation(api.books.addBooks, { books: [addable], status: 'tbr' })
+  await flushTimers(t.action(internal.hardcover.flush, {}))
+  expect(writes(calls).filter(c => c.query.includes('insert_user_book('))).toEqual([])
+  const book = (await as.query(api.library.myBooks, {})).find(b => b.slug === addable.slug)!
+  expect((await t.run(ctx => ctx.db.get(book.readId)))!.hardcoverUserBookId).toBe(777)
+})
+
+test('a failed add keeps the book here and tries again', async () => {
+  fakeHardcover({ errors: [{ message: 'nope' }] })
+  const { t, as, outbox } = await setup()
+  await as.mutation(api.books.addBooks, { books: [addable], status: 'tbr' })
+  await flushTimers(t.action(internal.hardcover.flush, {}))
+  expect((await as.query(api.library.myBooks, {})).some(b => b.slug === addable.slug)).toBe(true)
+  expect(await outbox()).toMatchObject([{ kind: 'addBook', attempts: 1 }])
+})
+
+test('lists come in from Hardcover, and a deleted list goes', async () => {
+  fakeHardcover({ library: [], lists: [{ id: 5, name: 'Own', slug: 'own', list_books: [{ book_id: 1 }] }, { id: 6, name: 'Read', slug: 'read', list_books: [] }] })
+  const { t, as, userId } = await setup()
+  await t.run(ctx => ctx.db.insert('integrations', { userId, provider: 'hardcover', hardcoverUserId: 1, cursor: '2020-01-01T00:00:00Z' }))
+  await flushTimers(t.action(internal.hardcover.reconcile, {}))
+  const lists = await as.query(api.books.myLists, {})
+  expect(lists.map(l => [l.name, l.slug])).toEqual([['Own', 'own'], ['Read', 'list-read']])
+  expect((await as.query(api.library.myBooks, {}))[0].shelfIds).toEqual([lists[0].id])
+
+  await t.mutation(internal.hardcover.saveLists, { userId, lists: [{ hardcoverListId: 6, name: 'Read', slug: 'list-read', bookIds: [] }] })
+  expect((await as.query(api.books.myLists, {})).map(l => l.name)).toEqual(['Read'])
+  expect((await as.query(api.library.myBooks, {}))[0].shelfIds).toEqual([])
+})
+
+test('a reply without lists never empties them', async () => {
+  fakeHardcover()
+  const { t, as, userId } = await setup()
+  await t.mutation(internal.hardcover.saveLists, { userId, lists: [{ hardcoverListId: 5, name: 'Own', slug: 'own', bookIds: [1] }] })
+  vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ data: { me: [{ user_books: [] }] } }))))
+  await t.run(ctx => ctx.db.insert('integrations', { userId, provider: 'hardcover', hardcoverUserId: 1, cursor: '2020-01-01T00:00:00Z' }))
+  await flushTimers(t.action(internal.hardcover.reconcile, {}))
+  expect(await as.query(api.books.myLists, {})).toHaveLength(1)
+})
+
+test('putting a book on a list and taking it off both reach Hardcover', async () => {
+  const calls = fakeHardcover({ onList: [{ id: 31 }] })
+  const { t, as, readId, userId } = await setup()
+  await t.mutation(internal.hardcover.saveLists, { userId, lists: [{ hardcoverListId: 5, name: 'Own', slug: 'own', bookIds: [] }] })
+  const [{ id: listId }] = await as.query(api.books.myLists, {})
+
+  await as.mutation(api.books.setOnList, { readId, listId, on: true })
+  await flushTimers(t.action(internal.hardcover.flush, {}))
+  expect(writes(calls).find(c => c.query.includes('insert_list_book'))?.variables.object).toEqual({ book_id: 1, list_id: 5 })
+
+  await as.mutation(api.books.setOnList, { readId, listId, on: false })
+  await flushTimers(t.action(internal.hardcover.flush, {}))
+  expect(writes(calls).find(c => c.query.includes('delete_list_book'))?.variables).toEqual({ id: 31 })
 })

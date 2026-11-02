@@ -46,7 +46,7 @@ export function BookNotes() {
         </div>
       )}
 
-      {shown.length > 0 ? <EntryList entries={shown} /> : <p>Nothing here yet.</p>}
+      {shown.length > 0 ? <EntryList entries={shown} readId={book.readId} /> : <p>Nothing here yet.</p>}
 
       <div className="btn-row">
         <Link to="/capture" search={{ book: bookSlug, kind: 'note' }} className="btn btn-solid">Add a note</Link>

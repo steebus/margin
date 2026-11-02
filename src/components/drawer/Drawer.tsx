@@ -1,8 +1,7 @@
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
-import { useQuery } from 'convex/react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
-import { api } from '../../../convex/_generated/api'
+import { useEntries } from '../../lib/offline'
 import { nextCard } from '../../lib/drawer-rules'
 
 const kinds = [
@@ -14,7 +13,7 @@ const kinds = [
 export function Drawer() {
   const { kind } = useSearch({ from: '/drawer' })
   const navigate = useNavigate({ from: '/drawer' })
-  const all = useQuery(api.library.allEntries)
+  const all = useEntries()
   const [card, setCard] = useState(0)
   const [hidden, setHidden] = useState<string[]>([])
 

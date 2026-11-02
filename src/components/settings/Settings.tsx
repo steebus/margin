@@ -1,8 +1,10 @@
 import { useAuthActions } from '@convex-dev/auth/react'
-import { useAction, useQuery } from 'convex/react'
+import { useAction, useConvex, useQuery } from 'convex/react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { errorText } from '../../lib/books'
+import { download, toMarkdown } from '../../lib/export'
+import { forgetDevice } from '../../lib/offline'
 
 function Account() {
   const viewer = useQuery(api.users.viewer)
@@ -12,7 +14,7 @@ function Account() {
       <p>Signed in as <strong>{viewer?.name ?? viewer?.email ?? '…'}</strong></p>
       {viewer?.name && viewer.email && <p className="where">{viewer.email}</p>}
       <div className="btn-row">
-        <button type="button" className="btn" onClick={() => void signOut()}>Sign out</button>
+        <button type="button" className="btn" onClick={() => { forgetDevice(); void signOut() }}>Sign out</button>
       </div>
     </div>
   )
@@ -65,6 +67,37 @@ function HardcoverImport() {
   )
 }
 
+function Export() {
+  const convex = useConvex()
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const today = () => new Date().toISOString().slice(0, 10)
+
+  const run = async (save: (all: Awaited<ReturnType<typeof fetchAll>>) => void) => {
+    setBusy(true)
+    setError(null)
+    try {
+      save(await fetchAll())
+    } catch (e) {
+      setError(errorText(e, "The export didn't work. Check your connection and try again."))
+    } finally {
+      setBusy(false)
+    }
+  }
+  const fetchAll = () => convex.query(api.library.exportAll, {})
+
+  return (
+    <div className="box stack">
+      <p>Everything you've kept here is yours to take away: your books, dates, ratings, notes and reflections.</p>
+      <div className="btn-row">
+        <button type="button" className="btn" disabled={busy} onClick={() => void run(all => download(`margin-${today()}.md`, toMarkdown(all), 'text/markdown'))}>Markdown</button>
+        <button type="button" className="btn" disabled={busy} onClick={() => void run(all => download(`margin-${today()}.json`, JSON.stringify(all, null, 2), 'application/json'))}>JSON</button>
+      </div>
+      {error && <p role="alert">{error}</p>}
+    </div>
+  )
+}
+
 export function Settings() {
   return (
     <div className="narrow stack">
@@ -77,6 +110,10 @@ export function Settings() {
       <section className="stack" aria-labelledby="hardcover-heading">
         <h2 id="hardcover-heading" className="head">Hardcover</h2>
         <HardcoverImport />
+      </section>
+      <section className="stack" aria-labelledby="export-heading">
+        <h2 id="export-heading" className="head">Export</h2>
+        <Export />
       </section>
     </div>
   )

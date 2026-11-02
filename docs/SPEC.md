@@ -130,12 +130,10 @@ mid-tier model, and routing and classification on the smallest. All prompts
 are cached. There's no hard budget; a cost meter is shown in Settings, with an alert when monthly spend passes **$20** (agreed).
 
 ### 3.4 Capture
-- **Camera (PWA).** Photograph a page, Claude vision transcribes it (paragraphs,
-  page number, running head to infer the chapter), and the transcribed text is
-  *typed onto the page* (the signature animation). Drag across it to highlight,
-  save it as an excerpt, and add a handwritten-style note. You highlight on the
-  transcribed text. **The photo is deleted** from storage once the transcript
-  is saved.
+- **Camera (PWA).** Photograph a page with the phone's own camera. Gemini's small vision model transcribes it
+  (paragraphs, page number, chapter if a header names one), and the text is *typed onto the page* for a few seconds
+  (the signature animation). Tap the first and last word to mark a passage, correct it if needed, save it as an excerpt,
+  and add a handwritten-style note, which is attached to it. **The photo is never stored.**
 - **Quick share.** Share text or a screenshot from Kindle, Play Books, a
   browser, anywhere:
   - Android: Web Share Target in the PWA manifest. The service worker takes
@@ -156,8 +154,8 @@ the bookmarklet adds `popup=1` and closes its window when done. `src/lib/share-r
 what was shared. What's pending survives a sign-in, as Toodoo's does.
 
 **From Goodreads: one book.** The title and author come from the shared words, then the
-page's address. The backend fetches the page for its ISBN and matches the book as in §3.5.
-The reader confirms, picks a list (the TBR by default, or any shelf) and adds it.
+page's address, and are looked up on Hardcover, most-read first. The reader confirms, optionally
+picks a list, and it goes on the TBR.
 
 **From Instagram: a post or reel, usually several books.**
 1. The backend reads the public embed page (`/p/CODE/embed/captioned/`), as Didactic's
@@ -171,15 +169,18 @@ The reader confirms, picks a list (the TBR by default, or any shelf) and adds it
    and a `person`, so §3.1's "whose recommendations land" works for accounts too. It can be
    edited on the checklist.
 
+**Reading a post** asks Instagram openly, as `margin/1.0`. Margin doesn't pretend to be a browser or a crawler, so
+some posts give it nothing, and that's an ordinary outcome rather than an error (one real post checked on 2026-11-02 did).
+
 **When there's nothing to read.** A reel's books are often only spoken or shown on screen,
 and private or embed-disabled posts have no caption to fetch. The screen says so plainly and
 offers typing titles, or sharing a screenshot for vision to read (§3.4). On a computer, words
 selected on the page travel with the bookmarklet and are read first.
 
 **Hardcover gets it too.** A book added this way is pushed straight away, not at the next
-sync (§3.5): `search` for Hardcover's book id (ISBN first), then `insert_user_book` with
-`status_id: 1` (want to read) and the account in `recommended_by`. Shelves can use
-`insert_list_book`. These were confirmed against Hardcover's live schema with read-only calls on
+sync (§3.5): `insert_user_book` with its status and the account in `recommended_by`, then
+`insert_list_book` for a list. Lists come in with every import and hourly pull, and are changed
+from a book's page. These were confirmed against Hardcover's live schema with read-only calls on
 2026-11-02; no write has been tried yet. The add never waits on it. A failed push goes in an outbox and retries, and
 the book's page says so. A book already on Hardcover isn't added twice. Hardcover's
 responses showed a rate limit of 15, with the window not yet known, so bulk work must pace itself.
@@ -416,9 +417,9 @@ Hosting: Vercel (static SPA) + Convex cloud
   springs; the View Transitions API (TanStack Router supports it) for page
   changes and shared elements, e.g. spine → cover → book page. See
   DESIGN-DIRECTION.md.
-- **Offline.** You can read your library and write entries offline. The writes
-  sit in an IndexedDB outbox and replay through mutations when the connection
-  returns. Convex isn't offline-first, so this is our code.
+- **Offline.** You can read your library and write entries and progress offline. The last copy of the library sits in
+  localStorage, and is forgotten on sign-out. Writes sit in an IndexedDB outbox and replay through mutations when the
+  connection returns, or on the next open. Convex isn't offline-first, so this is our code (`src/lib/outbox.ts`).
 
 ### 4.1 Routing: every object has a URL
 The router is TanStack Router, file-based, with typed search params validated
@@ -429,7 +430,7 @@ they open over their parent, and Back closes them.
 ```
 /                                   Desk
 /shelves                            every shelf, separated by status; ?q=&sort=&dir=&format=&rating=&genre=&view=catalog|table
-/shelves/:shelfSlug                 one status shelf (reading, paused, tbr, read, stopped); the same, plus ?group=
+/shelves/:shelfSlug                 one status shelf (reading, paused, tbr, read, stopped) or list; the same, plus ?group=
 /pile                               every finished book stacked by date, with notes down the side
 /notes                              all notes and reflections, by book; ?q=&kind=
 /books/:bookSlug                    book page (slug = title-author-shortid, e.g. house-of-leaves-danielewski-k3f9)
@@ -444,7 +445,7 @@ they open over their parent, and Back closes them.
 /topics  /topics/:topicSlug         topic index and topic page
 /people/:personSlug                 a recommender and what came from them
 /stats                              ?range=&chart=
-/capture  /capture/camera  /capture/share   capture flows (share_target posts here)
+/capture  /capture/add  /capture/camera  /capture/share   capture flows (share_target posts here)
 /review                             import match queue
 /imports/:jobId                     import job report
 /settings  /settings/integrations/:provider
@@ -485,4 +486,4 @@ shelves, tags, integrations{provider, secretEnc, cursor, lastSyncAt}, importJobs
   controls.
 - **Performance.** First load on mid-range Android under 2.5s LCP;
   the shelf view handles a 2,000-book library (virtualised).
-- **Export:** full JSON plus a Markdown file per book.
+- **Export:** from Settings, full JSON, plus one Markdown file with a section per book.

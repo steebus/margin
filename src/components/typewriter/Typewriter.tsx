@@ -22,7 +22,7 @@ const Line = memo(function Line({ text, start, strike }: { text: string; start: 
   )
 })
 
-export function Typewriter({ text }: { text: string }) {
+export function Typewriter({ text, onDone }: { text: string; onDone?: () => void }) {
   const windowRef = useRef<HTMLDivElement>(null)
   const probeRef = useRef<HTMLSpanElement>(null)
   const sheetRef = useRef<HTMLDivElement>(null)
@@ -47,6 +47,10 @@ export function Typewriter({ text }: { text: string }) {
   const lines = useMemo(() => (cols ? wrapLines(text, cols) : []), [text, cols])
   const total = lines.reduce((sum, line) => sum + line.length, 0)
   const done = cols > 0 && typed >= total
+
+  useEffect(() => {
+    if (done) onDone?.()
+  }, [done, onDone])
 
   // Which line the strike point is on, and how far along it.
   let current = 0

@@ -29,5 +29,16 @@ export async function enqueueJournalDelete(ctx: MutationCtx, userId: Id<'users'>
   await ctx.scheduler.runAfter(0, internal.hardcover.flush, {})
 }
 
+/** A book added in Margin: goes to Hardcover, which gives back the id that later changes are sent under. */
+export async function enqueueAdd(ctx: MutationCtx, userId: Id<'users'>, readId: Id<'reads'>) {
+  await ctx.db.insert('hardcoverOutbox', { userId, kind: 'addBook', readId, version: 1, attempts: 0, nextAt: Date.now() })
+  await ctx.scheduler.runAfter(0, internal.hardcover.flush, {})
+}
+
+export async function enqueueList(ctx: MutationCtx, userId: Id<'users'>, readId: Id<'reads'>, shelfId: Id<'shelves'>, on: boolean) {
+  await ctx.db.insert('hardcoverOutbox', { userId, kind: on ? 'listBook' : 'unlistBook', readId, shelfId, version: 1, attempts: 0, nextAt: Date.now() })
+  await ctx.scheduler.runAfter(0, internal.hardcover.flush, {})
+}
+
 /** After n failures, wait 2^n minutes, up to an hour. */
 export const retryDelayMs = (attempts: number) => Math.min(2 ** attempts, 60) * 60_000

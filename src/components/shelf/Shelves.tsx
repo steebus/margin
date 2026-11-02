@@ -1,7 +1,8 @@
 import { Link, useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import { useQuery } from 'convex/react'
-import { ArrowLeft, Layers } from 'lucide-react'
+import { ArrowLeft, Layers, Plus } from 'lucide-react'
 import { api } from '../../../convex/_generated/api'
+import { useBooks } from '../../lib/offline'
 import { filterBooks, groupBooks, SHELVES, sortBooks, type GroupId, type ShelfSearch } from '../../lib/shelf'
 import { BookTable, Catalog, type Size } from './BookList'
 import { ShelfTools, useCatalogSize } from './ShelfTools'
@@ -19,7 +20,8 @@ function List({ books, search, size, onChange }: { books: Book[]; search: ShelfS
 export function Shelves() {
   const search = useSearch({ from: '/shelves/' })
   const navigate = useNavigate({ from: '/shelves/' })
-  const books = useQuery(api.library.myBooks)
+  const books = useBooks()
+  const lists = useQuery(api.books.myLists)
   const [size, setSize] = useCatalogSize()
   const onChange = (patch: Partial<ShelfSearch>) => navigate({ search: prev => ({ ...prev, ...patch }), replace: true })
 
@@ -44,7 +46,10 @@ export function Shelves() {
 
       {books && books.length > 0 && (
         <>
-          <Link to="/pile" className="btn pile-link"><Layers aria-hidden="true" strokeWidth={2.25} />The pile: everything you've read</Link>
+          <div className="btn-row btn-row-fill">
+            <Link to="/pile" className="btn"><Layers aria-hidden="true" strokeWidth={2.25} />The pile</Link>
+            <Link to="/capture/add" className="btn"><Plus aria-hidden="true" strokeWidth={2.25} />Add a book</Link>
+          </div>
           <ShelfTools search={search} onChange={onChange} books={books} size={size} onSize={setSize} />
           {shown.length === 0 && <p>No books match that.</p>}
           {SHELVES.map(shelf => {
@@ -64,6 +69,20 @@ export function Shelves() {
               </section>
             )
           })}
+          {!!lists?.length && (
+            <section className="stack" aria-labelledby="lists-heading">
+              <h2 id="lists-heading" className="year"><span>Lists</span></h2>
+              <ul className="list-links">
+                {lists.map(l => (
+                  <li key={l.id}>
+                    <Link to="/shelves/$shelfSlug" params={{ shelfSlug: l.slug }} search={search}>
+                      {l.name} <span className="shelf-count">{shown.filter(b => b.shelfIds.includes(l.id)).length}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
         </>
       )}
     </div>
@@ -75,11 +94,16 @@ export function Shelf() {
   const { shelfSlug } = useParams({ from: '/shelves/$shelfSlug' })
   const search = useSearch({ from: '/shelves/$shelfSlug' })
   const navigate = useNavigate({ from: '/shelves/$shelfSlug' })
-  const books = useQuery(api.library.myBooks)
+  const books = useBooks()
   const [size, setSize] = useCatalogSize()
-  const shelf = SHELVES.find(s => s.slug === shelfSlug)
+  const lists = useQuery(api.books.myLists)
+  const status = SHELVES.find(s => s.slug === shelfSlug)
+  const list = lists?.find(l => l.slug === shelfSlug)
+  const shelf = status ?? list
+  const label = status?.label ?? list?.name ?? ''
   const onChange = (patch: Partial<ShelfSearch>) => navigate({ search: prev => ({ ...prev, ...patch }), replace: true })
 
+  if (!shelf && lists === undefined) return <p role="status">Opening your shelf…</p>
   if (!shelf) {
     return (
       <div className="narrow stack">
@@ -89,16 +113,16 @@ export function Shelf() {
     )
   }
 
-  const here = (books ?? []).filter(b => b.status === shelf.status)
+  const here = (books ?? []).filter(b => (status ? b.status === status.status : b.shelfIds.includes(list!.id)))
   const shown = sortBooks(filterBooks(here, search), search.sort, search.dir)
-  const group: GroupId | 'none' = search.group ?? (shelf.status === 'read' ? 'year' : 'none')
+  const group: GroupId | 'none' = search.group ?? (status?.status === 'read' ? 'year' : 'none')
   const { group: _group, ...shared } = search
 
   return (
     <div className="stack shelves">
       <Link to="/shelves" search={shared} className="back"><ArrowLeft aria-hidden="true" strokeWidth={2.25} />Shelves</Link>
       <header className="shelves-head">
-        <h1 className="title-head">{shelf.label}</h1>
+        <h1 className="title-head">{label}</h1>
         <p>{books === undefined ? '' : `${shown.length} ${shown.length === 1 ? 'book' : 'books'}`}</p>
       </header>
 
@@ -106,7 +130,7 @@ export function Shelf() {
 
       {books && (
         <>
-          {shelf.status === 'read' && <Link to="/pile" className="btn pile-link"><Layers aria-hidden="true" strokeWidth={2.25} />See them as a pile</Link>}
+          {status?.status === 'read' && <Link to="/pile" className="btn pile-link"><Layers aria-hidden="true" strokeWidth={2.25} />See them as a pile</Link>}
           <ShelfTools search={search} onChange={onChange} books={here} size={size} onSize={setSize} group={group} />
           {shown.length === 0 && <p>{here.length ? 'No books match that.' : 'Nothing on this shelf yet.'}</p>}
           {group === 'none'

@@ -3,6 +3,7 @@ import { useQuery } from 'convex/react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useState } from 'react'
 import { api } from '../../../convex/_generated/api'
+import { useBooks, useEntries } from '../../lib/offline'
 import { toastDue } from '../../lib/drawer-rules'
 import { ProgressForm } from '../book/ProgressForm'
 import { QuickActions } from '../book/QuickActions'
@@ -28,8 +29,8 @@ function Masthead() {
 }
 
 export function Desk() {
-  const books = useQuery(api.library.myBooks)
-  const entries = useQuery(api.library.allEntries)
+  const books = useBooks()
+  const entries = useEntries()
   const waiting = useQuery(api.reflect.waiting)
   const [chosen, setChosen] = useState<string | null>(null)
   const [logging, setLogging] = useState(false)

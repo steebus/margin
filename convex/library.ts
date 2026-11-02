@@ -44,7 +44,7 @@ export const bookBySlug = query({
         error: art?.error ?? null,
       },
       prompt: prompt && { id: prompt._id, question: prompt.question! },
-      entries: entries.map(e => ({ id: e._id, kind: e.kind, text: e.text, question: e.question ?? null, position: positionOf(e.pos), createdAt: e.createdAt })),
+      entries: entries.map(e => ({ id: e._id, kind: e.kind, text: e.text, question: e.question ?? null, parentId: e.parentId ?? null, position: positionOf(e.pos), createdAt: e.createdAt })),
     }
   },
 })
@@ -76,6 +76,39 @@ export const allEntries = query({
         slug: work?.slug ?? null,
       }
     }))
+  },
+})
+
+/** Everything of the reader's, to take away (SPEC 2). */
+export const exportAll = query({
+  args: {},
+  handler: async ctx => {
+    const userId = await getAuthUserId(ctx)
+    if (!userId) throw new ConvexError('Sign in to export your library')
+    const reads = await ctx.db.query('reads').withIndex('by_user_status', q => q.eq('userId', userId)).collect()
+    const books = (await Promise.all(reads.map(async read => {
+      const work = await ctx.db.get(read.workId)
+      return work && toBook(read, work)
+    }))).filter(book => book !== null)
+    const entries = await ctx.db.query('entries').withIndex('by_user', q => q.eq('userId', userId)).collect()
+    const lists = await ctx.db.query('shelves').withIndex('by_user_slug', q => q.eq('userId', userId)).collect()
+    return {
+      exportedAt: Date.now(),
+      books,
+      lists: lists.map(l => ({ id: l._id, name: l.name })),
+      entries: entries.map(e => ({
+        id: e._id,
+        readId: e.readId,
+        kind: e.kind,
+        text: e.text,
+        question: e.question ?? null,
+        parentId: e.parentId ?? null,
+        position: positionOf(e.pos),
+        pos: e.pos,
+        origin: e.origin,
+        createdAt: e.createdAt,
+      })),
+    }
   },
 })
 

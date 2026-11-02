@@ -181,10 +181,11 @@ export default defineSchema({
   // Changes waiting to reach Hardcover. A read's row always pushes its latest state, so changes coalesce.
   hardcoverOutbox: defineTable({
     userId: v.id('users'),
-    kind: v.union(v.literal('read'), v.literal('entry'), v.literal('deleteJournal')),
+    kind: v.union(v.literal('read'), v.literal('entry'), v.literal('deleteJournal'), v.literal('addBook'), v.literal('listBook'), v.literal('unlistBook')),
     readId: v.optional(v.id('reads')),
     entryId: v.optional(v.id('entries')),
     journalId: v.optional(v.number()),
+    shelfId: v.optional(v.id('shelves')),
     version: v.number(),
     attempts: v.number(),
     nextAt: v.number(),

@@ -74,3 +74,25 @@ test('the key ignores spacing, capitals and curly quotes, but not the words or t
   expect(entryKey('w1', 'note', 'A line', { page: 4 })).not.toBe(key)
   expect(entryKey('w2', 'note', 'A line', { page: 3 })).not.toBe(key)
 })
+
+test('a note can sit under its excerpt, only on the same book, and outlives it', async () => {
+  const { t: db, as, readId, } = await setup()
+  const { id } = await as.mutation(api.entries.addEntry, { readId, kind: 'excerpt', text: 'A line.', page: 3, origin: 'camera' })
+  const { id: noteId } = await as.mutation(api.entries.addEntry, { readId, kind: 'note', text: 'My thought.', parentId: id })
+
+  const found = await as.query(api.library.bookBySlug, { slug: 'book-1' })
+  expect(found?.entries.find(e => e.id === noteId)?.parentId).toBe(id)
+  expect((await db.run(ctx => ctx.db.get(id)))?.origin).toBe('camera')
+
+  const otherRead = await db.run(async ctx => {
+    const read = (await ctx.db.get(readId))!
+    const workId = await ctx.db.insert('works', { slug: 'book-2', title: 'Book Two', authors: [], isbns: [], subjects: [] })
+    return ctx.db.insert('reads', { ...read, _id: undefined, _creationTime: undefined, workId } as never)
+  })
+  await expect(as.mutation(api.entries.addEntry, { readId: otherRead, kind: 'note', text: 'Wrong book.', parentId: id })).rejects.toThrow()
+
+  await as.mutation(api.entries.removeEntry, { id })
+  const after = await as.query(api.library.bookBySlug, { slug: 'book-1' })
+  expect(after?.entries.map(e => e.text)).toEqual(['My thought.'])
+  expect(after?.entries[0].parentId).toBeNull()
+})

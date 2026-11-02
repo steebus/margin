@@ -2,7 +2,7 @@ import { getAuthUserId } from '@convex-dev/auth/server'
 import { ConvexError, v } from 'convex/values'
 import { internal } from './_generated/api'
 import { internalAction, internalMutation, internalQuery, mutation, query } from './_generated/server'
-import { TEXT_MODEL } from './lib/artPrompt'
+import { askGemini } from './lib/gemini'
 import { entryKey } from './lib/entryKey'
 import { enqueueEntry } from './lib/outbox'
 import { fallbackQuestion, parseQuestion, questionPrompt } from './lib/reflection'
@@ -43,18 +43,9 @@ export const write = internalAction({
     if (!book) return
     let question: string | null = null
     try {
-      const key = process.env.GEMINI_API_KEY
-      if (!key) throw new Error('GEMINI_API_KEY is missing')
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${TEXT_MODEL}:generateContent`, {
-        method: 'POST',
-        headers: { 'x-goog-api-key': key, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text: questionPrompt(book) }] }], generationConfig: { responseMimeType: 'application/json', temperature: 0.8 } }),
-      })
-      if (!res.ok) throw new Error(`Gemini answered ${res.status}`)
-      const json = await res.json()
-      question = parseQuestion(json.candidates?.[0]?.content?.parts?.[0]?.text ?? '')
+      question = parseQuestion(await askGemini([{ text: questionPrompt(book) }], 'Writing a question', 0.8))
     } catch (e) {
-      console.error('Falling back to the plain question:', e instanceof Error ? e.message : e)
+      console.error('Falling back to the plain question:', (e as { data?: unknown })?.data ?? e)
     }
     await ctx.runMutation(internal.reflect.saveQuestion, { promptId, question: question ?? fallbackQuestion(book.title) })
   },

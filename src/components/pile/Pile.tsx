@@ -5,15 +5,14 @@ import '@fontsource/playfair-display/latin-700.css'
 import '@fontsource/special-elite/latin-400.css'
 
 import { Link } from '@tanstack/react-router'
-import { useQuery } from 'convex/react'
-import { api } from '../../../convex/_generated/api'
+import { useBooks, useEntries } from '../../lib/offline'
 import { formatDate } from '../../lib/books'
 import { faceOf, pileNote, pileOf, spineOf, spineTitle } from '../../lib/pile'
 
 /** Every book read, lying flat in the order they were finished, with what you made of each down the side. */
 export function Pile() {
-  const books = useQuery(api.library.myBooks)
-  const entries = useQuery(api.library.allEntries)
+  const books = useBooks()
+  const entries = useEntries()
 
   const rows = pileOf(books ?? [])
   const bySlug = Map.groupBy(entries ?? [], e => e.slug)

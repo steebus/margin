@@ -36,6 +36,10 @@ export type HardcoverUserBook = {
 const STATUS = { 1: 'tbr', 2: 'reading', 3: 'read', 4: 'paused', 5: 'dnf' } as const
 const FORMAT = { 2: 'audio', 4: 'ebook' } as const
 
+/** A work's address: readable, and unique because of Hardcover's id. It never changes once minted. */
+export const slugFor = (title: string, authors: string[], id: number) =>
+  `${slugify(`${title} ${authors[0]?.split(/\s+/).at(-1) ?? ''}`) || 'book'}-${id.toString(36)}`
+
 export function slugify(text: string): string {
   return text.normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
 }
@@ -55,7 +59,6 @@ export function mapUserBook(ub: HardcoverUserBook) {
   const writers = contributors.filter(c => !c.contribution || c.contribution === 'Author')
   const authors = (writers.length ? writers : contributors).map(c => c.author?.name?.trim()).filter((n): n is string => !!n)
   const title = book.title?.trim() || 'Untitled'
-  const lastName = authors[0]?.split(/\s+/).at(-1) ?? ''
   const pages = ub.edition?.pages || book.pages || undefined
   const latest = ub.user_book_reads?.[0]
   const logged = Math.min(100, Math.max(0, Math.round(latest?.progress ?? 0)))
@@ -67,7 +70,7 @@ export function mapUserBook(ub: HardcoverUserBook) {
   return {
     work: {
       hardcoverId: book.id,
-      slug: `${slugify(`${title} ${lastName}`) || 'book'}-${book.id.toString(36)}`,
+      slug: slugFor(title, authors, book.id),
       title,
       authors,
       year: book.release_year ?? undefined,
@@ -99,6 +102,63 @@ export function mapUserBook(ub: HardcoverUserBook) {
       review: ub.review_raw?.trim() ? { text: ub.review_raw.trim(), at: day(ub.reviewed_at) } : undefined,
     },
   }
+}
+
+export const SEARCH_QUERY = 'query($q: String!) { search(query: $q, query_type: "Book", per_page: 10, page: 1) { results } }'
+
+export type SearchDocument = {
+  id?: string | number | null
+  title?: string | null
+  author_names?: string[] | null
+  release_year?: number | null
+  pages?: number | null
+  isbns?: string[] | null
+  genres?: string[] | null
+  image?: { url?: string | null } | null
+  users_count?: number | null
+}
+
+/** Search results, most read first: search alone puts study guides and summaries above the book itself. */
+export function mapSearch(documents: SearchDocument[]) {
+  return [...documents]
+    .sort((a, b) => (b.users_count ?? 0) - (a.users_count ?? 0))
+    .flatMap(d => {
+      const hardcoverId = Number(d.id)
+      const title = d.title?.trim()
+      if (!Number.isInteger(hardcoverId) || !title) return []
+      const authors = (d.author_names ?? []).filter(Boolean)
+      return [{
+        hardcoverId,
+        slug: slugFor(title, authors, hardcoverId),
+        title,
+        authors,
+        year: d.release_year ?? undefined,
+        isbns: (d.isbns ?? []).slice(0, 4),
+        coverUrl: d.image?.url ?? undefined,
+        pages: d.pages || undefined,
+        subjects: (d.genres ?? []).slice(0, 5),
+      }]
+    })
+}
+
+/** A book added in Margin, as Hardcover wants it. */
+export function newUserBook(book: { hardcoverBookId: number; status: keyof typeof STATUS_ID; who?: string; addedAt?: number; rating?: number }) {
+  return {
+    book_id: book.hardcoverBookId,
+    status_id: STATUS_ID[book.status],
+    recommended_by: book.who,
+    date_added: isoDay(book.addedAt),
+    rating: book.rating,
+  }
+}
+
+export const LISTS_QUERY = '{ me { lists(limit: 100) { id name slug list_books(limit: 2000) { book_id } } } }'
+export type HardcoverList = { id: number; name?: string | null; slug?: string | null; list_books?: { book_id?: number | null }[] | null }
+
+/** A list's address on Margin. Status shelves keep theirs. */
+export const listSlug = (list: { name?: string | null; slug?: string | null; id: number }) => {
+  const slug = list.slug || slugify(list.name ?? '') || String(list.id)
+  return ['reading', 'paused', 'tbr', 'read', 'stopped'].includes(slug) ? `list-${slug}` : slug
 }
 
 export const JOURNAL_FIELDS = 'id event entry metadata book_id action_at'
