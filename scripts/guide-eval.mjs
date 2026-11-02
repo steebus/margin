@@ -9,7 +9,8 @@ const POSITIONS = [10, 25, 50, 75, 90]
 const readId = process.argv[2]
 if (!readId) throw new Error('Usage: guide-eval.mjs <readId>')
 
-const out = execFileSync('npx', ['convex', 'run', 'guides:show', JSON.stringify({ readId })], { encoding: 'utf8', shell: true })
+// JSON5 with single quotes, because the Windows shell strips double ones.
+const out = execFileSync('npx', ['convex', 'run', 'guides:show', `{readId:'${readId}'}`], { encoding: 'utf8', shell: true })
 const row = JSON.parse(out)
 if (!row || row.state !== 'ready') throw new Error(`No ready guide: ${row ? row.state + ' ' + (row.error ?? '') : 'none'}`)
 const { guide } = row
