@@ -30,8 +30,16 @@ export const bookBySlug = query({
     const read = await ctx.db.query('reads').withIndex('by_user_work', q => q.eq('userId', userId).eq('workId', work._id)).first()
     if (!read) return null
     const entries = await ctx.db.query('entries').withIndex('by_read', q => q.eq('readId', read._id)).collect()
+    const art = await ctx.db.query('workArt').withIndex('by_work', q => q.eq('workId', work._id)).first()
     return {
       book: toBook(read, work),
+      cover: {
+        choice: read.artChoice ?? 'drawing',
+        hasDrawing: !!work.artSmallUrl,
+        hasRealCover: !!work.coverUrl,
+        state: art?.state ?? null,
+        error: art?.error ?? null,
+      },
       entries: entries.map(e => ({ id: e._id, kind: e.kind, text: e.text, position: positionOf(e.pos) })),
     }
   },

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { artFor, coverPath } from '../../lib/art'
+import { coverPath } from '../../lib/art'
+import { hatchKey, readHatch, storeHatch } from '../../lib/hatchCache'
 import { hatchWeights, toLuma } from '../../lib/ink'
 import { Circle, Strike } from './Marks'
 import { useTheme } from '../../lib/theme'
@@ -31,8 +32,8 @@ const seedOf = (text: string) => [...text].reduce((sum, c) => (sum * 31 + c.char
 
 type Props = { coverUrl: string; onDone: (result: 'painted' | 'failed') => void }
 
-// ponytail: processes on the main thread as cells near the screen. It only runs until a book's
-// generated art lands, so this is fine; move it to a worker if a big import ever janks.
+// ponytail: draws on the main thread, but only the first time; the result is kept on the device (lib/hatchCache).
+// Move it to a worker if a big import ever janks.
 function HatchedCover({ coverUrl, onDone }: Props) {
   const ref = useRef<HTMLCanvasElement>(null)
   const dark = useTheme() === 'dark'
@@ -49,7 +50,20 @@ function HatchedCover({ coverUrl, onDone }: Props) {
       const unit = Math.max(window.devicePixelRatio || 1, 2.5)
       const w = Math.max(1, Math.round(canvas.clientWidth * unit))
       const h = Math.max(1, Math.round(canvas.clientHeight * unit))
-      loadCover(coverPath(coverUrl)).then(img => {
+      const key = hatchKey(coverUrl, w, h, dark)
+      void readHatch(key).then(saved => {
+        if (cancelled) return
+        if (saved) {
+          canvas.width = w
+          canvas.height = h
+          canvas.getContext('2d')!.drawImage(saved, 0, 0)
+          saved.close()
+          done.current('painted')
+          return
+        }
+        draw(key)
+      })
+      const draw = (key: string) => loadCover(coverPath(coverUrl)).then(img => {
         if (cancelled) return
         canvas.width = w
         canvas.height = h
@@ -65,6 +79,7 @@ function HatchedCover({ coverUrl, onDone }: Props) {
           pixels.data[i * 4 + 3] = weights[i]
         }
         ctx.putImageData(pixels, 0, 0)
+        storeHatch(key, canvas)
         done.current('painted')
       }, () => { if (!cancelled) done.current('failed') })
     }, { rootMargin: '300px' })
@@ -79,12 +94,12 @@ function HatchedCover({ coverUrl, onDone }: Props) {
  * A book's picture, best source first: generated art, then a cross-hatch of the real cover,
  * then the printed title. Each one covers for the next while it loads or if it fails.
  */
-type ThumbBook = { title: string; author: string; coverUrl: string | null; status: string }
+type ThumbBook = { title: string; coverUrl: string | null; art?: { small: string; large: string } | null; status: string }
 
 export function Thumb({ book, marks = true }: { book: ThumbBook; marks?: boolean }) {
   const [artFailed, setArtFailed] = useState(false)
   const [state, setState] = useState<'waiting' | 'painted' | 'failed'>('waiting')
-  const art = !artFailed && artFor(book.title, book.author)
+  const art = !artFailed && book.art
 
   return (
     <span className="thumb" data-art={art ? '' : undefined}>

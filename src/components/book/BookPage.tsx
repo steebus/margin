@@ -3,6 +3,7 @@ import { useMutation, useQuery } from 'convex/react'
 import { ArrowLeft, MessageCircle, Plus, Trash2 } from 'lucide-react'
 import { api } from '../../../convex/_generated/api'
 import { formatDate, type Status } from '../../lib/books'
+import { CoverControls } from './CoverControls'
 import { Thumb } from '../thumb/Thumb'
 
 const STATUS: Record<Status, string> = { tbr: 'TBR', reading: 'Reading', paused: 'Paused', read: 'Read', dnf: 'Stopped' }
@@ -28,7 +29,7 @@ export function BookPage() {
   if (found === undefined) return <p role="status">Finding your book…</p>
   if (found === null) return <NotFoundBook />
 
-  const { book, entries } = found
+  const { book, entries, cover } = found
   const showProgress = book.status === 'reading' || book.status === 'paused'
   const card = [
     book.addedAt && { date: book.addedAt, event: 'Added' },
@@ -70,6 +71,8 @@ export function BookPage() {
           </select>
         </div>
       </div>
+
+      <CoverControls readId={book.readId} cover={cover} />
 
       {(card.length > 0 || book.recommendedBy) && (
         <table className="card-table">

@@ -1,15 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" fill="#d8d6cf"/>
-  <g stroke="#121212" stroke-width="20" stroke-linejoin="miter">
-    <!-- A solid black book -->
-    <path fill="#121212" d="M72 142h106v288H72z"/>
-    <path fill="#d8d6cf" stroke="none" d="M72 196h106v22H72zM72 358h106v22H72z"/>
-    <!-- A tall pale book, ruled across its spine -->
-    <path fill="#d8d6cf" d="M178 82h116v348H178z"/>
-    <path fill="none" d="M178 142h116M178 368h116"/>
-    <path fill="#121212" stroke="none" d="M208 188h56v130h-56z"/>
-    <!-- A short book leaning in front, with a label -->
-    <path fill="#d8d6cf" d="M300 212l112-24 42 222-112 24z"/>
-    <path fill="#121212" stroke="none" d="M334 248l56-12 12 62-56 12z"/>
-  </g>
+  <style>
+    path { fill: #121212; fill-rule: evenodd; }
+    @media (prefers-color-scheme: dark) { path { fill: #e6e3da; } }
+  </style>
+  <path d="M40 124h124v60H40zM40 206h124v150H40zM40 378h124v68H40z"/>
+  <path d="M176 66h126v380H176zM198 88v44h82V88zM198 154v222h82V154zM216 186h46v122h-46zM198 398v26h82v-26z"/>
+  <path transform="rotate(-12 380 310)" d="M322 184h118v260H322zM344 206v216h74V206zM360 236h42v72h-42z"/>
 </svg>

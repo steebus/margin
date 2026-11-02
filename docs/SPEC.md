@@ -349,7 +349,7 @@ per-theme assets.
 - A book being read is generated straight away at the standard price.
 - Everything else goes through the Batch API at half price, within a day. Cross-hatch
   covers the gap, which is why the fallback exists.
-- An import shows its estimated cost and asks first, e.g. "312 books, about $5.24".
+- New books aren't drawn automatically yet; run the bulk script.
 - Costs go through the cost meter (§3.3).
 
 **Model:** Nano Banana 2 Lite (`gemini-3.1-flash-lite-image`), chosen by Steve after testing.
@@ -375,9 +375,14 @@ So asking the image model to be careful isn't enough, which is Principle 2 again
   shows, including stray labels and borders, so keep that sheet clean.
 - Store the prompt and model with the image, for provenance.
 
-**The reader has the last word.** A drawing can be rejected, which regenerates it once and
-then falls back to cross-hatch. A refused or failed generation also falls back, with no retry
-loop.
+**The reader has the last word.** On the Book page they can draw a new one, with an optional
+direction, at the standard price, or switch to the cross-hatch of the real cover. The choice is per reader and
+deletes nothing. The old drawing stays until the new one is ready. A refused or failed drawing keeps whatever was
+there and says why, with no retry loop.
+
+**How it's built.** Bulk runs use `scripts/art-batch.mjs` on a local machine, because a batch's results are too large
+for a server function. Single drawings use `convex/artNode.ts`. Both share `convex/lib/artPrompt.ts` and
+`convex/lib/artFrame.ts`.
 
 ## 4. Architecture
 

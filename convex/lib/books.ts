@@ -16,6 +16,7 @@ export function toBook(read: Doc<'reads'>, work: Doc<'works'>) {
     page: read.progress.page ?? (work.pages ? Math.round((percent / 100) * work.pages) : null),
     rating: read.rating ?? null,
     coverUrl: work.coverUrl ?? null,
+    art: read.artChoice !== 'cover' && work.artSmallUrl && work.artLargeUrl ? { small: work.artSmallUrl, large: work.artLargeUrl } : null,
     year: new Date(activity).getUTCFullYear(),
     addedAt: read.addedAt ?? null,
     startedAt: read.startedAt ?? null,

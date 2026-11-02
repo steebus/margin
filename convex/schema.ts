@@ -29,6 +29,8 @@ export default defineSchema({
     olid: v.optional(v.string()),
     gbooksId: v.optional(v.string()),
     coverUrl: v.optional(v.string()),
+    artSmallUrl: v.optional(v.string()),
+    artLargeUrl: v.optional(v.string()),
     pages: v.optional(v.number()),
     subjects: v.array(v.string()),
     originalLanguage: v.optional(v.string()),
@@ -46,6 +48,7 @@ export default defineSchema({
     model: v.optional(v.string()),
     scene: v.optional(v.string()),
     prompt: v.optional(v.string()),
+    error: v.optional(v.string()),
     createdAt: v.number(),
   })
     .index('by_work', ['workId'])
@@ -91,6 +94,8 @@ export default defineSchema({
     tagIds: v.array(v.id('tags')),
     shelfIds: v.array(v.id('shelves')),
     hardcoverUserBookId: v.optional(v.number()),
+    // Whether this reader wants the drawing or the cross-hatch of the real cover. The drawing unless they say.
+    artChoice: v.optional(v.union(v.literal('drawing'), v.literal('cover'))),
   })
     .index('by_user_status', ['userId', 'status'])
     .index('by_user_work', ['userId', 'workId'])

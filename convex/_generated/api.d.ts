@@ -8,11 +8,15 @@
  * @module
  */
 
+import type * as art from "../art.js";
+import type * as artNode from "../artNode.js";
 import type * as auth from "../auth.js";
 import type * as crons from "../crons.js";
 import type * as entries from "../entries.js";
 import type * as hardcover from "../hardcover.js";
 import type * as http from "../http.js";
+import type * as lib_artFrame from "../lib/artFrame.js";
+import type * as lib_artPrompt from "../lib/artPrompt.js";
 import type * as lib_books from "../lib/books.js";
 import type * as lib_entryKey from "../lib/entryKey.js";
 import type * as lib_hardcover from "../lib/hardcover.js";
@@ -28,11 +32,15 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  art: typeof art;
+  artNode: typeof artNode;
   auth: typeof auth;
   crons: typeof crons;
   entries: typeof entries;
   hardcover: typeof hardcover;
   http: typeof http;
+  "lib/artFrame": typeof lib_artFrame;
+  "lib/artPrompt": typeof lib_artPrompt;
   "lib/books": typeof lib_books;
   "lib/entryKey": typeof lib_entryKey;
   "lib/hardcover": typeof lib_hardcover;
