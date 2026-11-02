@@ -48,7 +48,7 @@ export function Pile() {
                   style={{ width: `${spine.width}%`, marginLeft: `${((100 - spine.width) * spine.shift) / 100}%` }}
                 >
                   <span className="spine-label">
-                    <span className="spine-title" data-face={faceOf(book.subjects)}>{spineTitle(book.title)}</span>
+                    <span className="spine-title" data-face={faceOf(book.subjects)} style={{ WebkitLineClamp: spine.height < 72 ? 1 : 2 }}>{spineTitle(book.title)}</span>
                     <span className="spine-author">{book.author}</span>
                   </span>
                 </Link>
@@ -60,7 +60,7 @@ export function Pile() {
                 </p>
                 {note && (
                   <Link to="/books/$bookSlug/entries" params={{ bookSlug: book.slug }} className="pile-note">
-                    <span className={note.kind === 'excerpt' ? 'pile-text' : 'pile-text hand'} style={{ WebkitLineClamp: spine.lines }}>{note.text}</span>
+                    <span className={note.kind === 'excerpt' ? 'pile-text' : 'pile-text hand'} style={{ WebkitLineClamp: Math.max(1, spine.lines - (newYear ? 1 : 0)) }}>{note.text}</span>
                   </Link>
                 )}
               </div>
