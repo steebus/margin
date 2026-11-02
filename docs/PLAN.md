@@ -26,6 +26,11 @@ phone?) early, before the import plumbing.
 - Desk: current book with actions, the latest-note space, the drawer
 - Book page: library card, margin view of entries
 - Shelf view and table view with filter and sort
+- Cover art (SPEC §3.11): `workArt`, scene selection with a small text model, a Gemini
+  action with post-processing, batch jobs, reject and regenerate
+- Adding books by sharing (SPEC §3.4.1): the Android share target and bookmarklet, the
+  Goodreads and Instagram readers, and the book checklist. Pushes each added book to Hardcover
+  with its token, ahead of the full two-way sync in Phase 4
 
 ## Phase 2: The buddy (core bet)
 - Research workflow, which produces a cached guide (with eval fixtures: 10
@@ -43,7 +48,7 @@ phone?) early, before the import plumbing.
 ## Phase 3: Capture
 - Camera, then vision OCR, then the typed page, then highlight to excerpt plus
   a note
-- Android share target; token capture endpoint
+- Screenshot sharing; token capture endpoint
 - LLM routing (which book, which kind) with an undo toast
 
 ## Phase 4: Hardcover two-way

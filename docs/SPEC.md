@@ -144,6 +144,48 @@ are cached. There's no hard budget yet; a cost meter is shown in Settings, with 
     note, with a confidence score. Above the confidence threshold it files
     automatically with an undo toast; below it, it asks with a single tap.
 
+### 3.4.1 Adding books by sharing
+A book worth reading usually turns up somewhere else. Share it to Margin and it lands
+on the TBR list with where it came from. Same mechanism as Toodoo and Didactic: Android's
+share sheet (`share_target`) and a bookmarklet both open `/capture/share?url=&title=&text=`;
+the bookmarklet adds `popup=1` and closes its window when done. `src/share-read.ts` works out
+what was shared. What's pending survives a sign-in, as Toodoo's does.
+
+**From Goodreads: one book.** The title and author come from the shared words, then the
+page's address. The backend fetches the page for its ISBN and matches the book as in §3.5.
+The reader confirms, picks a list (the TBR by default, or any shelf) and adds it.
+
+**From Instagram: a post or reel, usually several books.**
+1. The backend reads the public embed page (`/p/CODE/embed/captioned/`), as Didactic's
+   `readInstagram` does, for the caption and the account.
+2. The small model lists the books the caption mentions, with a confidence for each.
+3. Each candidate is checked against book search, so a mention that matches nothing isn't
+   offered as if it were a book.
+4. The reader sees a checklist. Confident matches start ticked, and anything already on
+   their shelves is shown but can't be added twice. Adding puts them on the TBR.
+5. The account becomes the source: `source: { kind: 'social', who: '@account', url, date }`,
+   and a `person`, so §3.1's "whose recommendations land" works for accounts too. It can be
+   edited on the checklist.
+
+**When there's nothing to read.** A reel's books are often only spoken or shown on screen,
+and private or embed-disabled posts have no caption to fetch. The screen says so plainly and
+offers typing titles, or sharing a screenshot for vision to read (§3.4). On a computer, words
+selected on the page travel with the bookmarklet and are read first.
+
+**Hardcover gets it too.** A book added this way is pushed straight away, not at the next
+sync (§3.5): `search` for Hardcover's book id (ISBN first), then `insert_user_book` with
+`status_id: 1` (want to read) and the account in `recommended_by`. Shelves can use
+`insert_list_book`. These were confirmed against Hardcover's live schema with read-only calls on
+2026-11-02; no write has been tried yet. The add never waits on it. A failed push goes in an outbox and retries, and
+the book's page says so. A book already on Hardcover isn't added twice. Hardcover's
+responses showed a rate limit of 15, with the window not yet known, so bulk work must pace itself.
+
+**To check when building.** Instagram's embed page isn't
+an official API, Meta's terms restrict extracting from oEmbed, and it can change without notice.
+This is personal, low-volume use and screenshots remain as the way round it if it breaks. Check
+the bookmarklet actually runs on Instagram and Goodreads, since a page's security rules can
+block one.
+
 ### 3.5 Imports and sync
 
 | Source | What | How | Direction |
@@ -247,6 +289,74 @@ reading several), with the cover, progress ribbon, and actions: *Log
 progress*, *Add excerpt*, *Camera*, *Add note*, *Talk*. Under it, the space
 for the **latest note** (the buddy's pending prompt if there is one,
 otherwise your most recent entry). Then the drawer card.
+
+### 3.11 Cover art
+Every book's thumbnail is a full ink scene from its world, not a copy of its cover and not an isolated object.
+Three sources, best first. Each covers for the next while it loads or if it fails:
+
+1. **Generated art** from Gemini.
+2. **Cross-hatch** of the real cover, drawn in the browser from Open Library. Free.
+3. **Title stamp**, printed from the book's title. Needs no image at all.
+
+**One image per work.** Art is keyed on the work, so re-reads and any future users
+share it (`workArt { workId, state: queued|ready|failed|rejected, small, large, model, prompt, createdAt }`).
+
+**Generate at 1K, then shrink.** 1K is Gemini's cheapest tier on the suitable models
+(about $0.034 an image, or $0.017 in batch). Its native 512px tier is on a different
+model and costs more, so asking for less would cost more. Aspect ratio 1:1, which
+keeps cells compact and matches the mockup. Check prices before a large run.
+
+**Post-process, in this order:** greyscale, trim any white margin the model left, level the
+paper to white and the ink to black, crop to fill the square, then encode two sizes as WebP
+at quality 60. Discard the original:
+regenerating one costs under 2 cents, and keeping them would use more storage than
+everything else combined.
+
+| Rendition | Used for | Size per image, measured |
+|---|---|---|
+| 256px | Grid cells on most screens | 10 to 22 KB |
+| 512px | Book page, large cells, high-density phones | 62 to 97 KB |
+
+Those are measured on 10 real generated scenes. Full scenes cost about four times what
+isolated objects did, since there's ink everywhere. At about 119 KB at worst for a book, 2,000
+books use at most about 240 MB of Convex's included 1 GB. `srcset` picks the size. Serve with long-lived caching, because art for a work never changes; a
+regeneration gets a new file. Verify the real cache headers on Convex's file URLs.
+
+**One file, both themes.** Art is stored as a neutral drawing on white and printed onto
+the page with blend modes: `multiply` by day, `invert` plus `screen` by night. No
+per-theme assets.
+
+**When it runs.**
+- A book being read is generated straight away at the standard price.
+- Everything else goes through the Batch API at half price, within a day. Cross-hatch
+  covers the gap, which is why the fallback exists.
+- An import shows its estimated cost and asks first, e.g. "312 books, about $5.24".
+- Costs go through the cost meter (§3.3).
+
+**Model:** Nano Banana 2 Lite (`gemini-3.1-flash-lite-image`), chosen by Steve after testing.
+
+**Don't let the image model choose the subject.** In the first test (2026-11-02, 10 books,
+2 models), asking for "something from the premise or opening" still gave a real spoiler: an
+explorer hauling a sledge for *The Left Hand of Darkness*, which belongs to a later journey.
+It also gave wrong subjects (a black cat, a treasure chest) and three near-identical houses.
+So asking the image model to be careful isn't enough, which is Principle 2 again.
+- A small text model picks one concrete scene first, from the book's premise and opening,
+  and avoids subjects the library already overuses. When a guide exists, it picks only from
+  moments before the opening milestone.
+- The reader can see and edit that subject when rejecting a drawing.
+
+**The prompt carries the style.**
+- Input: the chosen subject. Never the cover image, or the title as text.
+- A complete picture with a foreground, middle ground and background that runs off all four
+  edges and is cropped by the frame. Asking only for an object gets a floating specimen.
+- Black ink on white, with etched hatching and heavy solid blacks. No text, no border.
+- Pass crops of approved scenes as reference images so a library stays consistent. Scenes
+  in the reference produce scenes; isolated objects in it produce isolated objects.
+- Store the prompt and model with the image, for provenance.
+
+**The reader has the last word.** A drawing can be rejected, which regenerates it once and
+then falls back to cross-hatch. A refused or failed generation also falls back, with no retry
+loop.
 
 ## 4. Architecture
 

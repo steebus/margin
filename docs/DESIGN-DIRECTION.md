@@ -14,6 +14,33 @@ Paper, a typewriter, a pencil, shelves, ribbon bookmarks, paper tags, index
 cards and library cards. It should be tactile, playful and generous with
 motion, like objects on a desk being picked up, slid and stamped.
 
+## The look: Fair catalog (approved)
+
+Steve chose this from impeccable's direction round, replacing the neobrutalist
+exploration. Your reading life as a fan convention catalog you mark up by hand:
+flat newsprint, one black ink, magenta rules as dividers, and blue biro for the
+reader's own words and marks. **Where this section conflicts with anything
+below, this section wins.** `DESIGN.md` records the built system.
+
+- **Biro marks carry meaning:** a circle is reading, a tick is finished, a strike
+  is abandoned.
+- **Thumbnails are ink drawings of each book's subject,** generated with Gemini and
+  printed straight onto the page. Until one exists, a pen cross-hatch of the real
+  cover stands in, then a printed title stamp. See SPEC §3.11.
+- **Cell size is the reader's choice:** small, medium or large on Shelves.
+- **The drawer is its own page,** not on the Desk. A toast offers it about once a
+  week.
+- **Titles use the world's faces.** Large titles use the book serif at display
+  weight; section heads use the condensed gothic.
+- **Progress leads with a percentage,** alongside the ribbon or bar. Audiobooks have
+  no pages, so a page count can only ever be secondary.
+- **The typed note writes from the top line down,** with each new line kicking the
+  sheet upward, not the bottom-anchored feed under Motion below. A bottom-anchored
+  line would start hidden behind the phone's tab bar.
+
+The earlier sections below describe the original paper-desk brief. Their motion
+and Android rules still apply; their palette and typefaces are superseded.
+
 ## Three voices, three typefaces
 
 The core of the system: you can tell who is speaking by the type alone.
