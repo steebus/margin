@@ -74,6 +74,8 @@ const bookItem = v.object({
     subjects: v.array(v.string()),
     authorGender: v.optional(v.string()),
     authorCountry: v.optional(v.string()),
+    authorBipoc: v.optional(v.boolean()),
+    authorLgbtq: v.optional(v.boolean()),
   }),
   read: v.object({
     hardcoverUserBookId: v.number(),

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { sortBooks } from '../../lib/shelf'
 import { Catalog } from '../shelf/BookList'
 import { useBooks } from '../../lib/offline'
-import { bestSources, byAuthor, byAuthorCountry, byAuthorGender, byDays, byFormat, byGenre, byMonth, byRating, byYear, finishesOf, gaps, headline, tbrAge, type Row } from '../../lib/stats'
+import { bestSources, byAuthor, byAuthorBipoc, byAuthorCountry, byAuthorGender, byAuthorLgbtq, byDays, byFormat, byGenre, byMonth, byRating, byYear, finishesOf, gaps, headline, tbrAge, type Row } from '../../lib/stats'
 import type { Book } from '../../lib/books'
 
 /** The books behind a mark. */
@@ -158,6 +158,8 @@ export function Stats() {
       <Bars title="Genres" rows={byGenre(finishes)} />
       <Bars title="Most-read authors" rows={byAuthor(finishes)} />
       <Bars title="Authors' gender" rows={byAuthorGender(finishes)} note="The first author of each book, as Hardcover records them." />
+      <Bars title="BIPOC authors" rows={byAuthorBipoc(finishes)} note="As Hardcover records them. Most authors are not recorded either way yet." />
+      <Bars title="LGBTQ authors" rows={byAuthorLgbtq(finishes)} note="As Hardcover records them. Most authors are not recorded either way yet." />
       <Bars title="Where authors are from" rows={byAuthorCountry(finishes)} note="From each author's location on Hardcover." />
       <Bars title="Format" rows={byFormat(finishes)} />
       <Bars title="Whose recommendations land" rows={bestSources(books)} note="Average rating, for anyone with two or more rated books." />

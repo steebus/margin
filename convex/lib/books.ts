@@ -53,6 +53,8 @@ export function toBook(read: Doc<'reads'>, work: Doc<'works'>) {
     recommendedBy: read.source?.who ?? null,
     authorGender: work.authorGender ?? null,
     authorCountry: work.authorCountry ?? null,
+    authorBipoc: work.authorBipoc ?? null,
+    authorLgbtq: work.authorLgbtq ?? null,
   }
 }
 

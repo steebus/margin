@@ -68,13 +68,18 @@ export const addEntry = mutation({
     if (words.length > MAX_LENGTH) throw new ConvexError('That is too long to save as one entry')
     checkPosition(page, percent)
 
-    if (parentId) {
-      const parent = await ctx.db.get(parentId)
-      if (!parent || parent.readId !== readId) throw new ConvexError('That excerpt is not on this book')
-    }
+    const parent = parentId ? await ctx.db.get(parentId) : null
+    if (parentId && (!parent || parent.readId !== readId)) throw new ConvexError('That excerpt is not on this book')
 
-    const pos = { page, percent, chapter }
-    const originKey = entryKey(read.workId, kind, words, pos)
+    // With no place given, an entry is where the reader is (Steve, 2026-11-03): a note on an excerpt sits with it, and
+    // anything else at the book's last known page. Not for a finished book, where "now" isn't a place in it.
+    const given = page !== undefined || percent !== undefined || chapter !== undefined
+    const here = read.progress.percent > 0 && read.progress.percent < 100 && kind !== 'summary'
+      ? { page: read.progress.page, percent: read.progress.page ? undefined : read.progress.percent }
+      : {}
+    const pos = given ? { page, percent, chapter } : parent ? parent.pos : here
+    // Keyed on the place as given, so the same words come back from Hardcover or an import as the same entry.
+    const originKey = entryKey(read.workId, kind, words, { page, percent, chapter })
     const same = await ctx.db.query('entries').withIndex('by_user_origin_key', q => q.eq('userId', userId).eq('originKey', originKey)).first()
     if (same) return { id: same._id, duplicate: true }
     const id = await ctx.db.insert('entries', { userId, readId, kind, text: words, parentId, pos, origin: origin ?? 'manual', originKey, createdAt: Date.now() })

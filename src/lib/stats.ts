@@ -91,6 +91,9 @@ export const byGenre = (finishes: Finish[], top = 8) => counted(finishes, f => f
 // The first author of each book finished, as Hardcover records them. Books it has nothing for are counted, not hidden.
 const GENDER: Record<string, string> = { woman: 'Women', man: 'Men', 'non-binary': 'Non-binary' }
 export const byAuthorGender = (finishes: Finish[]) => counted(finishes, f => [GENDER[f.book.authorGender ?? ''] ?? 'Not known'], 4)
+const yesNo = (v: boolean | null) => (v === null ? 'Not known' : v ? 'Yes' : 'No')
+export const byAuthorBipoc = (finishes: Finish[]) => counted(finishes, f => [yesNo(f.book.authorBipoc)], 3)
+export const byAuthorLgbtq = (finishes: Finish[]) => counted(finishes, f => [yesNo(f.book.authorLgbtq)], 3)
 export const byAuthorCountry = (finishes: Finish[], top = 8) => counted(finishes, f => [f.book.authorCountry ?? 'Not known'], top)
 export const byAuthor = (finishes: Finish[], top = 8) => counted(finishes, f => [f.book.author], top).filter(r => r.value > 1)
 

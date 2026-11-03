@@ -3,7 +3,7 @@ export const LIBRARY_QUERY = `query Library($limit: Int!, $offset: Int!) {
   me { user_books(limit: $limit, offset: $offset, order_by: {id: asc}) {
     id status_id rating first_started_reading_date last_read_date date_added recommended_by owned review_raw reviewed_at
     edition { isbn_13 isbn_10 pages audio_seconds reading_format_id }
-    book { id title pages audio_seconds release_year cached_contributors cached_image cached_tags contributions(limit: 1) { author { gender_id location } } }
+    book { id title pages audio_seconds release_year cached_contributors cached_image cached_tags contributions(limit: 1) { author { gender_id location is_bipoc is_lgbtq } } }
     user_book_reads(order_by: {id: desc}) { id progress progress_pages progress_seconds started_at finished_at }
   } }
 }`
@@ -29,7 +29,7 @@ export type HardcoverUserBook = {
     cached_contributors?: { author?: { name?: string | null } | null; contribution?: string | null }[] | null
     cached_image?: { url?: string | null } | null
     cached_tags?: { Genre?: { tag?: string | null }[] | null } | null
-    contributions?: { author?: { gender_id?: number | null; location?: string | null } | null }[] | null
+    contributions?: { author?: { gender_id?: number | null; location?: string | null; is_bipoc?: boolean | null; is_lgbtq?: boolean | null } | null }[] | null
   } | null
   user_book_reads?: { id?: number | null; progress?: number | null; progress_pages?: number | null; progress_seconds?: number | null; started_at?: string | null; finished_at?: string | null }[] | null
 }
@@ -69,11 +69,19 @@ export function countryOf(location: string | null | undefined): string | undefin
   return COUNTRY[key] ?? (US_STATES.has(key) ? 'United States' : last)
 }
 
-/** What Hardcover knows about the first author, for the stats: gender and country, when it has them. */
-export function authorFacts(author: { gender_id?: number | null; location?: string | null } | null | undefined) {
+/**
+ * What Hardcover knows about the first author, for the stats: gender, country, and whether they're BIPOC or LGBTQ.
+ * Only what Hardcover has: an unknown is left out, never guessed and never counted as a no.
+ */
+export function authorFacts(author: { gender_id?: number | null; location?: string | null; is_bipoc?: boolean | null; is_lgbtq?: boolean | null } | null | undefined) {
   const gender = GENDER[author?.gender_id as keyof typeof GENDER]
   const country = countryOf(author?.location)
-  return { ...(gender ? { authorGender: gender } : {}), ...(country ? { authorCountry: country } : {}) }
+  return {
+    ...(gender ? { authorGender: gender } : {}),
+    ...(country ? { authorCountry: country } : {}),
+    ...(typeof author?.is_bipoc === 'boolean' ? { authorBipoc: author.is_bipoc } : {}),
+    ...(typeof author?.is_lgbtq === 'boolean' ? { authorLgbtq: author.is_lgbtq } : {}),
+  }
 }
 
 export function mapUserBook(ub: HardcoverUserBook) {

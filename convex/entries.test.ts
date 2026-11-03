@@ -139,3 +139,19 @@ test('an edit is refused when it is empty, a copy of another entry, or someone e
   const otherId = await t.run(ctx => ctx.db.insert('users', { name: 'Sam' }))
   await expect(t.withIdentity({ subject: `${otherId}|session` }).mutation(api.entries.updateEntry, { id, text: 'Mine now.' })).rejects.toThrow()
 })
+
+test("an entry with no place given is at the reader's last known page, and a note on an excerpt sits with it", async () => {
+  const { as, readId } = await setup()
+  await as.mutation(api.entries.addEntry, { readId, kind: 'note', text: 'Before starting.' })
+  await as.mutation(api.library.logProgress, { readId, percent: 30 })
+  await as.mutation(api.entries.addEntry, { readId, kind: 'note', text: 'At thirty.' })
+  const { id } = await as.mutation(api.entries.addEntry, { readId, kind: 'excerpt', text: 'Earlier line.', page: 12 })
+  await as.mutation(api.entries.addEntry, { readId, kind: 'note', text: 'About that line.', parentId: id })
+  await as.mutation(api.entries.addEntry, { readId, kind: 'summary', text: 'The whole thing.' })
+  const entries = (await as.query(api.library.bookBySlug, { slug: 'book-1' }))!.entries
+  const at = (text: string) => entries.find(e => e.text === text)!.position
+  expect(at('Before starting.')).toBe('')
+  expect(at('At thirty.')).toBe('30%')
+  expect(at('About that line.')).toBe('Page 12')
+  expect(at('The whole thing.')).toBe('')
+})

@@ -88,4 +88,6 @@ test("an author's location becomes a country, with the US and UK named one way",
   expect(countryOf('')).toBeUndefined()
   expect(authorFacts({ gender_id: 2, location: 'America' })).toEqual({ authorGender: 'woman', authorCountry: 'United States' })
   expect(authorFacts({ gender_id: 9, location: null })).toEqual({})
+  expect(authorFacts({ is_bipoc: true, is_lgbtq: false })).toEqual({ authorBipoc: true, authorLgbtq: false })
+  expect(authorFacts({ is_bipoc: null })).toEqual({})
 })

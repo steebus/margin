@@ -38,6 +38,8 @@ export default defineSchema({
     // The first author's, from Hardcover, for the stats. Missing where Hardcover doesn't know.
     authorGender: v.optional(v.string()),
     authorCountry: v.optional(v.string()),
+    authorBipoc: v.optional(v.boolean()),
+    authorLgbtq: v.optional(v.boolean()),
   })
     .index('by_slug', ['slug'])
     .index('by_hardcover', ['hardcoverId'])
