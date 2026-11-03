@@ -24,7 +24,7 @@ type Body = { model: string; system: { text: string }[]; messages: { role: strin
 const GUIDE = { knownness: 'well', structure: [{ label: 'Part One', percent: 0 }, { label: 'Part Two', percent: 60 }], themes: [{ name: 'Memory', gloss: 'What is kept.', readings: [], from: 0, confidence: 'high' }, { name: 'Betrayal', gloss: 'Late in the book.', readings: [], from: 70, confidence: 'high' }], moments: [{ percent: 10, what: 'The ship arrives.', spoiler: 'minor', confidence: 'high' }, { percent: 80, what: 'The captain dies.', spoiler: 'major', confidence: 'high' }], questions: [], sources: [] }
 const guideReply = () => sse(message(['Researched.\n```json\n', JSON.stringify(GUIDE), '\n```']))
 /** The buddy's requests only. The guide's research goes to a different model. */
-const chats = (bodies: Body[]) => bodies.filter(b => b.model === 'claude-sonnet-5-5')
+const chats = (bodies: Body[]) => bodies.filter(b => !b.tools)
 const fakeClaude = (answer: () => Response, guide: () => Response = guideReply) => {
   const bodies: Body[] = []
   vi.stubGlobal('fetch', vi.fn(async (_url: string, init: { body: string }) => {
@@ -190,9 +190,12 @@ test('only finished turns with words count as conversation, and it always opens 
 test('the first reply waits for the guide, which reaches the model already cut at the reader\'s place', async () => {
   const bodies = fakeClaude(() => sse(message(['So far?'])))
   const { t, as, readId } = await setup()
+  await as.mutation(api.guides.request, { readId, depth: 'light' })
   await as.mutation(api.buddy.start, { readId })
   await settle(t)
-  expect(bodies.filter(b => b.tools)).toHaveLength(1)
+  const research = bodies.filter(b => b.tools)
+  expect(research).toHaveLength(1)
+  expect(research[0]).toMatchObject({ model: 'claude-sonnet-5-5', tools: [{ max_uses: 2 }] })
   const pack = chats(bodies)[0].system[1].text
   expect(pack).toContain('The ship arrives.')
   expect(pack).toContain('Memory')
@@ -202,19 +205,32 @@ test('the first reply waits for the guide, which reaches the model already cut a
 
   // Later replies use the same guide. It's researched once per book.
   await as.mutation(api.buddy.say, { readId, text: 'The arrival.' })
+  await as.mutation(api.guides.request, { readId, depth: 'light' })
   await settle(t)
   expect(bodies.filter(b => b.tools)).toHaveLength(1)
+
+  // Going deeper researches it again on the most capable model, once, and the light guide serves until it's ready.
+  await as.mutation(api.guides.request, { readId, depth: 'deep' })
+  await as.mutation(api.guides.request, { readId, depth: 'deep' })
+  await settle(t)
+  expect(bodies.filter(b => b.tools).map(b => b.model)).toEqual(['claude-sonnet-5-5', 'claude-opus-5-5'])
+  expect((await as.query(api.buddy.thread, { readId }))!.guide).toEqual({ depth: 'deep', state: 'ready' })
+  await as.mutation(api.guides.request, { readId, depth: 'light' })
+  await settle(t)
+  expect(bodies.filter(b => b.tools)).toHaveLength(2)
 })
 
-test('a finished book gets no guide, and a failed guide never holds the buddy up', async () => {
+test('a guide is only ever opted into, and a failed one never holds the buddy up', async () => {
   const bodies = fakeClaude(() => sse(message(['Hello?'])))
-  const { t, as, readId } = await setup({ status: 'read', percent: 100 })
+  const { t, as, readId } = await setup()
   await as.mutation(api.buddy.start, { readId })
   await settle(t)
   expect(bodies.filter(b => b.tools)).toHaveLength(0)
+  expect((await as.query(api.buddy.thread, { readId }))!.guide).toBeNull()
 
   const again = fakeClaude(() => sse(message(['Still here.'])), () => sse(message(['No JSON at all.'])))
   const second = await setup()
+  await second.as.mutation(api.guides.request, { readId: second.readId, depth: 'deep' })
   await second.as.mutation(api.buddy.start, { readId: second.readId })
   await settle(second.t)
   expect((await second.as.query(api.buddy.thread, { readId: second.readId }))!.turns[0]).toMatchObject({ state: 'done', text: 'Still here.' })

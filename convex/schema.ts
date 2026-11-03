@@ -152,6 +152,8 @@ export default defineSchema({
     workId: v.id('works'),
     userId: v.id('users'),
     state: v.union(v.literal('writing'), v.literal('ready'), v.literal('failed')),
+    // Chosen by the reader (lib/guide.ts DEPTHS). Missing on guides written before depths, which were deep.
+    depth: v.optional(v.union(v.literal('light'), v.literal('deep'))),
     version: v.number(),
     guide: v.optional(v.any()),
     error: v.optional(v.string()),

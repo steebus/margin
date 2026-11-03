@@ -10,11 +10,15 @@ import { NotFoundBook } from '../book/BookPage'
 import { Thumb } from '../thumb/Thumb'
 import { Typewriter } from '../typewriter/Typewriter'
 
+// Rough, from real runs: deep was $1.48 on Red Rising before it was trimmed.
+const GUIDE_LABEL = { light: 'Light guide, about 20¢', deep: 'Deep guide, about $1.10' }
+
 function Thread({ readId, title }: { readId: Id<'reads'>; title: string }) {
   const thread = useQuery(api.buddy.thread, { readId })
   const start = useMutation(api.buddy.start)
   const say = useMutation(api.buddy.say)
   const retry = useMutation(api.buddy.retry)
+  const request = useMutation(api.guides.request)
   const [text, setText] = useState('')
   const [error, setError] = useState<string | null>(null)
   const end = useRef<HTMLDivElement>(null)
@@ -43,12 +47,38 @@ function Thread({ readId, title }: { readId: Id<'reads'>; title: string }) {
     }
   }
 
+  const guide = thread.guide
+  // A light guide can go deep; a failed one is tried again at its own depth; with none, light is the first step.
+  const next = guide?.state === 'ready' ? 'deep' : guide?.depth ?? 'light'
+  // Opting in starts the research; the buddy's first reply waits for it, so the conversation starts at once either way.
+  const begin = async (depth?: 'light' | 'deep') => {
+    setError(null)
+    try {
+      if (depth) await request({ readId, depth })
+      await start({ readId })
+    } catch (e) {
+      setError(errorText(e, "That didn't start. Check your connection and try again."))
+    }
+  }
+
   if (!turns.length) {
     return (
       <div className="stack">
         <p>Your buddy knows where you are in {title} and won't go past it. It has read your notes, and it will ask rather than tell.</p>
-        <p className="where">The first time, it reads up on the book, which takes a minute or two and costs about 90 cents, once.</p>
-        <div className="btn-row"><button type="button" className="btn btn-solid" onClick={() => void start({ readId })}>Start talking</button></div>
+        {guide && guide.state !== 'failed'
+          ? <div className="btn-row"><button type="button" className="btn btn-solid" onClick={() => void begin()}>Start talking</button></div>
+          : (
+            <>
+              <p>It can also read up on the book first, so its questions fit where you are. Choose how much this book deserves:</p>
+              <div className="btn-row">
+                <button type="button" className="btn" onClick={() => void begin()}>Just talk</button>
+                <button type="button" className="btn btn-solid" onClick={() => void begin('light')}>{GUIDE_LABEL.light}</button>
+                <button type="button" className="btn" onClick={() => void begin('deep')}>{GUIDE_LABEL.deep}</button>
+              </div>
+              <p className="where">Just talk is free beyond the conversation. A light guide is a few key turns and questions. A deep one researches the book chapter by chapter. Either is written once and kept.</p>
+            </>
+          )}
+        {error && <p role="alert">{error}</p>}
       </div>
     )
   }
@@ -79,6 +109,14 @@ function Thread({ readId, title }: { readId: Id<'reads'>; title: string }) {
           </form>
         )}
       {error && <p role="alert">{error}</p>}
+      {guide?.state === 'writing' && <p className="where" role="status">Your buddy is reading up on this book.</p>}
+      {(!guide || guide.state === 'failed' || (guide.depth === 'light' && guide.state === 'ready')) && (
+        <div className="btn-row">
+          <button type="button" className="btn" onClick={() => void request({ readId, depth: next })}>
+            {guide?.state === 'ready' ? `Go deeper: ${GUIDE_LABEL.deep}` : guide ? `Try the guide again: ${GUIDE_LABEL[next]}` : GUIDE_LABEL.light}
+          </button>
+        </div>
+      )}
     </div>
   )
 }

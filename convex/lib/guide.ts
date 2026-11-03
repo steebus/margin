@@ -2,14 +2,22 @@
 import { z } from 'zod'
 import type { Visibility } from './buddy'
 
-// Research is the spec's job for the most capable model. One guide per work, made once and kept.
-export const GUIDE_MODEL = 'claude-opus-5-5'
-export const GUIDE_VERSION = 1
-const PRICE = { input: 4, output: 20, cacheRead: 0.2, cacheWrite: 5, search: 0.01 }
+// A guide is opt-in, at the depth the reader chooses for the book (Steve, 2026-11-03). Light leans on what the model
+// already knows; deep researches the book properly on the most capable model. Prices are dollars per million tokens.
+export type Depth = 'light' | 'deep'
+export const DEPTHS = {
+  light: { model: 'claude-sonnet-5-5', searches: 2, maxTokens: 16000, effort: 'medium', price: { input: 2, output: 10, cacheRead: 0.2, cacheWrite: 2.5 } },
+  deep: { model: 'claude-opus-5-5', searches: 8, maxTokens: 32000, effort: 'high', price: { input: 4, output: 20, cacheRead: 0.2, cacheWrite: 5 } },
+} as const
+export const GUIDE_VERSION = 2
+const SEARCH_PRICE = 0.01
 
 export type GuideUsage = { input: number; output: number; cacheRead: number; cacheWrite: number; searches: number }
-export const guideCost = (u: GuideUsage) =>
-  (u.input * PRICE.input + u.output * PRICE.output + u.cacheRead * PRICE.cacheRead + u.cacheWrite * PRICE.cacheWrite) / 1_000_000 + u.searches * PRICE.search
+/** A guide written before depths existed was deep. */
+export const guideCost = (u: GuideUsage, depth: Depth = 'deep') => {
+  const p = DEPTHS[depth].price
+  return (u.input * p.input + u.output * p.output + u.cacheRead * p.cacheRead + u.cacheWrite * p.cacheWrite) / 1_000_000 + u.searches * SEARCH_PRICE
+}
 
 const percent = z.number().min(0).max(100)
 const confidence = z.enum(['high', 'medium', 'low']).catch('low')
@@ -36,19 +44,34 @@ export type Guide = z.infer<typeof guideSchema>
 
 type Facts = { title: string; authors: string[]; year?: number; pages?: number; isbn?: string }
 
-export const guidePrompt = (book: Facts) => `You're preparing a reading guide for "${book.title}" by ${book.authors.join(', ') || 'an unknown author'}${book.year ? ` (${book.year})` : ''}${book.pages ? `, ${book.pages} pages` : ''}${book.isbn ? `, ISBN ${book.isbn}` : ''}.
+const LIMITS = {
+  light: `Keep it light. This reader wants a few good prompts, not a study guide:
+- structure: the book's parts or major sections only, not every chapter.
+- themes: at most 4. moments: at most 8, only the turns that matter most. questions: at most 8, spread through the book.`,
+  deep: `- structure: the parts, plus only the chapters where something turns. Not every chapter.
+- themes: at most 9. moments: at most 25. questions: at most 20, spread through the book.`,
+}
+
+const RESEARCH = {
+  light: "Work mostly from what you already know. Search the web only to check something you are unsure of: you have two searches at most. If you don't know the book well, say so in knownness rather than guessing.",
+  deep: "Research first. Search the web for interviews with the author, criticism and reviews, reading-group guides and chapter summaries, until you know the book's structure and its main turns well, or have found that little is written about it.",
+}
+
+export const guidePrompt = (book: Facts, depth: Depth = 'deep') => `You're preparing a reading guide for "${book.title}" by ${book.authors.join(', ') || 'an unknown author'}${book.year ? ` (${book.year})` : ''}${book.pages ? `, ${book.pages} pages` : ''}${book.isbn ? `, ISBN ${book.isbn}` : ''}.
 
 A reading companion will use it to talk with someone partway through the book, and will only ever be shown the parts before their place in it. So every item needs an honest position, as a percent of the way through the text.
 
-Research first. Search the web for interviews with the author, criticism and reviews, reading-group guides and chapter summaries, until you know the book's structure and its main turns well, or have found that little is written about it.
+${RESEARCH[depth]}
 
 Then write the guide:
-- structure: the parts and chapters in order, each with the percent where it starts.
-- themes: what the book is about, each with a short gloss, the readings it's commonly given, and "from": the percent by which a reader has met it. A theme that only emerges late must say so.
+- structure: where each section starts, as a percent.
+- themes: what the book is about, each with a short gloss, the readings it's commonly given, and "from": the percent by which a reader has met it. The gloss is shown from that percent on, so it may only use what a reader knows by then: never describe later events, places or reveals in it. A theme that only emerges late must say so.
 - moments: the key events and turns, each with its percent, what happens, and how much it would spoil a reader who hasn't reached it ("minor" or "major").
 - questions: good questions to ask a reader at given points, in five registers: noticing (what struck you), craft (why tell it this way), personal (does it touch your life), predictive (what do you think happens), connective (what does it echo). A question at a percent may only rely on what comes before it. A predictive question must not hint at the answer.
 - knownness: "well" if you and your sources know the book in detail, "partly", or "barely".
-- sources: the addresses you relied on.
+- sources: the addresses you relied on, if any.
+
+${LIMITS[depth]}
 
 Be honest above all. Never invent events, characters or quotations. If you can't place something, leave it out. If little is known, say "barely" and keep moments to what you're sure of: an empty list is better than a guess.
 

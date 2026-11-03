@@ -4,12 +4,12 @@ import Anthropic from '@anthropic-ai/sdk'
 import { v } from 'convex/values'
 import { internal } from './_generated/api'
 import { internalAction } from './_generated/server'
-import { GUIDE_MODEL, guidePrompt, parseGuide, type GuideUsage } from './lib/guide'
+import { DEPTHS, guidePrompt, parseGuide, type GuideUsage } from './lib/guide'
 
 // Research can pause partway, for the server to keep searching. Enough rounds for that, and no more.
 const MAX_ROUNDS = 4
 
-/** Researches one book's guide. Costs real money, so it only runs when a reader opens the buddy on an unfinished book. */
+/** Researches one book's guide. Costs real money, so it only runs when the reader asks for one, at the depth they chose. */
 export const write = internalAction({
   args: { guideId: v.id('guides') },
   handler: async (ctx, { guideId }): Promise<void> => {
@@ -22,16 +22,17 @@ export const write = internalAction({
 
     try {
       const client = new Anthropic({ apiKey })
-      const messages: Anthropic.Beta.BetaMessageParam[] = [{ role: 'user', content: guidePrompt(book) }]
+      const messages: Anthropic.Beta.BetaMessageParam[] = [{ role: 'user', content: guidePrompt(book, book.depth) }]
+      const settings = DEPTHS[book.depth]
       let reply = ''
       for (let round = 0; round < MAX_ROUNDS; round++) {
         const message = await client.beta.messages.stream({
-          model: GUIDE_MODEL,
-          max_tokens: 32000,
+          model: settings.model,
+          max_tokens: settings.maxTokens,
           betas: ['server-side-fallback-2026-07-01'],
           fallbacks: 'default',
-          output_config: { effort: 'high' },
-          tools: [{ type: 'web_search_20260209', name: 'web_search', max_uses: 8 }],
+          output_config: { effort: settings.effort },
+          tools: [{ type: 'web_search_20260209', name: 'web_search', max_uses: settings.searches }],
           messages,
         } as Parameters<typeof client.beta.messages.stream>[0]).finalMessage()
 
