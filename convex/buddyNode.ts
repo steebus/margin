@@ -4,11 +4,13 @@ import Anthropic from '@anthropic-ai/sdk'
 import { v } from 'convex/values'
 import { internal } from './_generated/api'
 import { internalAction } from './_generated/server'
-import { BUDDY_EFFORT, BUDDY_MODEL, PERSONA } from './lib/buddy'
+import { BUDDY_EFFORT, BUDDY_MODEL, foundText, PERSONA, SEARCH_TOOL } from './lib/buddy'
 
 // Often enough to read as typing, without a database write for every word.
 const WRITE_EVERY_MS = 350
 const GUIDE_POLL_MS = 15_000
+// Up to two searches, then it answers with what it found.
+const MAX_ROUNDS = 3
 
 function whyItFailed(e: unknown) {
   if (e instanceof Anthropic.AuthenticationError) return "Your buddy can't sign in: check ANTHROPIC_API_KEY."
@@ -40,42 +42,60 @@ export const reply = internalAction({
 
     try {
       const client = new Anthropic({ apiKey })
-      const stream = client.beta.messages.stream({
-        model: BUDDY_MODEL,
-        max_tokens: 16000,
-        // If a safety classifier declines, the API re-runs on a fallback model rather than leaving the reader with nothing.
-        betas: ['server-side-fallback-2026-07-01'],
-        fallbacks: 'default',
-        output_config: { effort: BUDDY_EFFORT },
-        system: [
-          { type: 'text', text: PERSONA },
-          { type: 'text', text: facts.guide ? `${facts.pack}\n\n${facts.guide}` : facts.pack, cache_control: { type: 'ephemeral' } },
-        ],
-        messages: facts.messages,
-      } as Parameters<typeof client.beta.messages.stream>[0])
-
+      const messages: Anthropic.Beta.BetaMessageParam[] = [...facts.messages]
+      const usage = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 }
       let text = ''
       let wrote = 0
       let writing: Promise<unknown> = Promise.resolve()
-      stream.on('text', delta => {
-        text += delta
-        if (Date.now() - wrote < WRITE_EVERY_MS) return
-        wrote = Date.now()
-        const soFar = text
-        writing = writing.then(() => ctx.runMutation(internal.buddy.writeSoFar, { turnId, text: soFar }))
-      })
-      const message = await stream.finalMessage()
+
+      for (let round = 0; round < MAX_ROUNDS; round++) {
+        const stream = client.beta.messages.stream({
+          model: BUDDY_MODEL,
+          max_tokens: 16000,
+          // If a safety classifier declines, the API re-runs on a fallback model rather than leaving the reader with nothing.
+          betas: ['server-side-fallback-2026-07-01'],
+          fallbacks: 'default',
+          output_config: { effort: BUDDY_EFFORT },
+          tools: [SEARCH_TOOL],
+          // The last round has to answer with what it has.
+          ...(round === MAX_ROUNDS - 1 ? { tool_choice: { type: 'none' } } : {}),
+          system: [
+            { type: 'text', text: PERSONA },
+            { type: 'text', text: facts.guide ? `${facts.pack}\n\n${facts.guide}` : facts.pack, cache_control: { type: 'ephemeral' } },
+          ],
+          messages,
+        } as Parameters<typeof client.beta.messages.stream>[0])
+
+        stream.on('text', delta => {
+          text += delta
+          if (Date.now() - wrote < WRITE_EVERY_MS) return
+          wrote = Date.now()
+          const soFar = text
+          writing = writing.then(() => ctx.runMutation(internal.buddy.writeSoFar, { turnId, text: soFar }))
+        })
+        const message = await stream.finalMessage()
+        usage.input += message.usage.input_tokens
+        usage.output += message.usage.output_tokens
+        usage.cacheRead += message.usage.cache_read_input_tokens ?? 0
+        usage.cacheWrite += message.usage.cache_creation_input_tokens ?? 0
+
+        if (message.stop_reason === 'refusal') { await writing; return fail("Your buddy can't talk about that. Try asking another way.") }
+        if (message.stop_reason !== 'tool_use') break
+
+        // It wants to look something up in the reader's notes. The search runs here, and the answer goes back.
+        messages.push({ role: 'assistant', content: message.content })
+        const results = await Promise.all(message.content.flatMap(block => block.type === 'tool_use' ? [block] : []).map(async block => ({
+          type: 'tool_result' as const,
+          tool_use_id: block.id,
+          content: foundText(await ctx.runQuery(internal.buddy.searchEntries, { turnId, query: String((block.input as { query?: unknown }).query ?? '') })),
+        })))
+        messages.push({ role: 'user', content: results })
+        if (text.trim()) text += ' '
+      }
       await writing
 
-      if (message.stop_reason === 'refusal') return fail("Your buddy can't talk about that. Try asking another way.")
       if (!text.trim()) return fail('Your buddy had nothing to say. Try again.')
-      const { input_tokens, output_tokens, cache_read_input_tokens, cache_creation_input_tokens } = message.usage
-      await ctx.runMutation(internal.buddy.finishTurn, {
-        turnId,
-        text,
-        state: 'done',
-        usage: { input: input_tokens, output: output_tokens, cacheRead: cache_read_input_tokens ?? 0, cacheWrite: cache_creation_input_tokens ?? 0 },
-      })
+      await ctx.runMutation(internal.buddy.finishTurn, { turnId, text: text.trim(), state: 'done', usage })
     } catch (e) {
       console.error('The reply failed:', e instanceof Error ? e.message : e)
       await fail(whyItFailed(e))

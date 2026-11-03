@@ -20,17 +20,19 @@ const message = (words: string[], stop_reason = 'end_turn') => [
 ]
 
 /** A stand-in for Anthropic. Nothing here reaches the real API. */
-type Body = { model: string; system: { text: string }[]; messages: { role: string; content: string }[]; fallbacks: string; tools?: unknown[] }
+type Body = { model: string; system: { text: string }[]; messages: { role: string; content: unknown }[]; fallbacks: string; tools?: { type?: string; name?: string }[] }
+// Guide research is the call that can search the web; the conversation's only tool is the reader's notes.
+const researching = (b: Body) => !!b.tools?.some(t => t.type?.startsWith('web_search'))
 const GUIDE = { knownness: 'well', structure: [{ label: 'Part One', percent: 0 }, { label: 'Part Two', percent: 60 }], themes: [{ name: 'Memory', gloss: 'What is kept.', readings: [], from: 0, confidence: 'high' }, { name: 'Betrayal', gloss: 'Late in the book.', readings: [], from: 70, confidence: 'high' }], moments: [{ percent: 10, what: 'The ship arrives.', spoiler: 'minor', confidence: 'high' }, { percent: 80, what: 'The captain dies.', spoiler: 'major', confidence: 'high' }], questions: [], sources: [] }
 const guideReply = () => sse(message(['Researched.\n```json\n', JSON.stringify(GUIDE), '\n```']))
 /** The buddy's requests only. The guide's research goes to a different model. */
-const chats = (bodies: Body[]) => bodies.filter(b => !b.tools)
+const chats = (bodies: Body[]) => bodies.filter(b => !researching(b))
 const fakeClaude = (answer: () => Response, guide: () => Response = guideReply) => {
   const bodies: Body[] = []
   vi.stubGlobal('fetch', vi.fn(async (_url: string, init: { body: string }) => {
     const body = JSON.parse(init.body) as Body
     bodies.push(body)
-    return body.tools ? guide() : answer()
+    return researching(body) ? guide() : answer()
   }))
   return bodies
 }
@@ -193,7 +195,7 @@ test('the first reply waits for the guide, which reaches the model already cut a
   await as.mutation(api.guides.request, { readId, depth: 'light' })
   await as.mutation(api.buddy.start, { readId })
   await settle(t)
-  const research = bodies.filter(b => b.tools)
+  const research = bodies.filter(researching)
   expect(research).toHaveLength(1)
   expect(research[0]).toMatchObject({ model: 'claude-sonnet-5-5', tools: [{ max_uses: 2 }] })
   const pack = chats(bodies)[0].system[1].text
@@ -207,17 +209,17 @@ test('the first reply waits for the guide, which reaches the model already cut a
   await as.mutation(api.buddy.say, { readId, text: 'The arrival.' })
   await as.mutation(api.guides.request, { readId, depth: 'light' })
   await settle(t)
-  expect(bodies.filter(b => b.tools)).toHaveLength(1)
+  expect(bodies.filter(researching)).toHaveLength(1)
 
   // Going deeper researches it again on the most capable model, once, and the light guide serves until it's ready.
   await as.mutation(api.guides.request, { readId, depth: 'deep' })
   await as.mutation(api.guides.request, { readId, depth: 'deep' })
   await settle(t)
-  expect(bodies.filter(b => b.tools).map(b => b.model)).toEqual(['claude-sonnet-5-5', 'claude-opus-5-5'])
+  expect(bodies.filter(researching).map(b => b.model)).toEqual(['claude-sonnet-5-5', 'claude-opus-5-5'])
   expect((await as.query(api.buddy.thread, { readId }))!.guide).toEqual({ depth: 'deep', state: 'ready' })
   await as.mutation(api.guides.request, { readId, depth: 'light' })
   await settle(t)
-  expect(bodies.filter(b => b.tools)).toHaveLength(2)
+  expect(bodies.filter(researching)).toHaveLength(2)
 })
 
 test('a guide is only ever opted into, and a failed one never holds the buddy up', async () => {
@@ -225,7 +227,7 @@ test('a guide is only ever opted into, and a failed one never holds the buddy up
   const { t, as, readId } = await setup()
   await as.mutation(api.buddy.start, { readId })
   await settle(t)
-  expect(bodies.filter(b => b.tools)).toHaveLength(0)
+  expect(bodies.filter(researching)).toHaveLength(0)
   expect((await as.query(api.buddy.thread, { readId }))!.guide).toBeNull()
 
   const again = fakeClaude(() => sse(message(['Still here.'])), () => sse(message(['No JSON at all.'])))
@@ -256,4 +258,42 @@ test('a guide that is partly wrong keeps what is right, and rubbish is no guide'
   expect(guide.sources).toEqual(['https://a.example'])
   expect(guide.structure).toEqual([])
   expect(parseGuide('no guide here')).toBeNull()
+})
+
+const toolCall = (query: string) => [
+  { type: 'message_start', message: { id: 'm', type: 'message', role: 'assistant', model: 'x', content: [], stop_reason: null, stop_sequence: null, usage: { input_tokens: 100, output_tokens: 0 } } },
+  { type: 'content_block_start', index: 0, content_block: { type: 'tool_use', id: 'tu1', name: 'search_entries', input: {} } },
+  { type: 'content_block_delta', index: 0, delta: { type: 'input_json_delta', partial_json: JSON.stringify({ query }) } },
+  { type: 'content_block_stop', index: 0 },
+  { type: 'message_delta', delta: { stop_reason: 'tool_use', stop_sequence: null }, usage: { output_tokens: 10 } },
+  { type: 'message_stop' },
+]
+
+test("the buddy searches the reader's notes across books, and cites the book a note came from", async () => {
+  let call = 0
+  const bodies = fakeClaude(() => sse(call++ === 0 ? toolCall('lighthouse') : message(['You wrote about a lighthouse in Other Book.'])))
+  const { t, as, userId, readId } = await setup()
+  await t.mutation(internal.hardcover.saveBooks, {
+    userId,
+    items: [{
+      work: { hardcoverId: 2, slug: 'book-2', title: 'Other Book', authors: ['Someone Else'], isbns: [], subjects: [], pages: 100 },
+      read: { hardcoverUserBookId: 20, status: 'read', percent: 100, format: 'print', owned: false },
+    }],
+  })
+  const other = (await as.query(api.library.myBooks, {})).find(b => b.slug === 'book-2')!.readId
+  await t.run(ctx => ctx.db.insert('entries', {
+    userId, readId: other, kind: 'note', text: 'The lighthouse is her mother.', pos: { page: 40 }, origin: 'manual', originKey: 'k', createdAt: 1,
+  }))
+
+  await as.mutation(api.buddy.start, { readId })
+  await settle(t)
+
+  const [first, second] = chats(bodies)
+  expect(first.tools?.map(tool => tool.name)).toEqual(['search_entries'])
+  const result = JSON.stringify(second.messages.at(-1))
+  expect(result).toContain('tool_result')
+  expect(result).toContain('From \\"Other Book\\" by Someone Else, note, Page 40: The lighthouse is her mother.')
+  expect((await as.query(api.buddy.thread, { readId }))!.turns[0]).toMatchObject({ state: 'done', text: 'You wrote about a lighthouse in Other Book.' })
+  const spend = await as.query(api.buddy.monthSpend, {})
+  expect(spend!.dollars).toBeGreaterThan(0)
 })

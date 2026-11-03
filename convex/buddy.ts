@@ -4,7 +4,7 @@ import { internal } from './_generated/api'
 import type { Doc, Id } from './_generated/dataModel'
 import { internalMutation, internalQuery, mutation, query, type MutationCtx } from './_generated/server'
 import { positionOf } from './lib/books'
-import { bookPack, costOf, MAX_NOTES, SPEND_ALERT, toMessages, visibleTo } from './lib/buddy'
+import { bookPack, costOf, MAX_NOTES, SPEND_ALERT, toMessages, visibleTo, type Found } from './lib/buddy'
 import { guideCost, guideText, guideUpTo, type Guide } from './lib/guide'
 import { depthOf, guideFor, stillWriting } from './guides'
 
@@ -114,6 +114,27 @@ export const context = internalQuery({
       }),
       messages: toMessages(turns),
     }
+  },
+})
+
+const FOUND_LIMIT = 8
+
+/** search_entries, for the buddy: the reader's own writing, across every book, best match first. */
+export const searchEntries = internalQuery({
+  args: { turnId: v.id('buddyTurns'), query: v.string() },
+  handler: async (ctx, { turnId, query }): Promise<Found[]> => {
+    const turn = await ctx.db.get(turnId)
+    const read = turn && await ctx.db.get(turn.readId)
+    const words = query.trim().slice(0, 200)
+    if (!read || !words) return []
+    const entries = await ctx.db.query('entries')
+      .withSearchIndex('search_text', q => q.search('text', words).eq('userId', read.userId))
+      .take(FOUND_LIMIT)
+    return Promise.all(entries.map(async e => {
+      const other = await ctx.db.get(e.readId)
+      const work = other && await ctx.db.get(other.workId)
+      return { title: work?.title ?? 'Unknown', author: work?.authors[0] ?? 'Unknown', kind: e.kind, text: e.text, position: positionOf(e.pos), current: other?.workId === read.workId }
+    }))
   },
 })
 
