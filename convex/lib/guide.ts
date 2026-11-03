@@ -53,7 +53,7 @@ const LIMITS = {
 }
 
 const RESEARCH = {
-  light: "Work mostly from what you already know. Search the web only to check something you are unsure of: you have two searches at most. If you don't know the book well, say so in knownness rather than guessing.",
+  light: "Work mostly from what you already know, but use your two searches to check where the main turns fall: a chapter-by-chapter summary is ideal. If you don't know the book well, say so in knownness rather than guessing.",
   deep: "Research first. Search the web for interviews with the author, criticism and reviews, reading-group guides and chapter summaries, until you know the book's structure and its main turns well, or have found that little is written about it.",
 }
 
@@ -67,6 +67,8 @@ Then write the guide:
 - structure: where each section starts, as a percent.
 - themes: what the book is about, each with a short gloss, the readings it's commonly given, and "from": the percent by which a reader has met it. The gloss is shown from that percent on, so it may only use what a reader knows by then: never describe later events, places or reveals in it. A theme that only emerges late must say so.
 - moments: the key events and turns, each with its percent, what happens, and how much it would spoil a reader who hasn't reached it ("minor" or "major").
+
+When you're unsure of a percent, place the item later, not earlier: anything placed too early is shown to a reader who hasn't reached it yet, which spoils it. Too late only means it's mentioned a little after it happens.
 - questions: good questions to ask a reader at given points, in five registers: noticing (what struck you), craft (why tell it this way), personal (does it touch your life), predictive (what do you think happens), connective (what does it echo). A question at a percent may only rely on what comes before it. A predictive question must not hint at the answer.
 - knownness: "well" if you and your sources know the book in detail, "partly", or "barely".
 - sources: the addresses you relied on, if any.
