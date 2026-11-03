@@ -35,6 +35,7 @@ export const bookBySlug = query({
     if (!read) return null
     const entries = await ctx.db.query('entries').withIndex('by_read', q => q.eq('readId', read._id)).collect()
     const art = await ctx.db.query('workArt').withIndex('by_work', q => q.eq('workId', work._id)).first()
+    const past = await ctx.db.query('pastArt').withIndex('by_work', q => q.eq('workId', work._id)).order('desc').collect()
     const prompt = await waitingPrompt(ctx, read._id)
     const note = await waitingNote(ctx, read._id)
     const guide = await guideFor(ctx, work._id)
@@ -46,6 +47,11 @@ export const bookBySlug = query({
         hasRealCover: !!work.coverUrl,
         state: art?.state ?? null,
         error: art?.error ?? null,
+        // Every drawing this book has had, the current one first, for the reader to choose between.
+        drawings: [
+          ...(work.artSmallUrl && work.artLargeUrl ? [{ id: null, small: work.artSmallUrl, large: work.artLargeUrl }] : []),
+          ...past.map(p => ({ id: p._id, small: p.smallUrl, large: p.largeUrl })),
+        ],
       },
       prompt: prompt && { id: prompt._id, question: prompt.question! },
       note,

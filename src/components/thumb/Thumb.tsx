@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
-import { coverPath } from '../../lib/art'
+import { coverPath, coverTitleSize } from '../../lib/art'
 import { spineTitle } from '../../lib/pile'
 import { hatchKey, readHatch, storeHatch } from '../../lib/hatchCache'
 import { hatchWeights, toLuma } from '../../lib/ink'
 import { Circle, Strike } from './Marks'
-import { useTheme } from '../../lib/theme'
 
 // Each cover is fetched once per session and shared, across resizes and every screen.
 // A failure isn't kept, so the next time the cell appears it tries again.
@@ -37,7 +36,6 @@ type Props = { coverUrl: string; onDone: (result: 'painted' | 'failed') => void 
 // Move it to a worker if a big import ever janks.
 function HatchedCover({ coverUrl, onDone }: Props) {
   const ref = useRef<HTMLCanvasElement>(null)
-  const dark = useTheme() === 'dark'
   const done = useRef(onDone)
   done.current = onDone
 
@@ -51,7 +49,8 @@ function HatchedCover({ coverUrl, onDone }: Props) {
       const unit = Math.max(window.devicePixelRatio || 1, 2.5)
       const w = Math.max(1, Math.round(canvas.clientWidth * unit))
       const h = Math.max(1, Math.round(canvas.clientHeight * unit))
-      const key = hatchKey(coverUrl, w, h, dark)
+      // Covers are never inverted in the dark theme (Steve, 2026-11-03): always ink on paper, muted by CSS instead.
+      const key = hatchKey(coverUrl, w, h, false)
       void readHatch(key).then(saved => {
         if (cancelled) return
         if (saved) {
@@ -73,8 +72,8 @@ function HatchedCover({ coverUrl, onDone }: Props) {
         const fit = Math.max(w / img.width, h / img.height)
         ctx.drawImage(img, (w - img.width * fit) / 2, (h - img.height * fit) / 2, img.width * fit, img.height * fit)
         const pixels = ctx.getImageData(0, 0, w, h)
-        const weights = hatchWeights(toLuma(pixels.data), w, h, { seed: seedOf(coverUrl), negative: dark, unit })
-        const ink = dark ? [230, 227, 218] : [18, 18, 18]
+        const weights = hatchWeights(toLuma(pixels.data), w, h, { seed: seedOf(coverUrl), negative: false, unit })
+        const ink = [18, 18, 18]
         for (let i = 0; i < weights.length; i++) {
           pixels.data.set(ink, i * 4)
           pixels.data[i * 4 + 3] = weights[i]
@@ -86,7 +85,7 @@ function HatchedCover({ coverUrl, onDone }: Props) {
     }, { rootMargin: '300px' })
     observer.observe(canvas)
     return () => { cancelled = true; observer.disconnect() }
-  }, [coverUrl, dark])
+  }, [coverUrl])
 
   return <canvas ref={ref} className="thumb-art" aria-hidden="true" />
 }
@@ -124,7 +123,7 @@ export function Thumb({ book, marks = true }: { book: ThumbBook; marks?: boolean
         </>
       )}
       {/* Every cover carries its title, without the subtitle. The title stamp already is one. */}
-      {(art || state === 'painted') && <span className="thumb-title" aria-hidden="true"><span>{spineTitle(book.title)}</span></span>}
+      {(art || state === 'painted') && <span className="thumb-title" aria-hidden="true" style={{ '--fit': `${coverTitleSize(spineTitle(book.title))}cqi` } as React.CSSProperties}><span>{spineTitle(book.title)}</span></span>}
       {marks && book.status === 'reading' && <Circle />}
       {marks && book.status === 'dnf' && <Strike />}
     </span>

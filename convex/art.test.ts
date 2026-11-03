@@ -108,14 +108,24 @@ test('a failed regeneration keeps the old drawing and says what went wrong', asy
   expect(found?.book.art).not.toBeNull()
 })
 
-test('a new drawing replaces the old files, so storage does not grow', async () => {
-  const { t, save } = await setup()
+test('a new drawing keeps the old one in the gallery, and choosing it back swaps them', async () => {
+  const { t, as, readId, save } = await setup()
   await save('A chair.')
   await save('A lamp.')
-  const files = await t.run(ctx => ctx.db.system.query('_storage').collect())
-  expect(files).toHaveLength(2)
+  expect(await t.run(ctx => ctx.db.system.query('_storage').collect())).toHaveLength(4)
+  const cover = (await as.query(api.library.bookBySlug, { slug: 'book-1' }))!.cover
+  expect(cover.drawings).toHaveLength(2)
+  expect(cover.drawings[0].id).toBeNull()
+
+  await as.mutation(api.art.setArtChoice, { readId, choice: 'cover' })
+  await as.mutation(api.art.chooseArt, { readId, pastId: cover.drawings[1].id! })
   const [row] = await t.run(ctx => ctx.db.query('workArt').collect())
-  expect(row).toMatchObject({ state: 'ready', scene: 'A lamp.' })
+  expect(row).toMatchObject({ state: 'ready', scene: 'A chair.' })
+  const after = (await as.query(api.library.bookBySlug, { slug: 'book-1' }))!
+  expect(after.cover.choice).toBe('drawing')
+  expect(after.cover.drawings).toHaveLength(2)
+  expect(after.book.art?.small).toBe(cover.drawings[1].small)
+  expect((await t.run(ctx => ctx.db.query('pastArt').collect())).map(p => p.scene)).toEqual(['A lamp.'])
 })
 
 test('the generator is told what to avoid, including this book\'s last subject', async () => {

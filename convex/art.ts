@@ -17,7 +17,14 @@ async function ownRead(ctx: MutationCtx, readId: Id<'reads'>) {
   return read
 }
 
-/** Stores a finished drawing against its work, replacing and deleting any earlier one. */
+/** Puts a work's current drawing among its past ones, so a new one can take its place without losing it. */
+async function keepCurrent(ctx: MutationCtx, row: { workId: Id<'works'>; small?: Id<'_storage'>; large?: Id<'_storage'>; scene?: string; createdAt: number }) {
+  if (!row.small || !row.large) return
+  const [smallUrl, largeUrl] = await Promise.all([ctx.storage.getUrl(row.small), ctx.storage.getUrl(row.large)])
+  if (smallUrl && largeUrl) await ctx.db.insert('pastArt', { workId: row.workId, small: row.small, large: row.large, smallUrl, largeUrl, scene: row.scene, createdAt: row.createdAt })
+}
+
+/** Stores a finished drawing against its work. Any earlier one is kept among the past drawings. */
 async function storeArt(
   ctx: MutationCtx,
   art: { workId: Id<'works'>; small: Id<'_storage'>; large: Id<'_storage'>; model: string; scene: string; prompt: string },
@@ -27,8 +34,7 @@ async function storeArt(
   const row = await artRow(ctx, art.workId)
   const fields = { state: 'ready' as const, small: art.small, large: art.large, model: art.model, scene: art.scene, prompt: art.prompt, error: undefined, createdAt: Date.now() }
   if (row) {
-    if (row.small) await ctx.storage.delete(row.small)
-    if (row.large) await ctx.storage.delete(row.large)
+    await keepCurrent(ctx, row)
     await ctx.db.patch(row._id, fields)
   } else {
     await ctx.db.insert('workArt', { workId: art.workId, ...fields })
@@ -61,6 +67,22 @@ export const setArtChoice = mutation({
   handler: async (ctx, { readId, choice }) => {
     await ownRead(ctx, readId)
     await ctx.db.patch(readId, { artChoice: choice })
+  },
+})
+
+/** Puts a past drawing back on the cover. The one it replaces is kept in its place among the past ones. */
+export const chooseArt = mutation({
+  args: { readId: v.id('reads'), pastId: v.id('pastArt') },
+  handler: async (ctx, { readId, pastId }) => {
+    const read = await ownRead(ctx, readId)
+    const past = await ctx.db.get(pastId)
+    const row = await artRow(ctx, read.workId)
+    if (!past || past.workId !== read.workId || !row) throw new ConvexError('That drawing does not belong to this book')
+    await keepCurrent(ctx, row)
+    await ctx.db.patch(row._id, { state: 'ready', small: past.small, large: past.large, scene: past.scene, error: undefined, createdAt: past.createdAt })
+    await ctx.db.delete(pastId)
+    await ctx.db.patch(read.workId, { artSmallUrl: past.smallUrl, artLargeUrl: past.largeUrl })
+    await ctx.db.patch(readId, { artChoice: 'drawing' })
   },
 })
 

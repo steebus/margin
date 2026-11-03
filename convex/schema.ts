@@ -55,6 +55,17 @@ export default defineSchema({
     .index('by_work', ['workId'])
     .index('by_state', ['state']),
 
+  // Drawings a work used to show, kept so the reader can go back to one (Steve, 2026-11-03). The current one is in workArt.
+  pastArt: defineTable({
+    workId: v.id('works'),
+    small: v.id('_storage'),
+    large: v.id('_storage'),
+    smallUrl: v.string(),
+    largeUrl: v.string(),
+    scene: v.optional(v.string()),
+    createdAt: v.number(),
+  }).index('by_work', ['workId', 'createdAt']),
+
   authors: defineTable({
     name: v.string(),
     hardcoverId: v.optional(v.number()),

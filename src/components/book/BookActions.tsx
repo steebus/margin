@@ -24,6 +24,7 @@ function Sheet({ book, onClose, onLogged }: { book: Book; onClose: () => void; o
   const [logging, setLogging] = useState(false)
   // The guide and the picture, which the shelf's list of books doesn't carry.
   const found = useQuery(api.library.bookBySlug, { slug: book.slug })
+  const onPage = useRouterState({ select: st => st.location.pathname }) === `/books/${book.slug}`
 
   useEffect(() => {
     const dialog = ref.current!
@@ -57,7 +58,7 @@ function Sheet({ book, onClose, onLogged }: { book: Book; onClose: () => void; o
         </header>
         <QuickActions book={book} logging={logging} onLog={() => setLogging(!logging)} />
         {logging && book.status !== 'read' && <ProgressForm book={book} onSaved={onLogged} />}
-        <Link to="/books/$bookSlug" params={{ bookSlug: book.slug }} className="btn"><BookOpen aria-hidden="true" strokeWidth={2.25} />Open the book</Link>
+        {!onPage && <Link to="/books/$bookSlug" params={{ bookSlug: book.slug }} className="btn"><BookOpen aria-hidden="true" strokeWidth={2.25} />Open the book</Link>}
         {found && (
           <>
             <details className="sheet-more">
@@ -66,7 +67,7 @@ function Sheet({ book, onClose, onLogged }: { book: Book; onClose: () => void; o
             </details>
             <details className="sheet-more">
               <summary>Picture</summary>
-              <CoverControls readId={book.readId} cover={found.cover} />
+              <CoverControls readId={book.readId} book={book} cover={found.cover} />
             </details>
           </>
         )}

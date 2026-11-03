@@ -5,6 +5,7 @@
   --biro: #2346c8;
   --rule: #e03a8c;
   --soft: rgb(18 18 18 / 0.08);
+  --grey: #8d8a83; /* the engraver's middle tone, for spines */
   --head: 'League Gothic', 'Arial Narrow', sans-serif;
   --book: 'Source Serif 4 Variable', Georgia, serif;
   --buddy: 'Courier Prime', 'Courier New', monospace;
@@ -22,6 +23,7 @@
   --biro: #93a9ff;
   --rule: #f0589f;
   --soft: rgb(230 227 218 / 0.1);
+  --grey: #6e6b65;
   color-scheme: dark;
 }
 @media (prefers-color-scheme: dark) {
@@ -31,6 +33,7 @@
     --biro: #93a9ff;
     --rule: #f0589f;
     --soft: rgb(230 227 218 / 0.1);
+  --grey: #6e6b65;
     color-scheme: dark;
   }
 }

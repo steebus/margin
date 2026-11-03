@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest'
 import type { Book } from './books'
-import { faceOf, LOOKS, pileNote, pileOf, spineOf, spineTitle } from './pile'
+import { faceOf, LOOKS, pileNote, pileNotes, pileOf, spineOf, spineTitle } from './pile'
 
 const book = (slug: string, readings: Book['readings'], status = 'read') => ({ slug, title: slug, status, readings }) as Book
 
@@ -23,13 +23,15 @@ test('the note beside a book prefers what sums it up', () => {
   expect(pileNote([{ kind: 'excerpt', text: 'a' }, { kind: 'note', text: 'b' }, { kind: 'reflection', text: 'c' }])?.text).toBe('c')
   expect(pileNote([{ kind: 'excerpt', text: 'a' }, { kind: 'note', text: 'b' }])?.text).toBe('b')
   expect(pileNote([])).toBeNull()
+  const notes = [{ kind: 'excerpt', text: 'a' }, { kind: 'note', text: 'b' }, { kind: 'reflection', text: 'c' }, { kind: 'note', text: 'd' }]
+  expect(pileNotes(notes).map(n => n.text)).toEqual(['c', 'b', 'd'])
 })
 
-test('a spine is stable, thickness comes from the page count, and thicker ones fit more note', () => {
+test('a spine is stable, thickness comes from the page count, and a short book is slim', () => {
   expect(spineOf('dune', 500)).toEqual(spineOf('dune', 500))
-  expect(spineOf('dune', 800).height - spineOf('dune', 400).height).toBe(50)
-  expect(spineOf('dune', 800).lines).toBeGreaterThan(spineOf('dune', 100).lines)
-  expect(spineOf('thin', 10).lines).toBe(1)
+  expect(spineOf('dune', 800).height - spineOf('dune', 400).height).toBe(25)
+  expect(spineOf('strange-houses', 200).height).toBe(35)
+  expect(spineOf('thin', 10).thin).toBe(true)
   expect(new Set(['a', 'bb', 'ccc', 'dddd', 'eeeee', 'ffffff', 'ggggggg', 'hhhhhhhh', 'iiiiiiiii', 'jjjjjjjjjj', 'kkkkkkkkkkk', 'llllllllllll'].map(s => spineOf(s, 1).look)).size).toBeGreaterThan(2)
 })
 

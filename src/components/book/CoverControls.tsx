@@ -3,12 +3,17 @@ import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { errorText } from '../../lib/books'
+import { Thumb } from '../thumb/Thumb'
 
-type Cover = { choice: 'drawing' | 'cover'; hasDrawing: boolean; hasRealCover: boolean; state: string | null; error: string | null }
+type Drawing = { id: Id<'pastArt'> | null; small: string; large: string }
+type Cover = { choice: 'drawing' | 'cover'; hasDrawing: boolean; hasRealCover: boolean; state: string | null; error: string | null; drawings: Drawing[] }
+type Book = { title: string; coverUrl: string | null; status: string }
 
-export function CoverControls({ readId, cover }: { readId: Id<'reads'>; cover: Cover }) {
+/** Every picture this book could wear: its drawings, newest kept first, then the real cover. Nothing is thrown away. */
+export function CoverControls({ readId, book, cover }: { readId: Id<'reads'>; book: Book; cover: Cover }) {
   const regenerate = useMutation(api.art.regenerate)
   const setArtChoice = useMutation(api.art.setArtChoice)
+  const chooseArt = useMutation(api.art.chooseArt)
   const [hint, setHint] = useState('')
   const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -29,14 +34,23 @@ export function CoverControls({ readId, cover }: { readId: Id<'reads'>; cover: C
 
   return (
     <div className="cover-controls">
-      {cover.hasDrawing && (
-        <div className="segments" role="group" aria-label="Which picture to show">
-          <button type="button" aria-pressed={cover.choice === 'drawing'} onClick={() => void setArtChoice({ readId, choice: 'drawing' })}>Drawing</button>
-          <button type="button" aria-pressed={cover.choice === 'cover'} onClick={() => void setArtChoice({ readId, choice: 'cover' })}>
-            {cover.hasRealCover ? 'Real cover' : 'Title only'}
+      <ul className="gallery" aria-label="Pictures to choose from">
+        {cover.drawings.map((d, i) => {
+          const on = cover.choice === 'drawing' && d.id === null
+          return (
+            <li key={d.id ?? 'current'}>
+              <button type="button" aria-pressed={on} aria-label={`Drawing ${i + 1}`} onClick={() => void (d.id ? chooseArt({ readId, pastId: d.id }) : setArtChoice({ readId, choice: 'drawing' }))}>
+                <Thumb book={{ ...book, art: { small: d.small, large: d.large } }} marks={false} />
+              </button>
+            </li>
+          )
+        })}
+        <li>
+          <button type="button" aria-pressed={cover.choice === 'cover' || !cover.hasDrawing} aria-label={cover.hasRealCover ? 'The real cover' : 'Title only'} onClick={() => void setArtChoice({ readId, choice: 'cover' })}>
+            <Thumb book={{ ...book, art: null }} marks={false} />
           </button>
-        </div>
-      )}
+        </li>
+      </ul>
       <form className="stack" onSubmit={e => { e.preventDefault(); void draw() }}>
         <div className="field">
           <label htmlFor="cover-hint">Direction, if you have one</label>

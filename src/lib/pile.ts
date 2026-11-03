@@ -10,6 +10,10 @@ const ORDER = ['reflection', 'summary', 'review', 'note', 'excerpt']
 export const pileNote = <T extends Note>(entries: T[]) =>
   ORDER.map(kind => entries.find(e => e.kind === kind)).find(e => !!e) ?? null
 
+/** What unfurls beside a book when it reaches the middle of the screen: its best few entries, conclusions first. */
+export const pileNotes = <T extends Note>(entries: T[], count = 3) =>
+  ORDER.flatMap(kind => entries.filter(e => e.kind === kind)).slice(0, count)
+
 export type PileRow = { key: string; book: Book; finishedAt: number | null; days: number | null }
 
 /** One spine per finish, so a re-read sits in the pile twice. Newest on top; books with no date at the bottom. */
@@ -30,25 +34,23 @@ export const LOOKS = [
   'penguin', 'diamonds', 'tooled', 'checks', 'stitched',
 ] as const
 const UNKNOWN_PAGES = 300
-const LINE = 18
 
 /**
- * How a book lies in the pile. Thickness is its page count and nothing else. Its binding, width and offset come
- * from its slug, so they never change between visits. `lines` is how much of a note fits beside it.
+ * How a book lies in the pile. Thickness is its page count and nothing else: a 200-page book is about 35px, half what
+ * it was (Steve, 2026-11-03). Its binding, width and offset come from its slug, so they never change between visits.
  */
 export function spineOf(slug: string, pages: number | null) {
   const seed = seedOf(slug)
-  const height = Math.round(44 + Math.min(pages ?? UNKNOWN_PAGES, 1200) / 8)
+  const height = Math.round(22 + Math.min(pages ?? UNKNOWN_PAGES, 1200) / 16)
   return {
     height,
     width: 86 + (seed % 15),
     look: LOOKS[(seed >>> 4) % LOOKS.length],
     shift: (seed >>> 8) % 100,
-    lines: Math.max(1, Math.floor((height - 24) / LINE)),
     // Bigger books print bigger, within reason. Room for two lines once the book is thick enough to hold them.
-    titleSize: Math.round(Math.min(32, Math.max(20, height * 0.3))),
-    titleLines: height < 84 ? 1 : 2,
-    thin: height < 92,
+    titleSize: Math.round(Math.min(28, Math.max(15, height * 0.42))),
+    titleLines: height < 64 ? 1 : 2,
+    thin: height < 56,
   }
 }
 
