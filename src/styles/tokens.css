@@ -27,8 +27,8 @@
   --rule: #f0589f;
   --soft: rgb(230 227 218 / 0.1);
   --grey: #6e6b65;
-  /* The daylight stock, dimmed as the cover art is in styles/app.css, so titles sit on the same tone as the drawing. */
-  --cover-paper: #b6b5af;
+  /* The drawings' white, dimmed as the cover art is in styles/app.css, so titles sit on the same tone as the picture. */
+  --cover-paper: #d6d5d1;
   --cover-ink: #161616;
   color-scheme: dark;
 }
@@ -40,7 +40,7 @@
     --rule: #f0589f;
     --soft: rgb(230 227 218 / 0.1);
     --grey: #6e6b65;
-    --cover-paper: #b6b5af;
+    --cover-paper: #d6d5d1;
     --cover-ink: #161616;
     color-scheme: dark;
   }
