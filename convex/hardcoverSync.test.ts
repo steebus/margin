@@ -374,7 +374,7 @@ test('a new book lands on the shelves and goes to Hardcover with its source, and
   const calls = fakeHardcover()
   const { t, as, outbox } = await setup()
   const [first] = await as.mutation(api.books.addBooks, { books: [addable], status: 'tbr', source: { kind: 'social', who: '@bookish', url: 'https://www.instagram.com/p/x/' } })
-  expect(first).toEqual({ slug: 'piranesi-clarke-3rna', added: true })
+  expect(first).toMatchObject({ slug: 'piranesi-clarke-3rna', added: true })
   await flushTimers(t.action(internal.hardcover.flush, {}))
 
   expect(writes(calls).find(c => c.query.includes('insert_user_book('))?.variables.object).toMatchObject({ book_id: 175280, status_id: 1, recommended_by: '@bookish' })

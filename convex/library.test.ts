@@ -247,3 +247,20 @@ test('crossing a milestone leaves one note on the book, and answering it starts 
   await as.mutation(api.milestones.snooze, { noteId: later.id })
   expect((await as.query(api.library.bookBySlug, { slug: 'book-1' }))?.note).toBeNull()
 })
+
+test('an import can mark a book read, or add one, without making up a finish date', async () => {
+  const t = setup()
+  const { userId, as } = await reader(t)
+  await t.mutation(internal.hardcover.saveBooks, { userId, items: [item(1)] })
+  const [{ readId }] = await as.query(api.library.myBooks, {})
+  await as.mutation(api.library.setStatus, { readId, status: 'read', undated: true })
+  const marked = (await as.query(api.library.myBooks, {}))[0]
+  expect(marked).toMatchObject({ status: 'read', percent: 100, finishedAt: null })
+  expect(await t.run(ctx => ctx.db.query('reflectionPrompts').collect())).toEqual([])
+
+  const [added] = await as.mutation(api.books.addBooks, {
+    books: [{ hardcoverId: 2, slug: 'book-2', title: 'Book 2', authors: ['A'], isbns: [], subjects: [] }], status: 'read', format: 'audio', undated: true,
+  })
+  const book = (await as.query(api.library.myBooks, {})).find(b => b.readId === added.readId)!
+  expect(book).toMatchObject({ status: 'read', format: 'audio', finishedAt: null, readings: [] })
+})

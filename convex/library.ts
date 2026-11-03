@@ -174,11 +174,18 @@ export const setProgressUnit = mutation({
 })
 
 export const setStatus = mutation({
-  args: { readId: v.id('reads'), status: v.union(v.literal('tbr'), v.literal('reading'), v.literal('paused'), v.literal('read'), v.literal('dnf')) },
-  handler: async (ctx, { readId, status }) => {
+  args: {
+    readId: v.id('reads'),
+    status: v.union(v.literal('tbr'), v.literal('reading'), v.literal('paused'), v.literal('read'), v.literal('dnf')),
+    // Finished some time unknown, as an import says: marked read without stamping today as the finish, and with no
+    // reflection question, since it wasn't finished just now.
+    undated: v.optional(v.boolean()),
+  },
+  handler: async (ctx, { readId, status, undated }) => {
     const { userId, read } = await mine(ctx, readId)
     if (read.status === status) return
-    await changeStatus(ctx, userId, read, status)
+    if (undated && status === 'read') await ctx.db.patch(readId, { status, progress: { ...read.progress, percent: 100 } })
+    else await changeStatus(ctx, userId, read, status)
     await enqueueRead(ctx, userId, readId)
   },
 })

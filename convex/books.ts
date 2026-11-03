@@ -59,8 +59,16 @@ async function personFor(ctx: MutationCtx, userId: Id<'users'>, name: string) {
  * is. Saving never waits on Hardcover. It's an outbox row that retries, like every other change.
  */
 export const addBooks = mutation({
-  args: { books: v.array(hit), status, listId: v.optional(v.id('shelves')), source: v.optional(source) },
-  handler: async (ctx, { books, status: wanted, listId, source: from }) => {
+  args: {
+    books: v.array(hit),
+    status,
+    listId: v.optional(v.id('shelves')),
+    source: v.optional(source),
+    format: v.optional(v.union(v.literal('print'), v.literal('ebook'), v.literal('audio'))),
+    // From an import that knows a book was finished but not when: no date is made up for it.
+    undated: v.optional(v.boolean()),
+  },
+  handler: async (ctx, { books, status: wanted, listId, source: from, format, undated }) => {
     const userId = await getAuthUserId(ctx)
     if (!userId) throw new ConvexError('Sign in to add a book')
     const list = listId && await ctx.db.get(listId)
@@ -68,7 +76,7 @@ export const addBooks = mutation({
     const who = from?.who?.trim()
     const personId = who ? await personFor(ctx, userId, who) : undefined
     const now = Date.now()
-    const results: { slug: string; added: boolean }[] = []
+    const results: { slug: string; added: boolean; readId: Id<'reads'> }[] = []
 
     for (const book of books) {
       const known = await ctx.db.query('works').withIndex('by_hardcover', q => q.eq('hardcoverId', book.hardcoverId)).first()
@@ -76,7 +84,7 @@ export const addBooks = mutation({
       const mine = await ctx.db.query('reads').withIndex('by_user_work', q => q.eq('userId', userId).eq('workId', workId)).first()
       let readId = mine?._id
       if (!readId) {
-        const readings = readingsAfter([], wanted, now)
+        const readings = undated ? [] : readingsAfter([], wanted, now)
         readId = await ctx.db.insert('reads', {
           userId,
           workId,
@@ -85,7 +93,7 @@ export const addBooks = mutation({
           ...datesFrom(readings, wanted),
           readings,
           progress: { percent: wanted === 'read' ? 100 : 0 },
-          format: 'print',
+          format: format ?? 'print',
           source: from ? { kind: from.kind, who, personId, url: from.url, date: now } : undefined,
           tagIds: [],
           shelfIds: [],
@@ -97,7 +105,7 @@ export const addBooks = mutation({
         await ctx.db.patch(readId, { shelfIds: [...read.shelfIds, listId] })
         await enqueueList(ctx, userId, readId, listId, true)
       }
-      results.push({ slug: known?.slug ?? book.slug, added: !mine })
+      results.push({ slug: known?.slug ?? book.slug, added: !mine, readId })
     }
     return results
   },
