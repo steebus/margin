@@ -28,8 +28,7 @@ export function CoverControls({ readId, cover }: { readId: Id<'reads'>; cover: C
   }
 
   return (
-    <section className="cover-controls" aria-labelledby="cover-heading">
-      <h2 id="cover-heading" className="head">Picture</h2>
+    <div className="cover-controls">
       {cover.hasDrawing && (
         <div className="segments" role="group" aria-label="Which picture to show">
           <button type="button" aria-pressed={cover.choice === 'drawing'} onClick={() => void setArtChoice({ readId, choice: 'drawing' })}>Drawing</button>
@@ -49,6 +48,6 @@ export function CoverControls({ readId, cover }: { readId: Id<'reads'>; cover: C
       </form>
       {cover.state === 'failed' && cover.error && <p role="alert">{cover.error}</p>}
       {error && <p role="alert">{error}</p>}
-    </section>
+    </div>
   )
 }

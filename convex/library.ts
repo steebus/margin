@@ -6,6 +6,7 @@ import { datesFrom, positionOf, progressAt, readingsAfter, readingsOf, toBook } 
 import { askForReflection, waitingPrompt } from './lib/reflection'
 import { enqueueRead } from './lib/outbox'
 import { checkMilestones, waitingNote } from './milestones'
+import { depthOf, guideFor } from './guides'
 
 /** Every book on the signed-in reader's shelves. Empty when signed out. */
 export const myBooks = query({
@@ -36,6 +37,7 @@ export const bookBySlug = query({
     const art = await ctx.db.query('workArt').withIndex('by_work', q => q.eq('workId', work._id)).first()
     const prompt = await waitingPrompt(ctx, read._id)
     const note = await waitingNote(ctx, read._id)
+    const guide = await guideFor(ctx, work._id)
     return {
       book: toBook(read, work),
       cover: {
@@ -47,6 +49,7 @@ export const bookBySlug = query({
       },
       prompt: prompt && { id: prompt._id, question: prompt.question! },
       note,
+      guide: guide && { depth: depthOf(guide), state: guide.state },
       entries: entries.map(e => ({ id: e._id, kind: e.kind, text: e.text, question: e.question ?? null, parentId: e.parentId ?? null, position: positionOf(e.pos), createdAt: e.createdAt })),
     }
   },

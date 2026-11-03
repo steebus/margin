@@ -7,11 +7,9 @@ import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { errorText } from '../../lib/books'
 import { NotFoundBook } from '../book/BookPage'
+import { GUIDE_LABEL } from '../book/GuideControls'
 import { Thumb } from '../thumb/Thumb'
 import { Typewriter } from '../typewriter/Typewriter'
-
-// Rough, from real runs: deep was $1.48 on Red Rising before it was trimmed.
-const GUIDE_LABEL = { light: 'Light guide, about 20¢', deep: 'Deep guide, about $1.10' }
 
 function Thread({ readId, title }: { readId: Id<'reads'>; title: string }) {
   const thread = useQuery(api.buddy.thread, { readId })

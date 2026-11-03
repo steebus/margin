@@ -753,6 +753,10 @@ td a { display: inline-flex; align-items: center; min-height: 44px; color: inher
 .sheet-head-text { display: grid; gap: 2px; }
 .sheet-head .pct { font-size: 2rem; }
 .sheet .btn { justify-content: center; }
+/* Guide and picture fold away under the everyday actions. */
+.sheet-more { border-top: var(--line) solid var(--ink); padding-top: 10px; }
+.sheet-more > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font: inherit; font-weight: 600; }
+.sheet-more[open] > summary { margin-bottom: 8px; }
 .stamp-float { position: fixed; inset: auto auto calc(108px + env(safe-area-inset-bottom)) 50%; z-index: 7; translate: -50% 0; }
 
 /* ---------- Reading strip: the books in hand, big enough to see ---------- */

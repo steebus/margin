@@ -1,14 +1,14 @@
 import { Link, useParams } from '@tanstack/react-router'
 import { useMutation } from 'convex/react'
 import { useQuery } from 'convex-helpers/react/cache/hooks'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Ellipsis } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { slugify } from '../../../convex/lib/hardcover'
 import { api } from '../../../convex/_generated/api'
 import { formatDate, type Book, type Status } from '../../lib/books'
 import { formatClock, pagesPerDay } from '../../lib/progress'
 import { daysToRead } from '../../lib/shelf'
-import { CoverControls } from './CoverControls'
+import { useOpenBookActions } from './BookActions'
 import { EntryList } from './EntryList'
 import { ProgressForm } from './ProgressForm'
 import { QuickActions } from './QuickActions'
@@ -82,6 +82,7 @@ export function BookPage() {
   const setStatus = useMutation(api.library.setStatus)
   const setRating = useMutation(api.library.setRating)
   const [logging, setLogging] = useState(false)
+  const openActions = useOpenBookActions()
   const [logged, setLogged] = useState<string | null>(null)
 
   useEffect(() => {
@@ -93,7 +94,7 @@ export function BookPage() {
   if (found === undefined) return <p role="status">Finding your book…</p>
   if (found === null) return <NotFoundBook />
 
-  const { book, entries, cover, prompt, note } = found
+  const { book, entries, prompt, note } = found
   const showProgress = book.status === 'reading' || book.status === 'paused'
 
   return (
@@ -118,6 +119,9 @@ export function BookPage() {
       </header>
 
       <QuickActions book={book} logging={logging} onLog={() => setLogging(!logging)} />
+      <div className="btn-row">
+        <button type="button" className="btn" onClick={() => openActions(book)}><Ellipsis aria-hidden="true" strokeWidth={2.25} />Guide, picture and more</button>
+      </div>
 
       {logging && book.status !== 'read' && <ProgressForm book={book} onSaved={label => { setLogging(false); setLogged(label) }} />}
       {logged && <p role="status">Logged: {logged}</p>}
@@ -166,8 +170,6 @@ export function BookPage() {
         )}
       </section>
 
-      <hr className="rule" />
-      <CoverControls readId={book.readId} cover={cover} />
     </div>
   )
 }

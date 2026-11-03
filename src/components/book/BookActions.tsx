@@ -4,7 +4,11 @@ import { BookOpen, X } from 'lucide-react'
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import type { Book } from '../../lib/books'
 import { useLongPress } from '../../lib/longPress'
+import { useQuery } from 'convex-helpers/react/cache/hooks'
+import { api } from '../../../convex/_generated/api'
 import { Thumb } from '../thumb/Thumb'
+import { CoverControls } from './CoverControls'
+import { GuideControls } from './GuideControls'
 import { ProgressForm } from './ProgressForm'
 import { QuickActions } from './QuickActions'
 
@@ -12,10 +16,14 @@ const OpenActions = createContext<(book: Book) => void>(() => {})
 
 /** Hold a book anywhere to get what you do with it. */
 export const useBookHold = (book: Book) => useLongPress(useContext(OpenActions).bind(null, book))
+/** Opens the same sheet from a button, for the book page. */
+export const useOpenBookActions = () => useContext(OpenActions)
 
 function Sheet({ book, onClose, onLogged }: { book: Book; onClose: () => void; onLogged: (label: string) => void }) {
   const ref = useRef<HTMLDialogElement>(null)
   const [logging, setLogging] = useState(false)
+  // The guide and the picture, which the shelf's list of books doesn't carry.
+  const found = useQuery(api.library.bookBySlug, { slug: book.slug })
 
   useEffect(() => {
     const dialog = ref.current!
@@ -50,6 +58,18 @@ function Sheet({ book, onClose, onLogged }: { book: Book; onClose: () => void; o
         <QuickActions book={book} logging={logging} onLog={() => setLogging(!logging)} />
         {logging && book.status !== 'read' && <ProgressForm book={book} onSaved={onLogged} />}
         <Link to="/books/$bookSlug" params={{ bookSlug: book.slug }} className="btn"><BookOpen aria-hidden="true" strokeWidth={2.25} />Open the book</Link>
+        {found && (
+          <>
+            <details className="sheet-more">
+              <summary>Guide</summary>
+              <GuideControls readId={book.readId} guide={found.guide} />
+            </details>
+            <details className="sheet-more">
+              <summary>Picture</summary>
+              <CoverControls readId={book.readId} cover={found.cover} />
+            </details>
+          </>
+        )}
       </motion.div>
     </dialog>
   )
