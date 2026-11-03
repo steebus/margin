@@ -176,10 +176,11 @@ p a { color: inherit; text-underline-offset: 3px; }
 .thumb { position: relative; display: block; aspect-ratio: 2 / 3; container-type: inline-size; }
 /* Generated art is a greyscale drawing on pure white. It's printed onto the page, not placed on it. */
 .thumb-generated { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; mix-blend-mode: multiply; }
-/* In the dark theme covers stay the right way round, on their own paper, dimmed and softened so they don't glare. */
-:root[data-theme='dark'] :is(.thumb-generated, .thumb-art:not(.thumb-stamp + .thumb-art)) { background: #d8d6cf; filter: brightness(0.62) contrast(0.82); }
+/* In the dark theme covers stay as they are in daylight, on their own paper, just a little dimmer so they don't glare.
+   Not multiplied onto the page as in daylight: against a dark page that would turn them black. */
+:root[data-theme='dark'] :is(.thumb-generated, .thumb-art:not(.thumb-stamp + .thumb-art)) { background: #d8d6cf; filter: brightness(0.86) contrast(0.94); mix-blend-mode: normal; }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) :is(.thumb-generated, .thumb-art:not(.thumb-stamp + .thumb-art)) { background: #d8d6cf; filter: brightness(0.62) contrast(0.82); }
+  :root:not([data-theme='light']) :is(.thumb-generated, .thumb-art:not(.thumb-stamp + .thumb-art)) { background: #d8d6cf; filter: brightness(0.86) contrast(0.94); mix-blend-mode: normal; }
 }
 /* The title prints at the top of every cover. Over a picture, a strip of paper behind each line lifts it clear. */
 .thumb-title {
@@ -422,6 +423,10 @@ td a { display: inline-flex; align-items: center; min-height: 44px; color: inher
 /* ---------- Book page ---------- */
 .book-head { display: grid; grid-template-columns: 34% minmax(0, 1fr); gap: 18px; align-items: start; }
 .cover-controls { display: grid; gap: 10px; }
+.gaps { border-top: var(--line) solid var(--ink); }
+.gaps > summary { display: flex; justify-content: space-between; align-items: center; min-height: 48px; cursor: pointer; font-weight: 600; }
+.gaps-list { display: grid; gap: 2px; padding-bottom: 12px; }
+.gaps-list a { display: inline-block; min-height: 32px; padding-block: 4px; color: inherit; text-underline-offset: 3px; }
 /* Quiet, so they're there when needed and not otherwise. */
 .correct { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 4px; }
 .correct button { min-height: 44px; padding: 0; border: 0; background: none; color: inherit; font: 400 0.9375rem/1.2 var(--book); opacity: 0.7; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }

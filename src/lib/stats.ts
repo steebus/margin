@@ -113,3 +113,19 @@ export function headline(finishes: Finish[]) {
     medianDays: days.length ? days[Math.floor(days.length / 2)] : null,
   }
 }
+
+export type Gap = { key: 'finished' | 'started' | 'rating'; label: string; books: Book[] }
+
+/**
+ * Books with details missing that the reader can fill in on the book page, each of which goes to Hardcover: when a
+ * finished book was finished or started, and what it was rated. A book read twice counts once.
+ */
+export function gaps(books: Book[]): Gap[] {
+  const read = books.filter(b => b.status === 'read')
+  const reading = books.filter(b => b.status === 'reading' || b.status === 'paused')
+  return [
+    { key: 'finished' as const, label: 'Finished, but no finish date', books: read.filter(b => !b.readings.some(r => r.finishedAt)) },
+    { key: 'started' as const, label: 'No start date', books: [...read, ...reading].filter(b => !b.readings.some(r => r.startedAt)) },
+    { key: 'rating' as const, label: 'Finished, but not rated', books: read.filter(b => b.rating === null) },
+  ].filter(g => g.books.length > 0)
+}

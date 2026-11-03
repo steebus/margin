@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest'
 import type { Book } from './books'
-import { bestSources, byDays, byMonth, byRating, byYear, finishesOf, headline, tbrAge } from './stats'
+import { bestSources, byDays, byMonth, byRating, byYear, finishesOf, gaps, headline, tbrAge } from './stats'
 
 const day = (text: string) => Date.parse(text)
 const book = (over: Partial<Book>) => ({ title: 'A', author: 'Ann', status: 'read', format: 'print', pages: 100, rating: null, subjects: [], readings: [], addedAt: null, recommendedBy: null, ...over }) as Book
@@ -64,4 +64,21 @@ test('a re-read counts twice in the numbers, but is one book in the list behind 
   const [row] = byYear(finishesOf([book({ readings: [{ finishedAt: day('2020-01-01') }, { finishedAt: day('2020-06-01') }] })]), 'books')
   expect(row.value).toBe(2)
   expect(row.books).toHaveLength(1)
+})
+
+test('gaps finds finished books missing dates or a rating, and books in hand with no start', () => {
+  const b = (slug: string, status: string, readings: Book['readings'], rating: number | null = 4) => ({ slug, status, readings, rating }) as Book
+  const found = gaps([
+    b('complete', 'read', [{ startedAt: 1, finishedAt: 2 }]),
+    b('undated', 'read', [], null),
+    b('no-start', 'read', [{ finishedAt: 2 }]),
+    b('in-hand', 'reading', []),
+    b('waiting', 'tbr', []),
+  ])
+  expect(found.map(g => [g.key, g.books.map(x => x.slug)])).toEqual([
+    ['finished', ['undated']],
+    ['started', ['undated', 'no-start', 'in-hand']],
+    ['rating', ['undated']],
+  ])
+  expect(gaps([b('complete', 'read', [{ startedAt: 1, finishedAt: 2 }])])).toEqual([])
 })

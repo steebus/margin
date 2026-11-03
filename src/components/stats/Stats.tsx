@@ -4,7 +4,8 @@ import { useState } from 'react'
 import { sortBooks } from '../../lib/shelf'
 import { Catalog } from '../shelf/BookList'
 import { useBooks } from '../../lib/offline'
-import { bestSources, byAuthor, byDays, byFormat, byGenre, byMonth, byRating, byYear, finishesOf, headline, tbrAge, type Row } from '../../lib/stats'
+import { bestSources, byAuthor, byDays, byFormat, byGenre, byMonth, byRating, byYear, finishesOf, gaps, headline, tbrAge, type Row } from '../../lib/stats'
+import type { Book } from '../../lib/books'
 
 /** The books behind a mark. */
 function Behind({ row, onClose }: { row: Row; onClose: () => void }) {
@@ -84,6 +85,31 @@ function Bars({ title, rows, note }: { title: string; rows: Row[]; note?: string
   )
 }
 
+/** Books with gaps worth filling, each a tap away from where it's edited. What's filled in there goes to Hardcover. */
+function MissingDetails({ books }: { books: Book[] }) {
+  const found = gaps(books)
+  return (
+    <section className="stack" aria-labelledby="gaps-heading">
+      <h2 id="gaps-heading" className="head">Missing details</h2>
+      {found.length === 0
+        ? <p>Every finished book has its dates and a rating.</p>
+        : found.map(g => (
+          <details key={g.key} className="gaps">
+            <summary>{g.label} <span className="where">{g.books.length.toLocaleString('en-GB')}</span></summary>
+            <ul className="gaps-list">
+              {g.books.map(b => (
+                <li key={b.readId}>
+                  <Link to="/books/$bookSlug" params={{ bookSlug: b.slug }} hash={g.key === 'rating' ? 'book-rating' : 'reads-heading'}>{b.title}</Link>
+                  <span className="where"> {b.author}</span>
+                </li>
+              ))}
+            </ul>
+          </details>
+        ))}
+    </section>
+  )
+}
+
 export function Stats() {
   const { range } = useSearch({ from: '/stats' })
   const navigate = useNavigate({ from: '/stats' })
@@ -134,6 +160,7 @@ export function Stats() {
       <Bars title="Format" rows={byFormat(finishes)} />
       <Bars title="Whose recommendations land" rows={bestSources(books)} note="Average rating, for anyone with two or more rated books." />
       {!year && <Bars title="How long your TBR has waited" rows={tbrAge(books, Date.now())} />}
+      {!year && <MissingDetails books={books} />}
     </div>
   )
 }
