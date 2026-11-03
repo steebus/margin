@@ -33,6 +33,12 @@ export function NotFoundBook() {
 }
 
 /** Everything known about the book, leaving out what isn't. */
+// How each status is stamped on the cover, as a library stamps a card.
+const STAMP: Record<Status, string> = { reading: 'Reading', paused: 'Paused', read: 'Read', tbr: 'To be read', dnf: 'Abandoned' }
+// Facts too long for a cell take the card's full width; dates print a little off true, as stamped dates do.
+const WIDE = new Set(['Genres', 'Recommended by', 'ISBN'])
+const DATES = new Set(['Added', 'Started', 'Finished'])
+
 function bookFacts(book: Book, notes: number) {
   const days = daysToRead(book)
   const pace = pagesPerDay(book.pages, days)
@@ -101,11 +107,11 @@ export function BookPage() {
     <div className="narrow stack">
       <Link to="/shelves" className="back"><ArrowLeft aria-hidden="true" strokeWidth={2.25} />Shelves</Link>
 
+      {/* The book's catalog entry: the cover, its status stamped across the corner, and the title at full size. */}
       <header className="book-head">
-        <Thumb book={book} />
-        <div className="book-head-text">
-          <h1 className="book-title">{book.title}</h1>
-          <p>{book.author}</p>
+        <div className="book-cover"><Thumb book={book} /></div>
+        <div className="book-state">
+          <p className="stamp stamp-status" data-status={book.status}>{STAMP[book.status]}</p>
           {showProgress && (
             <>
               <p className="pct pct-large">{book.percent}%</p>
@@ -115,8 +121,17 @@ export function BookPage() {
                 : book.page !== null && book.pages && <p className="where">Page {book.page} of {book.pages}</p>}
             </>
           )}
+          {book.status === 'read' && book.rating !== null && (
+            <p className="book-rating"><span className="pct pct-large">{book.rating}</span> <span className="where">of 5</span></p>
+          )}
+          {book.status === 'read' && book.finishedAt && <p className="where">Finished {formatDate(book.finishedAt)}</p>}
+        </div>
+        <div className="book-name">
+          <h1 className="book-title">{book.title}</h1>
+          <p className="book-author">{book.author}</p>
         </div>
       </header>
+      <hr className="rule" />
 
       <QuickActions book={book} logging={logging} onLog={() => setLogging(!logging)} />
       <div className="btn-row">
@@ -147,14 +162,17 @@ export function BookPage() {
 
       <Lists book={book} />
 
-      <table className="card-table">
-        <caption>Library card</caption>
-        <tbody>
+      <section className="card" aria-labelledby="card-heading">
+        <h2 id="card-heading" className="card-band">Library card</h2>
+        <dl className="card-grid">
           {bookFacts(book, entries.length).map(([label, value]) => (
-            <tr key={label}><th scope="row">{label}</th><td>{value}</td></tr>
+            <div key={label} className="card-cell" data-wide={WIDE.has(label) || undefined} data-date={DATES.has(label) || undefined}>
+              <dt>{label}</dt>
+              <dd>{value}</dd>
+            </div>
           ))}
-        </tbody>
-      </table>
+        </dl>
+      </section>
 
       <ReadDates book={book} />
 

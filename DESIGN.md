@@ -39,10 +39,10 @@ typography:
     letterSpacing: "0.02em"
   book-title:
     fontFamily: "Source Serif 4 Variable, Georgia, serif"
-    fontSize: "clamp(1.75rem, 7.5vw, 2.75rem)"
-    fontWeight: 600
-    lineHeight: 1.08
-    letterSpacing: "-0.01em"
+    fontSize: "clamp(2.5rem, 11.5vw, 4.75rem)"
+    fontWeight: 700
+    lineHeight: 0.98
+    letterSpacing: "-0.025em"
   figure:
     fontFamily: "Source Serif 4 Variable, Georgia, serif"
     fontSize: "clamp(1.5rem, 7.8vw, 2.75rem)"
@@ -161,7 +161,7 @@ One ink on one paper, with two accents that each have a single job. The CSS cust
 ### Neutral
 - **Newsprint** (paper): The single ground. Sheets, toasts and stamps use it too, to knock out what's beneath them.
 - **Ink Wash** (soft): The hover tint, on devices that hover.
-- **Night stock** (night-paper, night-ink, night-biro, night-rule, night-soft): The same roles in reverse. Covers repaint for night by inking the light parts of the image.
+- **Night stock** (night-paper, night-ink, night-biro, night-rule, night-soft): The same roles in reverse. Covers are the exception: they keep their daylight look, slightly dimmed.
 
 ### Named Rules
 **The Magenta Divider Rule.** Magenta is for divider rules only.
@@ -181,7 +181,7 @@ The build also uses biro for the focus outline, text selection and caret. Those 
 ### Hierarchy
 - **Display** (400, clamp(3rem, 15vw, 5rem), 1): Page titles such as Shelves and The drawer. The Desk masthead uses this style at 2.75rem, and 4rem on wide screens.
 - **Headline** (400, 1.75rem, 1): Section heads. Year heads and the library card caption are 1.5rem.
-- **Book title** (600, clamp(1.75rem, 7.5vw, 2.75rem), 1.08): A book's own title on its page. Smaller listings use the same serif at 600 (1 to 1.25rem).
+- **Book title** (700, clamp(2.5rem, 11.5vw, 4.75rem), 0.98): A book's own title on its page, at display scale, with the author beneath in gothic at 1.5 to 2.25rem. Smaller listings use the same serif at 600 (1 to 1.25rem).
 - **Figure** (600, clamp(1.5rem, 7.8vw, 2.75rem), 1): Progress percentages in lining figures, 3.5rem on wide screens and up to 4.5rem on the book page. Progress leads with a percentage because audiobooks have no pages.
 - **Body** (400, 1.0625rem, 1.45): Interface prose in old-style figures. Metadata is 0.9375rem, and catalog codes are 0.75rem.
 - **Book voice** (400, 1.25rem, 1.4): Excerpts. 1.125rem in entries and toasts, 1.5rem on a drawer card.
@@ -253,7 +253,7 @@ A ruled cell holding the title and a 2:3 book-shaped picture, which runs to the 
 ### Covers
 Every cover prints in one ink on bare paper, drawn to a canvas 1:1 with device pixels. A printed title stamp shows until the art lands, or if there's none.
 
-**Thumbnails:** generated engraved illustrations, with blank paper above for the title, printed onto the page with blend modes (`multiply` by day; `invert` and `screen` by night), falling back to a pen cross-hatch of the real cover, then a printed title stamp. See `docs/SPEC.md` §3.11. `public/art-demo/` holds hand-stored test scenes until the pipeline exists.
+**Thumbnails:** generated engraved illustrations, with blank paper above for the title, printed onto the page with `multiply` by day; by night they keep their daylight look on their own paper, a little dimmer (`brightness(0.86) contrast(0.94)`), never inverted, falling back to a pen cross-hatch of the real cover, then a printed title stamp. See `docs/SPEC.md` §3.11. `public/art-demo/` holds hand-stored test scenes until the pipeline exists.
 
 ### Biro Marks
 Biro marks carry meaning: a circle is reading, a tick is finished, a strike is abandoned. Each stroke draws itself in 520ms. A hand-drawn arrow also leads the reader's turns in a buddy thread, as a pointer rather than a status.
@@ -262,6 +262,9 @@ Biro marks carry meaning: a circle is reading, a tick is finished, a strike is a
 The buddy's note types one character at a time from the top line down, with uneven ink, a strike on each glyph, longer beats after punctuation, and a carriage that creeps left. Height is reserved, so nothing shifts. It starts only once its first line clears the tab bar, and a tap or the keyboard's Finish typing button completes it.
 
 **The Tiny Bounce Rule.** The typewriter sheet's kick uses an overshoot easing (`cubic-bezier(0.34, 1.5, 0.64, 1)`, 200ms) as a deliberate exception, because the brief asks for a tiny bounce. The same curve drives the carriage on that sheet. Don't borrow it for anything else.
+
+### The Book Page
+The book's page is its catalog entry. The cover runs large (52% on a phone, 260px wide) with an ink rule, the status is a double-ruled stamp set -5deg (Read inverts to solid ink; Abandoned is struck through) that lands with a 380ms ease-out scale, and the magenta divider closes the head. The library card is a solid ink band over ruled cells sharing their rules: gothic labels at 1rem, serif figures at 1.5rem, and dates as small double-ruled stamps a few degrees off true.
 
 ### Stamps and Physical Moments
 Logging progress stamps a rotated, double-ruled label over the reading cells, with a 15ms vibration where supported. The drawer's card rises and flicks away on Shuffle. The toast rises about once a week and clears itself after 9 seconds. These run on Motion springs that are lightly underdamped, so they settle with a small natural overshoot. Library card dates sit a few degrees off true, and a reader's turn tilts -0.8deg.
