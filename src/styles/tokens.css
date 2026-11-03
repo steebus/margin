@@ -11,6 +11,9 @@
   --buddy: 'Courier Prime', 'Courier New', monospace;
   --reader: 'Kalam', 'Comic Sans MS', cursive;
   --line: 2px;
+  /* The paper and ink a cover is printed in. Covers keep their daylight stock in both themes. */
+  --cover-paper: #d8d6cf;
+  --cover-ink: #121212;
   color-scheme: light;
   scrollbar-color: var(--ink) var(--paper);
 }
@@ -24,6 +27,9 @@
   --rule: #f0589f;
   --soft: rgb(230 227 218 / 0.1);
   --grey: #6e6b65;
+  /* The daylight stock, dimmed as the cover art is in styles/app.css, so titles sit on the same tone as the drawing. */
+  --cover-paper: #b6b5af;
+  --cover-ink: #161616;
   color-scheme: dark;
 }
 @media (prefers-color-scheme: dark) {
@@ -33,7 +39,9 @@
     --biro: #93a9ff;
     --rule: #f0589f;
     --soft: rgb(230 227 218 / 0.1);
-  --grey: #6e6b65;
+    --grey: #6e6b65;
+    --cover-paper: #b6b5af;
+    --cover-ink: #161616;
     color-scheme: dark;
   }
 }

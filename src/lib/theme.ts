@@ -20,6 +20,20 @@ const current = () => resolveTheme(readSaved(), system().matches)
 
 let override: Theme | null = null
 
+/** --paper for each theme in styles/tokens.css: the phone's status bar is printed on the same stock. */
+export const BAR_COLOR: Record<Theme, string> = { light: '#d8d6cf', dark: '#1b1b19' }
+
+/** Points the browser's status bar at the theme on show. */
+export function watchThemeColor() {
+  const sync = () => {
+    const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')
+    if (meta) meta.content = BAR_COLOR[override ?? current()]
+  }
+  sync()
+  listeners.add(sync)
+  system().addEventListener('change', sync)
+}
+
 export type ThemeChoice = Theme | 'system'
 let chosen: ThemeChoice | null = null
 

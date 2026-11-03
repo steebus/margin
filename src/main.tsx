@@ -12,10 +12,12 @@ import { ConvexQueryCacheProvider } from 'convex-helpers/react/cache/provider'
 import { MotionConfig } from 'motion/react'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { watchThemeColor } from './lib/theme'
 import { watchForUpdates } from './lib/updates'
 import { routeTree } from './routeTree.gen'
 
 watchForUpdates()
+watchThemeColor()
 // The old drawings cache held opaque responses, which count as ~7 MB each. Gone once it's deleted.
 void globalThis.caches?.delete('drawings')
 

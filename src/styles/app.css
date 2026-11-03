@@ -191,7 +191,7 @@ p a { color: inherit; text-underline-offset: 3px; }
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
   overflow: hidden;
-  color: var(--ink);
+  color: var(--cover-ink);
   /* Sized from the words in lib/art.ts: as large as fits three lines, words never broken or hyphenated. */
   font: 400 var(--fit, 10cqi)/1.12 var(--head);
   letter-spacing: 0.02em;
@@ -199,12 +199,17 @@ p a { color: inherit; text-underline-offset: 3px; }
   hyphens: manual;
   text-transform: uppercase;
 }
-.thumb-title span { padding: 0 0.2em; background: var(--paper); -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+.thumb-title span { padding: 0 0.2em; background: var(--cover-paper); -webkit-box-decoration-break: clone; box-decoration-break: clone; }
 .cell { position: relative; }
 .cell > .thumb { margin-top: auto; }
 .cell-tick { position: absolute; inset: auto 6px 6px auto; z-index: 2; width: 20px; height: 20px; }
 /* Art runs right up to the rules on the bottom and sides. Elsewhere it has no cell, so it gets its own rule. */
 .cell:has(.thumb[data-art]) > .thumb { width: calc(100% + 12px); margin: auto -6px -6px; }
+/* At night pale rules between pale covers read as a glaring grid. The covers fill their cells and the rules print in the page's own dark. */
+:root[data-theme='dark'] .catalog > .cell:has(.thumb[data-art]) { padding-top: 0; border-color: var(--paper); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .catalog > .cell:has(.thumb[data-art]) { padding-top: 0; border-color: var(--paper); }
+}
 .book-head .thumb[data-art], .buddy-head .thumb[data-art] { border: var(--line) solid var(--ink); }
 .thumb-art { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
 .thumb-icon { display: block; width: 100%; height: 100%; object-fit: contain; padding: 8%; }
@@ -875,17 +880,18 @@ td a { display: inline-flex; align-items: center; min-height: 44px; color: inher
 /* ---------- Reading strip: the books in hand, big enough to see ---------- */
 .strip-wrap { display: grid; gap: 6px; min-width: 0; }
 .strip {
-  display: flex;
-  gap: 12px;
-  margin-inline: -16px;
-  padding: 2px 16px 6px;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  scroll-padding-inline: 16px;
-  scrollbar-width: none;
+  /* The books in hand fit the page side by side, up to three across, and wrap below beyond that. */
+  display: grid;
+  grid-template-columns: repeat(var(--across, 3), minmax(0, 1fr));
+  gap: 10px;
+  padding-bottom: 6px;
 }
-.strip > li { flex: none; width: min(62vw, 300px); scroll-snap-align: start; }
-.strip[data-count='1'] > li { width: min(78vw, 340px); }
+.strip[data-count='1'] { grid-template-columns: minmax(0, min(78%, 340px)); }
+.strip[data-count='2'] { --across: 2; }
+.strip > li { min-width: 0; }
+.strip[data-count='3'] .strip-foot { padding: 6px 8px 8px; }
+.strip[data-count='3'] .strip-foot .pct { font-size: 1.75rem; }
+.strip[data-count='3'] .strip-sub { font-size: 0.8125rem; }
 .strip-card { display: grid; height: 100%; border: var(--line) solid var(--ink); border-radius: 3px; color: inherit; text-decoration: none; overflow: hidden; }
 .strip-card > .thumb { border-bottom: var(--line) solid var(--ink); }
 .strip-card > .thumb .thumb-stamp { border: 0; }
@@ -938,9 +944,11 @@ button.back { justify-self: start; padding: 0; border: 0; background: none; curs
   .pile-row { --pile-gap: 20px; grid-template-columns: minmax(0, 58%) minmax(0, 42%); }
   .spine-author { font-size: 1rem; }
   /* Wide, the books in hand sit in a grid that fits the column, instead of scrolling sideways out of it. */
-  .strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); margin-inline: 0; padding-inline: 0; overflow: visible; }
-  .strip > li { width: auto; }
+  .strip { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
   .strip[data-count='1'] { grid-template-columns: minmax(0, 280px); }
+  .strip[data-count='3'] .strip-foot { padding: 8px 10px 10px; }
+  .strip[data-count='3'] .strip-foot .pct { font-size: 2.25rem; }
+  .strip[data-count='3'] .strip-sub { font-size: 0.9375rem; }
   .strip-hint { display: none; }
   .pct { font-size: 3.5rem; }
   .pct-large { font-size: 4.5rem; }
