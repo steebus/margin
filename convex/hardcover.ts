@@ -72,6 +72,8 @@ const bookItem = v.object({
     pages: v.optional(v.number()),
     audioSeconds: v.optional(v.number()),
     subjects: v.array(v.string()),
+    authorGender: v.optional(v.string()),
+    authorCountry: v.optional(v.string()),
   }),
   read: v.object({
     hardcoverUserBookId: v.number(),

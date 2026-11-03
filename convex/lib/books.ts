@@ -51,6 +51,8 @@ export function toBook(read: Doc<'reads'>, work: Doc<'works'>) {
     startedAt: read.startedAt ?? null,
     finishedAt: read.finishedAt ?? null,
     recommendedBy: read.source?.who ?? null,
+    authorGender: work.authorGender ?? null,
+    authorCountry: work.authorCountry ?? null,
   }
 }
 

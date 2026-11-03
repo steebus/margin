@@ -3,7 +3,7 @@ export const LIBRARY_QUERY = `query Library($limit: Int!, $offset: Int!) {
   me { user_books(limit: $limit, offset: $offset, order_by: {id: asc}) {
     id status_id rating first_started_reading_date last_read_date date_added recommended_by owned review_raw reviewed_at
     edition { isbn_13 isbn_10 pages audio_seconds reading_format_id }
-    book { id title pages audio_seconds release_year cached_contributors cached_image cached_tags }
+    book { id title pages audio_seconds release_year cached_contributors cached_image cached_tags contributions(limit: 1) { author { gender_id location } } }
     user_book_reads(order_by: {id: desc}) { id progress progress_pages progress_seconds started_at finished_at }
   } }
 }`
@@ -29,6 +29,7 @@ export type HardcoverUserBook = {
     cached_contributors?: { author?: { name?: string | null } | null; contribution?: string | null }[] | null
     cached_image?: { url?: string | null } | null
     cached_tags?: { Genre?: { tag?: string | null }[] | null } | null
+    contributions?: { author?: { gender_id?: number | null; location?: string | null } | null }[] | null
   } | null
   user_book_reads?: { id?: number | null; progress?: number | null; progress_pages?: number | null; progress_seconds?: number | null; started_at?: string | null; finished_at?: string | null }[] | null
 }
@@ -50,6 +51,31 @@ const day = (value?: string | null) => {
 }
 
 /** One Margin work and read, or null for records Margin doesn't keep: "Ignored" books, or ones with no book attached. */
+// Hardcover's gender ids, as its author pages show them.
+const GENDER = { 1: 'man', 2: 'woman', 3: 'non-binary' } as const
+const US_STATES = new Set(['alabama', 'alaska', 'arizona', 'arkansas', 'california', 'colorado', 'connecticut', 'delaware', 'florida', 'georgia', 'hawaii', 'idaho', 'illinois', 'indiana', 'iowa', 'kansas', 'kentucky', 'louisiana', 'maine', 'maryland', 'massachusetts', 'michigan', 'minnesota', 'mississippi', 'missouri', 'montana', 'nebraska', 'nevada', 'new hampshire', 'new jersey', 'new mexico', 'new york', 'north carolina', 'north dakota', 'ohio', 'oklahoma', 'oregon', 'pennsylvania', 'rhode island', 'south carolina', 'south dakota', 'tennessee', 'texas', 'utah', 'vermont', 'virginia', 'washington', 'washington state', 'west virginia', 'wisconsin', 'wyoming'])
+const COUNTRY: Record<string, string> = {
+  usa: 'United States', us: 'United States', 'u.s.': 'United States', 'u.s.a.': 'United States', america: 'United States',
+  'united states of america': 'United States', 'united states': 'United States',
+  uk: 'United Kingdom', 'u.k.': 'United Kingdom', england: 'United Kingdom', scotland: 'United Kingdom', wales: 'United Kingdom',
+  'northern ireland': 'United Kingdom', 'great britain': 'United Kingdom', britain: 'United Kingdom', 'united kingdom': 'United Kingdom',
+}
+
+/** The country in an author's free-text location: its last part, with the usual ways of naming the US and UK made one. */
+export function countryOf(location: string | null | undefined): string | undefined {
+  const last = location?.split(',').map(p => p.trim()).filter(Boolean).at(-1)
+  if (!last) return undefined
+  const key = last.toLowerCase().replace(/\s+/g, ' ')
+  return COUNTRY[key] ?? (US_STATES.has(key) ? 'United States' : last)
+}
+
+/** What Hardcover knows about the first author, for the stats: gender and country, when it has them. */
+export function authorFacts(author: { gender_id?: number | null; location?: string | null } | null | undefined) {
+  const gender = GENDER[author?.gender_id as keyof typeof GENDER]
+  const country = countryOf(author?.location)
+  return { ...(gender ? { authorGender: gender } : {}), ...(country ? { authorCountry: country } : {}) }
+}
+
 export function mapUserBook(ub: HardcoverUserBook) {
   const status = STATUS[ub.status_id as keyof typeof STATUS]
   const book = ub.book
@@ -79,6 +105,7 @@ export function mapUserBook(ub: HardcoverUserBook) {
       pages,
       audioSeconds: ub.edition?.audio_seconds || book.audio_seconds || undefined,
       subjects: (book.cached_tags?.Genre ?? []).map(g => g.tag).filter((t): t is string => !!t).slice(0, 5),
+      ...authorFacts(book.contributions?.[0]?.author),
     },
     read: {
       hardcoverUserBookId: ub.id,

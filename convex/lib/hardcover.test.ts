@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { mapUserBook, slugify, type HardcoverUserBook } from './hardcover'
+import { authorFacts, countryOf, mapUserBook, slugify, type HardcoverUserBook } from './hardcover'
 
 const base: HardcoverUserBook = {
   id: 7,
@@ -76,4 +76,16 @@ test('a bad date is ignored rather than stored', () => {
 test('slugs are stable, plain and unique per book', () => {
   expect(slugify('Pédro Páramo: A Novel!')).toBe('pedro-paramo-a-novel')
   expect(mapUserBook(base)!.work.slug).toBe(`the-left-hand-of-darkness-guin-${(588605).toString(36)}`)
+})
+
+test("an author's location becomes a country, with the US and UK named one way", () => {
+  expect(countryOf('Portland, Oregon, USA')).toBe('United States')
+  expect(countryOf('Washington State, United States of America')).toBe('United States')
+  expect(countryOf('Gig Harbor, Washington')).toBe('United States')
+  expect(countryOf('Stony Stratford, Buckinghamshire, England, United Kingdom')).toBe('United Kingdom')
+  expect(countryOf('Glasgow, Scotland')).toBe('United Kingdom')
+  expect(countryOf('Lagos, Nigeria')).toBe('Nigeria')
+  expect(countryOf('')).toBeUndefined()
+  expect(authorFacts({ gender_id: 2, location: 'America' })).toEqual({ authorGender: 'woman', authorCountry: 'United States' })
+  expect(authorFacts({ gender_id: 9, location: null })).toEqual({})
 })

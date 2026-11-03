@@ -35,6 +35,9 @@ export default defineSchema({
     audioSeconds: v.optional(v.number()),
     subjects: v.array(v.string()),
     originalLanguage: v.optional(v.string()),
+    // The first author's, from Hardcover, for the stats. Missing where Hardcover doesn't know.
+    authorGender: v.optional(v.string()),
+    authorCountry: v.optional(v.string()),
   })
     .index('by_slug', ['slug'])
     .index('by_hardcover', ['hardcoverId'])
