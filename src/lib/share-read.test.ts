@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { bookmarklet, cleanUrl, readShare } from './share-read'
+import { bookmarklet, cleanUrl, matchBook, readShare, readWords } from './share-read'
 
 const GR = 'https://www.goodreads.com/book/show/40180098-the-overstory'
 
@@ -55,4 +55,27 @@ test('the bookmarklet points at the share screen and escapes what it sends', () 
   const code = bookmarklet('https://margin.app')
   expect(code).toMatch(/^javascript:/)
   expect(code).toContain("'https://margin.app/capture/share?popup=1&url='+encodeURIComponent(location.href)")
+})
+
+test('a highlight shared from a reading app gives the quote, the book and the page', () => {
+  expect(readShare({ text: '“It was a bright cold day in April, and the clocks were striking thirteen.”\n\nNineteen Eighty-Four by George Orwell, page 3\nhttps://play.google.com/books/reader?id=abc&pg=GBS.PA3' }))
+    .toEqual({ kind: 'words', quote: 'It was a bright cold day in April, and the clocks were striking thirteen.', title: 'Nineteen Eighty-Four', author: 'George Orwell', page: 3 })
+  expect(readShare({ text: '"All happy families are alike."\n— from Anna Karenina by Leo Tolstoy' }))
+    .toMatchObject({ kind: 'words', quote: 'All happy families are alike.', title: 'Anna Karenina', author: 'Leo Tolstoy', page: null })
+  expect(readWords('Words with no book.\nhttps://play.google.com/books/reader?id=x&pg=GBS.PA42')).toMatchObject({ quote: 'Words with no book.', title: null, page: 42 })
+})
+
+test('plain words are kept as they are, and a one-line share is never mistaken for a book', () => {
+  expect(readShare({ text: 'Something I thought on the bus' })).toEqual({ kind: 'words', quote: 'Something I thought on the bus', title: null, author: null, page: null })
+  expect(readShare({ text: 'Stand by me' })).toMatchObject({ quote: 'Stand by me', title: null })
+  expect(readShare({ text: 'A line.', title: 'The Overstory' })).toMatchObject({ title: 'The Overstory' })
+})
+
+test('shared words find their book by title, or the one book in hand', () => {
+  const b = (title: string, author: string, status = 'read') => ({ title, author, status })
+  const books = [b('Nineteen Eighty-Four', 'George Orwell'), b('Dune: Deluxe Edition', 'Frank Herbert', 'reading'), b('Dune', 'Someone Else')]
+  expect(matchBook(books, 'Nineteen eighty four', 'George Orwell')?.author).toBe('George Orwell')
+  expect(matchBook(books, 'Dune', 'Frank Herbert')?.author).toBe('Frank Herbert')
+  expect(matchBook(books, 'Not Here', null)?.title).toBe('Dune: Deluxe Edition')
+  expect(matchBook([...books, b('Other', 'X', 'reading')], null, null)).toBeNull()
 })

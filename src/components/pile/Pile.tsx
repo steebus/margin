@@ -66,7 +66,7 @@ export function Pile() {
           const isOpen = open === key && notes.length > 0
           const roomy = spine.height >= 40
           return (
-            <li key={key} data-key={key} data-open={isOpen || undefined} className="pile-row" style={{ height: spine.height }}>
+            <li key={key} data-key={key} data-open={isOpen || undefined} className="pile-row" style={{ height: spine.height, '--row': `${spine.height}px` } as React.CSSProperties}>
               <div className="pile-book">
                 <Link
                   to="/books/$bookSlug"
@@ -82,6 +82,7 @@ export function Pile() {
                     <span className="spine-author">{book.author}</span>
                   </span>
                 </Link>
+                <span className="pile-lead" aria-hidden="true" />
               </div>
               <div className="pile-side" data-year={newYear || undefined}>
                 {/* A thin book has room for one line beside it, so the count joins the date there. */}
@@ -96,6 +97,7 @@ export function Pile() {
                 {roomy && written.length > 0 && <p className="pile-count">{written.length} {written.length === 1 ? 'note' : 'notes'}</p>}
                 {notes.length > 0 && (
                   <Link to="/books/$bookSlug/entries" params={{ bookSlug: book.slug }} className="pile-unfurl" tabIndex={isOpen ? 0 : -1} aria-hidden={!isOpen}>
+                    <span className="pile-unfurl-head">{spineTitle(book.title)}{finishedAt ? `, ${formatDate(finishedAt)}` : ''}</span>
                     {notes.map((n, i) => <span key={i} className={n.kind === 'excerpt' ? 'pile-text' : 'pile-text hand'}>{n.text}</span>)}
                     {written.length > notes.length && <span className="pile-more">All {written.length} notes</span>}
                   </Link>
