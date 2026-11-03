@@ -14,7 +14,9 @@ const notesOf = (ctx: QueryCtx, readId: Id<'reads'>) =>
 /** Called on every progress write. Queues a note for a milestone crossed, and lets an older one go unasked. */
 export async function checkMilestones(ctx: MutationCtx, read: Doc<'reads'>, from: number, to: number) {
   const guide = await guideFor(ctx, read.workId)
-  const milestone = crossed(milestonesFor(guide?.state === 'ready' ? guide.guide as Guide : null), from, to)
+  // After a "not yet", this read's milestones sit later by the same amount as its guide.
+  const lag = read.guideLag ?? 0
+  const milestone = crossed(milestonesFor(guide?.state === 'ready' ? guide.guide as Guide : null).map(m => ({ ...m, percent: Math.min(99, m.percent + lag) })), from, to)
   if (!milestone) return
   const notes = await notesOf(ctx, read._id)
   if (notes.some(n => n.milestoneKey === milestone.key)) return

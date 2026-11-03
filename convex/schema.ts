@@ -114,6 +114,8 @@ export default defineSchema({
     hardcoverUserBookId: v.optional(v.number()),
     // Whether this reader wants the drawing or the cross-hatch of the real cover. The drawing unless they say.
     artChoice: v.optional(v.union(v.literal('drawing'), v.literal('cover'))),
+    // How many percent the guide runs ahead of this reader's edition, from their "hasn't happened yet" (SPEC 3.3).
+    guideLag: v.optional(v.number()),
   })
     .index('by_user_status', ['userId', 'status'])
     .index('by_user_work', ['userId', 'workId'])
@@ -210,6 +212,15 @@ export default defineSchema({
   })
     .index('by_endpoint', ['endpoint'])
     .index('by_user', ['userId']),
+
+  // The reader telling the buddy it got something wrong for this read, kept so it isn't said again (SPEC 3.3).
+  corrections: defineTable({
+    userId: v.id('users'),
+    readId: v.id('reads'),
+    kind: v.union(v.literal('notYet'), v.literal('edition')),
+    quote: v.string(),
+    createdAt: v.number(),
+  }).index('by_read', ['readId', 'createdAt']),
 
   // The question asked when a book is finished. One per read, however many times it's marked finished.
   reflectionPrompts: defineTable({

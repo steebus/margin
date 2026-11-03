@@ -24,6 +24,16 @@ function Thread({ readId, title }: { readId: Id<'reads'>; title: string }) {
   const writing = turns.some(t => t.state === 'writing')
   const failed = turns.at(-1)?.state === 'failed'
   const latest = turns.at(-1)?.text.length
+  const lastBuddy = turns.findLast(t => t.role === 'buddy' && t.state === 'done')?.id
+  const correct = useMutation(api.buddy.correct)
+  const fix = async (turnId: Id<'buddyTurns'>, kind: 'notYet' | 'edition') => {
+    setError(null)
+    try {
+      await correct({ turnId, kind })
+    } catch (e) {
+      setError(errorText(e, "That didn't send. Check your connection and try again."))
+    }
+  }
 
   // Follow the reply as it's written.
   useEffect(() => { end.current?.scrollIntoView({ block: 'nearest' }) }, [turns.length, latest])
@@ -92,6 +102,13 @@ function Thread({ readId, title }: { readId: Id<'reads'>; title: string }) {
                 {turn.state === 'failed'
                   ? <p role="alert">{turn.text}</p>
                   : <p className="tw" data-writing={turn.state === 'writing' || undefined}>{turn.text || '…'}</p>}
+                {turn.id === lastBuddy && !writing && (
+                  // The reader can say it got something wrong. Kept for this read, and never said again.
+                  <div className="correct">
+                    <button type="button" onClick={() => void fix(turn.id, 'notYet')}>Hasn't happened yet</button>
+                    <button type="button" onClick={() => void fix(turn.id, 'edition')}>Not in my edition</button>
+                  </div>
+                )}
               </div>
             )
         ))}

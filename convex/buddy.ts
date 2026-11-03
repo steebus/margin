@@ -4,7 +4,7 @@ import { internal } from './_generated/api'
 import type { Doc, Id } from './_generated/dataModel'
 import { internalMutation, internalQuery, mutation, query, type MutationCtx } from './_generated/server'
 import { positionOf } from './lib/books'
-import { bookPack, costOf, MAX_NOTES, SPEND_ALERT, toMessages, visibleTo, type Found } from './lib/buddy'
+import { bookPack, CORRECTION_WORDS, costOf, LAG_STEP, MAX_LAG, MAX_NOTES, SPEND_ALERT, toMessages, visibleTo, type Found } from './lib/buddy'
 import { guideCost, guideText, guideUpTo, type Guide } from './lib/guide'
 import { depthOf, guideFor, stillWriting } from './guides'
 
@@ -82,6 +82,26 @@ export const retry = mutation({
   },
 })
 
+/**
+ * The reader says the buddy got something wrong: not reached yet, or not so in their edition. It's kept for this read
+ * and never said again; "not yet" also moves the guide and milestones later. Their objection goes into the
+ * conversation, so the buddy can take it back.
+ */
+export const correct = mutation({
+  args: { turnId: v.id('buddyTurns'), kind: v.union(v.literal('notYet'), v.literal('edition')) },
+  handler: async (ctx, { turnId, kind }) => {
+    const turn = await ctx.db.get(turnId)
+    if (!turn || turn.role !== 'buddy' || turn.state !== 'done') throw new ConvexError('There is nothing there to correct')
+    const { userId, read } = await mine(ctx, turn.readId)
+    const turns = await turnsOf(ctx, read._id)
+    if (busy(turns)) throw new ConvexError('Your buddy is still answering')
+    await ctx.db.insert('corrections', { userId, readId: read._id, kind, quote: turn.text, createdAt: Date.now() })
+    if (kind === 'notYet') await ctx.db.patch(read._id, { guideLag: Math.min(MAX_LAG, (read.guideLag ?? 0) + LAG_STEP) })
+    await ctx.db.insert('buddyTurns', { userId, readId: read._id, role: 'reader', text: CORRECTION_WORDS[kind], state: 'done', createdAt: Date.now() })
+    await ask(ctx, userId, read._id)
+  },
+})
+
 /** Everything the reply needs. The spoiler rule is applied here, on the server, from the read itself. */
 export const context = internalQuery({
   args: { turnId: v.id('buddyTurns') },
@@ -102,7 +122,10 @@ export const context = internalQuery({
     return {
       waitForGuide: stillWriting(guide, Date.now()),
       // The spoiler rule, in the data: the guide is cut at the reader's place before the model ever sees it.
-      guide: guide?.state === 'ready' ? guideText(guideUpTo(guide.guide as Guide, visibility), visibility.finished) : null,
+      // A reader who has said "not yet" is treated as that much earlier in the book than the guide thinks.
+      guide: guide?.state === 'ready'
+        ? guideText(guideUpTo(guide.guide as Guide, { ...visibility, percent: Math.max(0, visibility.percent - (read.guideLag ?? 0)) }), visibility.finished)
+        : null,
       pack: bookPack({
         title: work.title,
         authors: work.authors,
@@ -111,6 +134,7 @@ export const context = internalQuery({
         visibility,
         notes: entries.map(e => ({ kind: e.kind, text: e.text, position: positionOf(e.pos), question: e.question })),
         otherBooks,
+        corrections: (await ctx.db.query('corrections').withIndex('by_read', q => q.eq('readId', read._id)).collect()).map(c => ({ kind: c.kind, quote: c.quote })),
       }),
       messages: toMessages(turns),
     }

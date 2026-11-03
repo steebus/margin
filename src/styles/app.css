@@ -422,6 +422,10 @@ td a { display: inline-flex; align-items: center; min-height: 44px; color: inher
 /* ---------- Book page ---------- */
 .book-head { display: grid; grid-template-columns: 34% minmax(0, 1fr); gap: 18px; align-items: start; }
 .cover-controls { display: grid; gap: 10px; }
+/* Quiet, so they're there when needed and not otherwise. */
+.correct { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 4px; }
+.correct button { min-height: 44px; padding: 0; border: 0; background: none; color: inherit; font: 400 0.9375rem/1.2 var(--book); opacity: 0.7; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+@media (hover: hover) { .correct button:hover { opacity: 1; } }
 /* The pictures a book could wear, side by side at the book ratio. The chosen one is ringed. */
 .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 10px; }
 .gallery button { display: block; width: 100%; padding: 3px; border: var(--line) solid transparent; border-radius: 3px; background: none; cursor: pointer; }

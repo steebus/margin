@@ -297,3 +297,30 @@ test("the buddy searches the reader's notes across books, and cites the book a n
   const spend = await as.query(api.buddy.monthSpend, {})
   expect(spend!.dollars).toBeGreaterThan(0)
 })
+
+test("a correction is kept for the read, never repeated, and 'not yet' moves the guide later", async () => {
+  const bodies = fakeClaude(() => sse(message(['The ship has arrived, then?'])))
+  const { t, as, readId } = await setup()
+  await as.mutation(api.guides.request, { readId, depth: 'light' })
+  await as.mutation(api.buddy.start, { readId })
+  await settle(t)
+  expect(chats(bodies).at(-1)!.system[1].text).toContain('The ship arrives.')
+
+  for (let i = 0; i < 4; i++) {
+    const turn = (await as.query(api.buddy.thread, { readId }))!.turns.findLast(x => x.role === 'buddy')!
+    await as.mutation(api.buddy.correct, { turnId: turn.id, kind: 'notYet' })
+    await settle(t)
+  }
+  // At 25% with a lag of 20, the guide is cut at 5%, before the ship arrives at 10%.
+  const pack = chats(bodies).at(-1)!.system[1].text
+  expect(pack).not.toContain('The ship arrives.')
+  expect(pack).toContain("Hasn't happened yet where they are: The ship has arrived, then?")
+  const turns = (await as.query(api.buddy.thread, { readId }))!.turns
+  expect(turns.filter(x => x.role === 'reader').map(x => x.text)).toEqual(Array(4).fill("That hasn't happened yet where I am."))
+
+  const last = turns.findLast(x => x.role === 'buddy')!
+  await as.mutation(api.buddy.correct, { turnId: last.id, kind: 'edition' })
+  expect((await t.run(ctx => ctx.db.get(readId)))!.guideLag).toBe(20)
+  const other = await setup()
+  await expect(other.as.mutation(api.buddy.correct, { turnId: last.id, kind: 'notYet' })).rejects.toThrow()
+})
