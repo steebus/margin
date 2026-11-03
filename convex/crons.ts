@@ -8,4 +8,7 @@ crons.interval('sync hardcover', { minutes: 2 }, internal.hardcover.syncAll, {})
 // Date changes on Hardcover's read records can't be spotted that way, so the whole library is compared hourly.
 crons.interval('reconcile hardcover', { hours: 1 }, internal.hardcover.reconcile, {})
 
+// Nudges go out once a day, early evening in the UK, so never in quiet hours (SPEC 3.3).
+crons.daily('nudges', { hourUTC: 17, minuteUTC: 0 }, internal.pushNode.daily, {})
+
 export default crons

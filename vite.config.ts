@@ -28,6 +28,7 @@ export default defineConfig({
         share_target: { action: '/capture/share', method: 'GET', params: { title: 'title', text: 'text', url: 'url' } },
       },
       workbox: {
+        importScripts: ['push-sw.js'],
         globPatterns: ['**/*.{js,css,html,woff2,png,svg}'],
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/hc-covers\//, /^\/art-demo\//],

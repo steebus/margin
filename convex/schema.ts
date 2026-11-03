@@ -188,6 +188,18 @@ export default defineSchema({
     createdAt: v.number(),
   }).index('by_read', ['readId', 'createdAt']),
 
+  // A device that has said yes to nudges (SPEC 3.3), and when it was last sent one.
+  pushSubscriptions: defineTable({
+    userId: v.id('users'),
+    endpoint: v.string(),
+    p256dh: v.string(),
+    auth: v.string(),
+    lastSentAt: v.optional(v.number()),
+    createdAt: v.number(),
+  })
+    .index('by_endpoint', ['endpoint'])
+    .index('by_user', ['userId']),
+
   // The question asked when a book is finished. One per read, however many times it's marked finished.
   reflectionPrompts: defineTable({
     userId: v.id('users'),

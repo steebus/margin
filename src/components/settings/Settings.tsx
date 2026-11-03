@@ -2,6 +2,7 @@ import { useAuthActions } from '@convex-dev/auth/react'
 import { useAction, useConvex } from 'convex/react'
 import { useQuery } from 'convex-helpers/react/cache/hooks'
 import { useState } from 'react'
+import { Nudges } from './Nudges'
 import { api } from '../../../convex/_generated/api'
 import { errorText } from '../../lib/books'
 import { download, toMarkdown } from '../../lib/export'
@@ -149,6 +150,10 @@ export function Settings() {
       <section className="stack" aria-labelledby="buddy-heading">
         <h2 id="buddy-heading" className="head">Buddy</h2>
         <BuddySpend />
+      </section>
+      <section className="stack" aria-labelledby="nudges-heading">
+        <h2 id="nudges-heading" className="head">Nudges</h2>
+        <Nudges />
       </section>
       <section className="stack" aria-labelledby="export-heading">
         <h2 id="export-heading" className="head">Export</h2>
