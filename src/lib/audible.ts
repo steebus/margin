@@ -1,3 +1,5 @@
+import { sameBook } from '../../convex/lib/match'
+
 // Audible import (Steve, 2026-11-03). Audible has no API, so the library comes from audible-cli's export
 // (`audible library export`), as TSV, CSV or JSON, uploaded by the reader. Parsed and compared here; nothing is
 // written until the reader confirms. Pure, so it can be tested against an export.
@@ -57,9 +59,6 @@ export function readAudible(text: string): AudibleBook[] {
   })
 }
 
-const plain = (s: string) => s.toLowerCase().normalize('NFKD').replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]+/gu, ' ').trim()
-const mainTitle = (s: string) => plain(s.split(/:\s|\s\(/)[0])
-const surname = (s: string) => plain(s).split(' ').at(-1) ?? ''
 
 type Shelved = { readId: string; title: string; author: string; status: string; percent: number }
 
@@ -76,7 +75,7 @@ export type AudiblePlan<B extends Shelved> = {
 export function planAudible<B extends Shelved>(audible: AudibleBook[], shelves: B[]): AudiblePlan<B> {
   const plan: AudiblePlan<B> = { finish: [], progress: [], addFinished: [], addReading: [], addUnstarted: [], same: 0 }
   for (const a of audible) {
-    const book = shelves.find(b => mainTitle(b.title) === mainTitle(a.title) && (!a.author || surname(b.author) === surname(a.author)))
+    const book = shelves.find(b => sameBook(b, a))
     if (!book) {
       ;(a.finished ? plan.addFinished : a.percent > 0 ? plan.addReading : plan.addUnstarted).push(a)
     } else if (a.finished && book.status !== 'read') plan.finish.push({ book, audible: a })

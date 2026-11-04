@@ -117,6 +117,8 @@ export default defineSchema({
     tagIds: v.array(v.id('tags')),
     shelfIds: v.array(v.id('shelves')),
     hardcoverUserBookId: v.optional(v.number()),
+    // The book's id on Kobo (the UUID in its readnow.kobo.com link), so its notes can be pulled.
+    koboId: v.optional(v.string()),
     // Whether this reader wants the drawing or the cross-hatch of the real cover. The drawing unless they say.
     artChoice: v.optional(v.union(v.literal('drawing'), v.literal('cover'))),
     // How many percent the guide runs ahead of this reader's edition, from their "hasn't happened yet" (SPEC 3.3).
@@ -248,6 +250,16 @@ export default defineSchema({
   }).index('by_user_slug', ['userId', 'slug']),
 
   // One row per connected reader. Sync starts once the first import has run.
+  // Steve's Kobo session cookie, pasted in Settings, and how the last pull went. Its own table: integrations is read as
+  // Hardcover's. The cookie never leaves the server.
+  koboLinks: defineTable({
+    userId: v.id('users'),
+    cookie: v.string(),
+    lastPullAt: v.optional(v.number()),
+    lastError: v.optional(v.string()),
+    lastReport: v.optional(v.object({ books: v.number(), highlights: v.number() })),
+  }).index('by_user', ['userId']),
+
   integrations: defineTable({
     userId: v.id('users'),
     provider: v.literal('hardcover'),

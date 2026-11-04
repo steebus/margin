@@ -10,7 +10,7 @@ import {
   JOURNAL_FIELDS, journalObject, LIBRARY_QUERY, LISTS_QUERY, listSlug, mapJournal, mapSearch, mapUserBook, newUserBook, progressChanged, SEARCH_QUERY, progressFields, readFields, readingDates, statusId,
   type HardcoverJournal, type HardcoverList, type HardcoverUserBook, type SearchDocument,
 } from './lib/hardcover'
-import { enqueueRead, retryDelayMs } from './lib/outbox'
+import { enqueueEntry, enqueueRead, retryDelayMs } from './lib/outbox'
 
 const PAGE = 100
 const CLAIM = 3
@@ -462,6 +462,10 @@ export const linkRead = internalMutation({
     if (!read) return
     await ctx.db.patch(readId, { hardcoverUserBookId })
     if (read.status !== 'tbr' || read.rating) await enqueueRead(ctx, read.userId, readId)
+    // Entries written before the book reached Hardcover couldn't be sent then: send them now.
+    if (read.hardcoverUserBookId) return
+    const entries = await ctx.db.query('entries').withIndex('by_read', q => q.eq('readId', readId)).collect()
+    for (const e of entries) if (e.kind !== 'review' && !e.hardcoverJournalId) await enqueueEntry(ctx, read.userId, e._id, readId)
   },
 })
 

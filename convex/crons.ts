@@ -11,4 +11,7 @@ crons.interval('reconcile hardcover', { hours: 1 }, internal.hardcover.reconcile
 // Nudges go out once a day, early evening in the UK, so never in quiet hours (SPEC 3.3).
 crons.daily('nudges', { hourUTC: 17, minuteUTC: 0 }, internal.pushNode.daily, {})
 
+// Kobo's notes, early morning UK time. Read-only, about a second per linked book.
+crons.daily('pull kobo', { hourUTC: 5, minuteUTC: 0 }, internal.kobo.pullAll, {})
+
 export default crons
