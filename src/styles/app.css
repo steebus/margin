@@ -39,11 +39,6 @@ svg { flex: none; }
 }
 .stack { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-content: start; }
 .narrow { max-width: 720px; margin-inline: auto; }
-@media (min-width: 760px) {
-  .desk { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 16px 40px; align-items: start; }
-  .masthead { grid-column: 1 / -1; }
-  .desk-book { grid-template-columns: 170px minmax(0, 1fr); gap: 24px; }
-}
 /* Pages that spread out when there's room: the notes wall, the book page's two columns. */
 .wide { max-width: 1600px; margin-inline: auto; }
 
@@ -988,4 +983,11 @@ button.back { justify-self: start; padding: 0; border: 0; background: none; curs
   .tw-strike, .mark path, .mark-tick path { animation: none; }
   .theme-toggle:active { transform: none; }
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation-duration: 120ms; }
+}
+
+/* The Desk side by side once there's room (after the base rules, so it wins). */
+@media (min-width: 760px) {
+  .desk { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 16px 40px; align-items: start; }
+  .masthead { grid-column: 1 / -1; }
+  .desk-book { grid-template-columns: 170px minmax(0, 1fr); gap: 24px; }
 }
