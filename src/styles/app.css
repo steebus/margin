@@ -1063,7 +1063,7 @@ button.back { justify-self: start; padding: 0; border: 0; background: none; curs
 .explore-head .title-head { overflow-wrap: anywhere; }
 .explore-head a { color: inherit; text-underline-offset: 3px; }
 .explore-depth { max-width: 320px; }
-.explore-stage { position: relative; height: min(72vh, 820px); min-height: 360px; border: var(--line) solid var(--ink); border-radius: 3px; overflow: hidden; }
+.explore-stage { position: relative; height: max(360px, calc(100dvh - 300px)); max-height: 900px; border: var(--line) solid var(--ink); border-radius: 3px; overflow: hidden; }
 .explore-canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
 .explore-canvas:active { cursor: grabbing; }
 .explore-note { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; pointer-events: none; }

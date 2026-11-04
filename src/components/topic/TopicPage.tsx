@@ -12,7 +12,7 @@ type Page = NonNullable<FunctionReturnType<typeof api.topics.page>>
 type Item = Page['items'][number]
 type Card = Page['books'][number]
 
-const DID: Record<string, string> = { read: 'Finished', reading: 'Reading', paused: 'Paused', dnf: 'Put down' }
+const DID: Record<string, string> = { read: 'Finished', reading: 'Reading', paused: 'Paused', dnf: 'Put down', tbr: 'To read' }
 const yearOf = (at: number | null) => (at ? new Date(at).getFullYear() : null)
 
 function BookItem({ book }: { book: Card }) {
@@ -85,7 +85,8 @@ export function TopicPage() {
       </div>
       {page.hidden && <p className="where">Hidden: it's out of Explore, the topics list and the buddy's view.</p>}
       {error && <p role="alert">{error}</p>}
-      <hr className="rule" />
+      {/* The timeline's first year carries the page's rule; the plain list needs its own. */}
+      {(all || page.items.length === 0) && <hr className="rule" />}
 
       {all ? (
         <ul className="tl-list">

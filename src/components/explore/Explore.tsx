@@ -36,6 +36,8 @@ export function Explore() {
     const dots: Dot[] = graph.nodes.map(n => ({ ...n, r: radius(n) }))
     const byId = new Map(dots.map(d => [d.id, d]))
     const lines: Line[] = graph.links.map(l => ({ source: byId.get(l.source)!, target: byId.get(l.target)! }))
+    // Topics ranked by how many books they hold: the order their names appear in as you zoom.
+    const rank = new Map(dots.filter(d => d.kind === 'topic').sort((a, b) => b.size - a.size).map((d, i) => [d, i]))
     const center = focus ? byId.get(focus) : undefined
     if (center) { center.fx = 0; center.fy = 0 }
     const local = !!focus
@@ -106,12 +108,13 @@ export function Explore() {
         }
       }
 
-      // Topic names always; book titles once there's room to read them.
+      // The biggest topics' names first, more as you zoom in; book titles once there's room to read them.
       ctx.textAlign = 'center'
       ctx.textBaseline = 'top'
       ctx.lineJoin = 'round'
+      const named = local ? Infinity : Math.round(14 * view.k * view.k)
       for (const d of dots) {
-        const show = d.kind === 'topic' || local || view.k > 1.8 || d === selected
+        const show = (d.kind === 'topic' && (rank.get(d) ?? Infinity) < named) || local || view.k > 2.2 || d === selected || d === center
         if (!show) continue
         const px = d.kind === 'topic' ? 15 : 12
         ctx.font = d.kind === 'topic' ? `${px / Math.max(view.k, 0.75)}px ${head}` : `${px / view.k}px ${token('--book')}`
@@ -127,15 +130,27 @@ export function Explore() {
     const redraw = () => { if (!frame) frame = requestAnimationFrame(draw) }
 
     const sim = forceSimulation(dots)
-      .force('link', forceLink(lines).distance(local ? 70 : 34).strength(0.5))
-      .force('charge', forceManyBody<Dot>().strength(d => (d.kind === 'topic' ? -160 : -26)).theta(0.9))
-      .force('collide', forceCollide<Dot>(d => d.r + 2))
-      .force('center', forceCenter(0, 0).strength(0.05))
+      .force('link', forceLink(lines).distance(local ? 80 : 46).strength(0.4))
+      .force('charge', forceManyBody<Dot>().strength(d => (d.kind === 'topic' ? -320 : -40)).theta(0.9).distanceMax(900))
+      .force('collide', forceCollide<Dot>(d => d.r + 3))
+      .force('center', forceCenter(0, 0).strength(0.04))
       .on('tick', redraw)
+    // Opens framed: the settled shape scaled to fill the stage, leaving a margin for names.
+    const fit = () => {
+      const xs = dots.map(d => d.x!)
+      const ys = dots.map(d => d.y!)
+      const w = Math.max(...xs) - Math.min(...xs) + 80
+      const h = Math.max(...ys) - Math.min(...ys) + 80
+      view.k = Math.min(local ? 2 : 1.2, Math.max(0.15, Math.min(box.width / w, box.height / h)))
+      view.x = -((Math.max(...xs) + Math.min(...xs)) / 2) * view.k
+      view.y = -((Math.max(...ys) + Math.min(...ys)) / 2) * view.k
+    }
     // A big library settles a little before it's shown, so the first frame isn't a burst of dots from one point.
     // With reduced motion it settles completely first, and is drawn once, still.
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches) { sim.stop(); sim.tick(300); redraw() }
-    else if (!local && dots.length > 200) sim.tick(60)
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) { sim.stop(); sim.tick(300) }
+    else sim.tick(local ? 80 : 160).alpha(0.25)
+    fit()
+    redraw()
 
     const toWorld = (cx: number, cy: number) => {
       const rect = el.getBoundingClientRect()
