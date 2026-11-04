@@ -1,14 +1,16 @@
 import { Link, useNavigate, useParams, useRouter } from '@tanstack/react-router'
 import { useMutation } from 'convex/react'
 import { useQuery } from 'convex-helpers/react/cache/hooks'
-import { ArrowLeft, Ellipsis } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { slugify } from '../../../convex/lib/hardcover'
 import { api } from '../../../convex/_generated/api'
 import { formatDate, type Book, type Status } from '../../lib/books'
 import { formatClock, pagesPerDay } from '../../lib/progress'
 import { daysToRead } from '../../lib/shelf'
-import { useOpenBookActions } from './BookActions'
+import { DeleteBook } from './BookActions'
+import { CoverControls } from './CoverControls'
+import { GuideControls } from './GuideControls'
 import { EntryList } from './EntryList'
 import { ProgressForm } from './ProgressForm'
 import { QuickActions } from './QuickActions'
@@ -107,7 +109,6 @@ export function BookPage() {
   const setStatus = useMutation(api.library.setStatus)
   const setRating = useMutation(api.library.setRating)
   const [logging, setLogging] = useState(false)
-  const openActions = useOpenBookActions()
   const [logged, setLogged] = useState<string | null>(null)
 
   useEffect(() => {
@@ -119,7 +120,7 @@ export function BookPage() {
   if (found === undefined) return <p role="status">Finding your book…</p>
   if (found === null) return <NotFoundBook />
 
-  const { book, entries, prompt, note } = found
+  const { book, entries, prompt, note, guide, cover } = found
   const showProgress = book.status === 'reading' || book.status === 'paused'
 
   return (
@@ -156,9 +157,6 @@ export function BookPage() {
       <hr className="rule" />
 
       <QuickActions book={book} logging={logging} onLog={() => setLogging(!logging)} />
-      <div className="btn-row">
-        <button type="button" className="btn" onClick={() => openActions(book)}><Ellipsis aria-hidden="true" strokeWidth={2.25} />Guide, picture and more</button>
-      </div>
 
       {logging && book.status !== 'read' && <ProgressForm book={book} onSaved={label => { setLogging(false); setLogged(label) }} />}
       {logged && <p role="status">Logged: {logged}</p>}
@@ -210,6 +208,20 @@ export function BookPage() {
         )}
       </section>
 
+      {/* The book's own page holds what the hold sheet offers elsewhere, laid out in full. */}
+      <hr className="rule" />
+      <section className="stack" aria-labelledby="guide-heading">
+        <h2 id="guide-heading" className="head">Guide</h2>
+        <GuideControls readId={book.readId} guide={guide} />
+      </section>
+      <section className="stack" aria-labelledby="picture-heading">
+        <h2 id="picture-heading" className="head">Picture</h2>
+        <CoverControls readId={book.readId} book={book} cover={cover} />
+      </section>
+      <section className="stack" aria-labelledby="delete-heading">
+        <h2 id="delete-heading" className="head">Delete</h2>
+        <DeleteBook book={book} notes={entries.length} onPage onDone={() => {}} />
+      </section>
     </div>
   )
 }

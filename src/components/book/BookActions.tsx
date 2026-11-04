@@ -82,7 +82,7 @@ function Sheet({ book, onClose, onLogged }: { book: Book; onClose: () => void; o
 }
 
 /** Deletes the book here and on Hardcover. Two taps, because it can't be undone. */
-function DeleteBook({ book, notes, onPage, onDone }: { book: Book; notes: number; onPage: boolean; onDone: () => void }) {
+export function DeleteBook({ book, notes, onPage, onDone }: { book: Book; notes: number; onPage: boolean; onDone: () => void }) {
   const deleteBook = useMutation(api.library.deleteBook)
   const navigate = useNavigate()
   const [sure, setSure] = useState(false)

@@ -14,17 +14,20 @@ export function ProgressForm({ book, onSaved }: { book: Book; onSaved?: (label: 
   const units = unitsFor(book)
   const [unit, setUnit] = useState(unitFor(book))
   const clock = toClock(book.seconds ?? 0)
-  const [page, setPage] = useState(String(book.page ?? ''))
-  const [hours, setHours] = useState(String(clock.hours))
-  const [minutes, setMinutes] = useState(String(clock.minutes))
-  const [percent, setPercent] = useState(String(book.percent))
+  // Empty, with where the reader was as the placeholder: they type the new place without clearing the old one.
+  const [page, setPage] = useState('')
+  const [hours, setHours] = useState('')
+  const [minutes, setMinutes] = useState('')
+  const [percent, setPercent] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const seconds = Number(hours || 0) * 3600 + Number(minutes || 0) * 60
+  // Typing only minutes keeps the hour the reader was in; typing only hours means on the hour.
+  const seconds = Number(hours || clock.hours) * 3600 + Number(minutes || 0) * 60
   const at = unit === 'page' ? { page: Number(page) } : unit === 'time' ? { seconds } : { percent: Number(percent) }
   const portion = unit === 'page' ? Number(page) / book.pages! : unit === 'time' ? seconds / book.audioSeconds! : Number(percent) / 100
-  const valid = Number.isFinite(portion) && portion >= 0 && (unit !== 'page' || page !== '') && (unit !== 'percent' || percent !== '')
+  const typed = unit === 'page' ? page !== '' : unit === 'time' ? hours !== '' || minutes !== '' : percent !== ''
+  const valid = typed && Number.isFinite(portion) && portion >= 0
   const atEnd = valid && portion >= 1
 
   const choose = (next: Unit) => {
@@ -61,7 +64,7 @@ export function ProgressForm({ book, onSaved }: { book: Book; onSaved?: (label: 
         {unit === 'page' && (
           <label className="log-field">
             <span>Page</span>
-            <input type="number" inputMode="numeric" min={0} max={book.pages!} step={1} value={page} onChange={e => setPage(e.target.value)} />
+            <input type="number" inputMode="numeric" min={0} max={book.pages!} step={1} value={page} placeholder={book.page !== null ? String(book.page) : undefined} autoFocus onChange={e => setPage(e.target.value)} />
             <span className="log-of">of {book.pages}</span>
           </label>
         )}
@@ -69,11 +72,11 @@ export function ProgressForm({ book, onSaved }: { book: Book; onSaved?: (label: 
           <>
             <label className="log-field">
               <span>Hours</span>
-              <input type="number" inputMode="numeric" min={0} step={1} value={hours} onChange={e => setHours(e.target.value)} />
+              <input type="number" inputMode="numeric" min={0} step={1} value={hours} placeholder={String(clock.hours)} autoFocus onChange={e => setHours(e.target.value)} />
             </label>
             <label className="log-field">
               <span>Minutes</span>
-              <input type="number" inputMode="numeric" min={0} max={59} step={1} value={minutes} onChange={e => setMinutes(e.target.value)} />
+              <input type="number" inputMode="numeric" min={0} max={59} step={1} value={minutes} placeholder={String(clock.minutes)} onChange={e => setMinutes(e.target.value)} />
             </label>
             <span className="log-of">of {formatClock(book.audioSeconds!)}</span>
           </>
@@ -81,7 +84,7 @@ export function ProgressForm({ book, onSaved }: { book: Book; onSaved?: (label: 
         {unit === 'percent' && (
           <label className="log-field">
             <span>Percent</span>
-            <input type="number" inputMode="numeric" min={0} max={100} step={1} value={percent} onChange={e => setPercent(e.target.value)} />
+            <input type="number" inputMode="numeric" min={0} max={100} step={1} value={percent} placeholder={String(book.percent)} autoFocus onChange={e => setPercent(e.target.value)} />
           </label>
         )}
       </div>
