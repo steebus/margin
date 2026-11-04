@@ -985,9 +985,10 @@ button.back { justify-self: start; padding: 0; border: 0; background: none; curs
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation-duration: 120ms; }
 }
 
-/* The Desk side by side once there's room (after the base rules, so it wins). */
+/* The Desk side by side once there's room. The build merges same-width media blocks into the first one, so these
+   outrank the base rules by selector rather than by order. */
 @media (min-width: 760px) {
-  .desk { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 16px 40px; align-items: start; }
-  .masthead { grid-column: 1 / -1; }
-  .desk-book { grid-template-columns: 170px minmax(0, 1fr); gap: 24px; }
+  .page > .desk { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 16px 40px; align-items: start; }
+  .desk > .masthead { grid-column: 1 / -1; }
+  .desk .desk-book { grid-template-columns: 170px minmax(0, 1fr); gap: 24px; }
 }
