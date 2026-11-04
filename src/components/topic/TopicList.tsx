@@ -29,7 +29,7 @@ export function TopicList() {
           <li key={t.slug}>
             <Link to="/topics/$topicSlug" params={{ topicSlug: t.slug }}>
               <span className="topic-name">{t.name}</span>
-              <span className="topic-count">{t.books}{t.notes > 0 && <> · {t.notes} {t.notes === 1 ? 'note' : 'notes'}</>}</span>
+              <span className="topic-count">{t.books} {t.books === 1 ? 'book' : 'books'}{t.notes > 0 && <> · {t.notes} {t.notes === 1 ? 'note' : 'notes'}</>}</span>
             </Link>
           </li>
         ))}

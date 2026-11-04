@@ -14,8 +14,8 @@ const radius = (n: GraphNode) => (n.kind === 'topic' ? 7 + Math.min(16, Math.sqr
 const token = (name: string) => getComputedStyle(document.documentElement).getPropertyValue(name).trim()
 
 /**
- * The library as dots (Steve chose topics and books both): big magenta topics, small grey books, a line for each
- * book under a topic. Drag to pan, pinch or scroll to zoom, tap a dot to see it. Focused, it's the local view.
+ * The library as dots (Steve chose topics and books both): topics in solid ink, books in the engraver's grey (open
+ * when still to read, ringed in biro while being read, as on the shelves), a line for each book under a topic. Drag to pan, pinch or scroll to zoom, tap a dot to see it. Focused, it's the local view.
  */
 export function Explore() {
   const { focus: rawFocus, depth = 1 } = useSearch({ from: '/explore' })
@@ -56,7 +56,7 @@ export function Explore() {
       frame = 0
       const ink = token('--ink')
       const paper = token('--paper')
-      const rule = token('--rule')
+      const biro = token('--biro')
       const grey = token('--grey')
       const head = token('--head')
       const { width, height, dpr } = box
@@ -83,11 +83,27 @@ export function Explore() {
         if (d.kind !== kind) continue
         ctx.beginPath()
         ctx.arc(d.x!, d.y!, d.r, 0, Math.PI * 2)
-        ctx.fillStyle = kind === 'topic' ? rule : d.status === 'tbr' ? paper : grey
+        ctx.fillStyle = kind === 'topic' ? ink : d.status === 'tbr' ? paper : grey
         ctx.fill()
-        ctx.lineWidth = (d === selected || d === center ? 3 : 1.5) / view.k
+        ctx.lineWidth = 1.5 / view.k
         ctx.strokeStyle = ink
         ctx.stroke()
+        // The shelves' biro circle: being read.
+        if (d.status === 'reading') {
+          ctx.beginPath()
+          ctx.ellipse(d.x!, d.y!, d.r + 4, d.r + 3, -0.3, 0.2, Math.PI * 2.05)
+          ctx.lineWidth = 2.25 / view.k
+          ctx.strokeStyle = biro
+          ctx.stroke()
+        }
+        // Picked or centred: a paper gap, then a heavier ink ring, as a pressed cell is ringed.
+        if (d === selected || d === center) {
+          ctx.beginPath()
+          ctx.arc(d.x!, d.y!, d.r + 5 / view.k, 0, Math.PI * 2)
+          ctx.lineWidth = 3 / view.k
+          ctx.strokeStyle = ink
+          ctx.stroke()
+        }
       }
 
       // Topic names always; book titles once there's room to read them.
@@ -117,7 +133,9 @@ export function Explore() {
       .force('center', forceCenter(0, 0).strength(0.05))
       .on('tick', redraw)
     // A big library settles a little before it's shown, so the first frame isn't a burst of dots from one point.
-    if (!local && dots.length > 200) sim.tick(60)
+    // With reduced motion it settles completely first, and is drawn once, still.
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) { sim.stop(); sim.tick(300); redraw() }
+    else if (!local && dots.length > 200) sim.tick(60)
 
     const toWorld = (cx: number, cy: number) => {
       const rect = el.getBoundingClientRect()
@@ -231,6 +249,7 @@ export function Explore() {
             ? <><Link to="/explore">Whole library</Link> · <Link to="/topics">Topics</Link></>
             : <>Topics and the books under them. <Link to="/topics">All topics</Link></>}
         </p>
+        <p className="where explore-hint">Drag to move, pinch or scroll to zoom, tap a dot to see it.</p>
       </div>
       {focused && (
         <div className="segments explore-depth" role="group" aria-label="How far out">
