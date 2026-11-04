@@ -1,5 +1,17 @@
 import { describe, expect, test } from 'vitest'
-import { bookTags, buildTopics, isReserved, mentions, topicKey, topicTags, type EntryIn, type WorkIn } from './topics'
+import { bookTags, buildTopics, isReserved, isSubject, mentions, topicKey, topicTags, type EntryIn, type WorkIn } from './topics'
+
+test("Hardcover's review answers, moods and shelf labels aren't subjects; variant spellings are one topic", () => {
+  for (const junk of ['Unloveable Characters', 'Plot driven', 'A mix driven', 'N/A driven', 'fast-paced', 'to-read', 'kindle-import', '#digitally-own', 'reading-plan-2027', 'Calibre Import', 'Phase 4', 'mediabox-old-format', 'female author', 'fiction', 'General', 'Audible', 'from-audible', 'did-not-finish'])
+    expect(isSubject(junk), junk).toBe(false)
+  for (const real of ['Feminism', 'Identity', 'Activism', 'Science Fiction', 'History & Society', 'Discworld', 'Space Opera', 'Self-Help'])
+    expect(isSubject(real), real).toBe(true)
+  expect(topicKey('Sci-fi')).toBe(topicKey('Science Fiction'))
+  expect(topicKey('science-fiction')).toBe(topicKey('Science Fiction'))
+  expect(topicKey('nonfiction')).toBe(topicKey('Non-fiction'))
+  const got = topicTags(bookTags({ Genre: [{ tag: 'General' }, { tag: 'Fantasy' }], Tag: [{ tag: 'Plot driven', count: 40 }] }), new Set())
+  expect(got.map(t => t.name)).toEqual(['Fantasy'])
+})
 
 const work = (over: Partial<WorkIn> & Pick<WorkIn, 'readId'>): WorkIn =>
   ({ slug: over.readId, title: over.readId, authors: [], status: 'read', tags: [], ...over })
@@ -29,7 +41,7 @@ describe('bookTags and topicTags', () => {
       Mood: [tag('dark', 9)],
     }
     const got = topicTags(bookTags(cached), new Set([topicKey('grief')]))
-    expect(got.filter(t => t.kind === 'genre').map(t => t.name)).toEqual(['Fiction', 'Dystopian'])
+    expect(got.filter(t => t.kind === 'genre').map(t => t.name)).toEqual(['Dystopian'])
     const tags = got.filter(t => t.kind === 'tag').map(t => t.name)
     expect(tags).toContain('Feminism')
     expect(tags).toContain('Grief')

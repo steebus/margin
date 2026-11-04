@@ -6,9 +6,39 @@ import { slugify } from './hardcover'
 /** Note tags that organise notes and are never topics. */
 export const RESERVED = ['Theme', 'Chapter summary', 'why choose'] as const
 
-/** One topic, however it's spelled: "Feminism.", " feminism" and "FEMINISM" are the same. */
-export const topicKey = (name: string) =>
-  name.normalize('NFKC').toLowerCase().replace(/[^\p{L}\p{N}+#]+/gu, ' ').trim()
+// Spellings readers use for the same subject, keyed and valued in topicKey's own form.
+const SAME: Record<string, string> = {
+  'sci fi': 'science fiction', scifi: 'science fiction', nonfiction: 'non fiction', humour: 'humor', humorous: 'humor',
+  'self help': 'self improvement', thrillers: 'thriller', 'short story': 'short stories',
+}
+
+/** One topic, however it's spelled: "Feminism.", " feminism", "FEMINISM" are one, as are "Sci-fi" and "Science Fiction". */
+export const topicKey = (name: string) => {
+  const key = name.normalize('NFKC').toLowerCase().replace(/[^\p{L}\p{N}+#]+/gu, ' ').trim()
+  return SAME[key] ?? key
+}
+
+// What Hardcover's tags carry that isn't a subject (checked on Steve's library, 2026-11-04): its review form's answers
+// ("Plot driven", "Unloveable Characters", on nearly every book), moods and pace, catch-alls, and readers' own shelf and
+// format labels. Only Hardcover's tags are screened: a tag Steve puts on a note is always his topic.
+const NOT_SUBJECTS = new Set([
+  'plot driven', 'character driven', 'a mix driven', 'n a driven', 'loveable characters', 'unloveable characters',
+  'strong character development', 'weak character development', 'diverse characters', 'not diverse characters',
+  'flaws of characters a main focus', 'fast paced', 'medium paced', 'slow paced', 'dark', 'tense', 'adventurous',
+  'inspiring', 'thought provoking', 'emotional', 'funny', 'hopeful', 'informative', 'lighthearted', 'mysterious',
+  'reflective', 'relaxing', 'sad', 'challenging', 'fiction', 'non fiction', 'general', 'novel', 'novels', 'literature',
+  'adult', 'english', 'book', 'books', 'genre fiction', 'female author', 'male author', 'series', 'bookclub', 'book club',
+  'library', 'wishlist', 'favorites', 'favourites', 'physical', 'paperback', 'hardcover', 'ebook', 'audiobook',
+  'audible', 'kindle', 'kobo', 'owned', 'dual format', 'united states', 'did not finish', 'dnf', 'abandoned',
+  'currently reading', 'want to read', 'tbr', 'unread',
+])
+const NOT_SUBJECT_PATTERN = /import|owned|\bown\b|format|\bread\b|reading plan|^phase|^to |#|\d{4}|^audible|^kindle|^from /
+
+/** Whether a Hardcover genre or tag names a subject, rather than a mood, a review answer or someone's shelf. */
+export const isSubject = (name: string) => {
+  const key = topicKey(name)
+  return key.length > 1 && !NOT_SUBJECTS.has(key) && !NOT_SUBJECT_PATTERN.test(key)
+}
 
 const reservedKeys = new Set(RESERVED.map(topicKey))
 export const isReserved = (tag: string) => reservedKeys.has(topicKey(tag))
@@ -33,8 +63,8 @@ export function bookTags(cached: CachedTags | null | undefined): BookTag[] {
  * already, since one reader's "Weak Character Development" isn't a subject. At most 8 reader tags a book.
  */
 export const topicTags = (tags: BookTag[], known: Set<string>) => [
-  ...tags.filter(t => t.kind === 'genre'),
-  ...tags.filter(t => t.kind === 'tag' && ((t.count ?? 0) >= 2 || known.has(topicKey(t.name)))).slice(0, MAX_TAGS),
+  ...tags.filter(t => t.kind === 'genre' && isSubject(t.name)),
+  ...tags.filter(t => t.kind === 'tag' && isSubject(t.name) && ((t.count ?? 0) >= 2 || known.has(topicKey(t.name)))).slice(0, MAX_TAGS),
 ]
 
 const escape = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -104,7 +134,7 @@ export function buildTopics({ works, entries, hidden }: { works: WorkIn[]; entri
 
   // Topics that exist apart from one-reader tags, so a lone reader tag can join one.
   const known = new Set([
-    ...works.flatMap(w => w.tags.filter(t => t.kind === 'genre' || (t.count ?? 0) >= 2).map(t => topicKey(t.name))),
+    ...works.flatMap(w => w.tags.filter(t => isSubject(t.name) && (t.kind === 'genre' || (t.count ?? 0) >= 2)).map(t => topicKey(t.name))),
     ...entries.flatMap(e => e.tags.map(topicKey)),
   ])
   for (const work of works) for (const tag of topicTags(work.tags, known)) {
