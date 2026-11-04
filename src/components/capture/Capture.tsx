@@ -157,7 +157,7 @@ export function Capture() {
       {books?.length === 0 && (
         <div className="box stack">
           <p>Add some books first, so there's somewhere to keep this.</p>
-          <div className="btn-row"><Link to="/settings" className="btn btn-solid">Go to Settings</Link></div>
+          <div className="btn-row"><Link to="/settings" search={{ tab: 'integrations' }} className="btn btn-solid">Go to Settings</Link></div>
         </div>
       )}
       {books && books.length > 0 && (

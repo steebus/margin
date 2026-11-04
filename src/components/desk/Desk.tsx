@@ -36,6 +36,7 @@ export function Desk() {
   const current = (books ?? []).filter(b => b.status === 'reading')
   const latest = entries?.[0]
   const prompt = waiting?.[0]
+  const shown = entries?.length ? entries[Math.floor(pick * entries.length)] : undefined
 
   // Only once there's something in the drawer to offer.
   useEffect(() => {
@@ -62,7 +63,7 @@ export function Desk() {
         <Masthead />
         <div className="box stack">
           <p>Your shelves are empty. Bring your books in from Hardcover to start.</p>
-          <div className="btn-row"><Link to="/settings" className="btn btn-solid">Go to Settings</Link></div>
+          <div className="btn-row"><Link to="/settings" search={{ tab: 'integrations' }} className="btn btn-solid">Go to Settings</Link></div>
         </div>
       </div>
     )
@@ -104,9 +105,12 @@ export function Desk() {
             transition={{ type: 'spring', stiffness: 420, damping: 30 }}
           >
             <p className="toast-head">From the drawer</p>
-            <p className="book-voice">{entries![Math.floor(pick * entries!.length)].text}</p>
+            <p className="book-voice">{shown!.text}</p>
             <div className="btn-row">
-              <Link to="/drawer" className="btn btn-solid">Open the drawer</Link>
+              {/* The note itself, in its book: the drawer only chose it. */}
+              {shown!.slug
+                ? <Link to="/books/$bookSlug/entries/$entryId" params={{ bookSlug: shown!.slug, entryId: shown!.id }} className="btn btn-solid">Open the note</Link>
+                : <Link to="/e/$entryId" params={{ entryId: shown!.id }} className="btn btn-solid">Open the note</Link>}
               <button type="button" className="btn" onClick={() => setToast(false)}>Dismiss</button>
             </div>
           </motion.aside>

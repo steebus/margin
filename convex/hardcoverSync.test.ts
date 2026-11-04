@@ -455,3 +455,27 @@ test('the sync only writes what moved, whatever order the fields come in', async
   expect(changes(doc, { rating: 4 })).toBe(true)
   expect(changes(doc, { startedAt: undefined })).toBe(false)
 })
+
+test('deleting a book removes everything of it here, then the book and its journal on Hardcover, and it stays gone', async () => {
+  const calls = fakeHardcover()
+  const { t, as, userId, readId, outbox } = await setup()
+  await as.mutation(api.entries.addEntry, { readId, kind: 'note', text: 'A thought.' })
+  await as.mutation(api.library.logProgress, { readId, percent: 30 })
+  await as.mutation(api.library.deleteBook, { readId })
+
+  expect(await as.query(api.library.myBooks, {})).toEqual([])
+  expect(await t.run(ctx => ctx.db.query('entries').collect())).toEqual([])
+  expect(await t.run(ctx => ctx.db.query('progressLog').collect())).toEqual([])
+  expect((await outbox()).map(r => [r.kind, r.userBookId, r.bookId])).toEqual([['deleteBook', 10, 1]])
+
+  // A pull before the deletion is sent doesn't bring it back.
+  await t.mutation(internal.hardcover.saveBooks, {
+    userId,
+    items: [{ work: { hardcoverId: 1, slug: 'book-1', title: 'Book One', authors: ['An Author'], isbns: [], subjects: [] }, read: { hardcoverUserBookId: 10, status: 'reading', percent: 10, format: 'print', owned: false } }],
+  })
+  expect(await as.query(api.library.myBooks, {})).toEqual([])
+
+  await flushTimers(t.action(internal.hardcover.flush, {}))
+  expect(writes(calls).map(c => [c.query.match(/delete_\w+/)?.[0], c.variables.id])).toEqual([['delete_reading_journals_for_book', 1], ['delete_user_book', 10]])
+  expect(await outbox()).toEqual([])
+})

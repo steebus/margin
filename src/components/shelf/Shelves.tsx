@@ -43,7 +43,7 @@ export function Shelves() {
       {books?.length === 0 && (
         <div className="box stack">
           <p>Your shelves are empty. Bring your books in from Hardcover to start.</p>
-          <div className="btn-row"><Link to="/settings" className="btn btn-solid">Go to Settings</Link></div>
+          <div className="btn-row"><Link to="/settings" search={{ tab: 'integrations' }} className="btn btn-solid">Go to Settings</Link></div>
         </div>
       )}
 

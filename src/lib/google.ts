@@ -63,7 +63,10 @@ export async function pickNotesDocs(token: string, apiKey: string, clientId: str
 
 const get = async (url: string, token: string) => {
   const res = await fetch(url, { headers: { authorization: `Bearer ${token}` } })
-  if (!res.ok) throw new Error(`Google said ${res.status}`)
+  if (!res.ok) {
+    const said = await res.json().then(j => j?.error?.message as string | undefined, () => undefined)
+    throw new Error(`Google refused (${res.status})${said ? `: ${said.split('. ')[0]}.` : '.'}`)
+  }
   return res
 }
 

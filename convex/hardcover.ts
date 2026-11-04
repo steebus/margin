@@ -112,7 +112,11 @@ export const saveBooks = internalMutation({
     let added = 0
     let existing = 0
     let notes = 0
+    // A book deleted in Margin whose deletion hasn't reached Hardcover yet mustn't come back from it.
+    const deleting = new Set((await ctx.db.query('hardcoverOutbox').withIndex('by_user', q => q.eq('userId', userId)).collect())
+      .filter(row => row.kind === 'deleteBook').map(row => row.userBookId))
     for (const { work, read } of items) {
+      if (read.hardcoverUserBookId !== undefined && deleting.has(read.hardcoverUserBookId)) continue
       const known = await ctx.db.query('works').withIndex('by_hardcover', q => q.eq('hardcoverId', work.hardcoverId)).first()
       const { slug: _slug, ...metadata } = work
       // A slug never changes once minted, because links depend on it.
@@ -671,6 +675,15 @@ export const flush = internalAction({
             journalId = data.insert_reading_journal.id
           }
           await ctx.runMutation(internal.hardcover.finish, { id: row._id, version: row.version, entryId: row.entryId, journalId })
+        } else if (row.kind === 'deleteBook' && row.userBookId !== undefined) {
+          // Its journal goes too: the reader's notes, and Hardcover's own status entries for it.
+          if (row.bookId !== undefined) {
+            await pace()
+            await gql('mutation($id: Int!) { delete_reading_journals_for_book(book_id: $id) { ids } }', { id: row.bookId })
+          }
+          await pace()
+          await gql('mutation($id: Int!) { delete_user_book(id: $id) { id } }', { id: row.userBookId })
+          await ctx.runMutation(internal.hardcover.finish, { id: row._id, version: row.version })
         } else if (row.kind === 'deleteJournal' && row.journalId !== undefined) {
           await pace()
           await gql('mutation($id: Int!) { delete_reading_journal(id: $id) { id } }', { id: row.journalId })

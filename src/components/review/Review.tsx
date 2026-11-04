@@ -109,7 +109,7 @@ export function Review() {
       {cards?.length === 0 && (
         <div className="box stack">
           <p>Nothing waiting. Books an import can't place for sure wait here.</p>
-          <div className="btn-row"><Link to="/settings" className="btn">Go to Settings</Link></div>
+          <div className="btn-row"><Link to="/settings" search={{ tab: 'integrations' }} className="btn">Go to Settings</Link></div>
         </div>
       )}
       {cards && cards.length > 0 && <ReviewCard key={cards[0].id} card={cards[0]} left={cards.length} />}

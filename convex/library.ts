@@ -1,6 +1,7 @@
 import { getAuthUserId } from '@convex-dev/auth/server'
 import { ConvexError, v } from 'convex/values'
 import type { Doc, Id } from './_generated/dataModel'
+import { internal } from './_generated/api'
 import { mutation, query, type MutationCtx } from './_generated/server'
 import { datesFrom, positionOf, progressAt, readingsAfter, readingsOf, toBook } from './lib/books'
 import { askForReflection, waitingPrompt } from './lib/reflection'
@@ -227,6 +228,31 @@ export const saveReadings = mutation({
       ...datesFrom(ordered, read.status),
     })
     await enqueueRead(ctx, userId, readId)
+  },
+})
+
+/**
+ * Deletes a book from the shelves: its reads, notes, progress and buddy talk, all of it. On Hardcover the book and its
+ * journal go too, by explicit id, through the outbox. Nothing here can be undone.
+ */
+export const deleteBook = mutation({
+  args: { readId: v.id('reads') },
+  handler: async (ctx, { readId }) => {
+    const { userId, read } = await mine(ctx, readId)
+    const work = await ctx.db.get(read.workId)
+    const entries = await ctx.db.query('entries').withIndex('by_read', q => q.eq('readId', readId)).collect()
+    // Anything still waiting to reach Hardcover for this book is moot now.
+    const entryIds = new Set<string>(entries.map(e => e._id))
+    const queued = await ctx.db.query('hardcoverOutbox').withIndex('by_user', q => q.eq('userId', userId)).collect()
+    for (const row of queued) if (row.readId === readId || (row.entryId && entryIds.has(row.entryId))) await ctx.db.delete(row._id)
+    if (read.hardcoverUserBookId) {
+      await ctx.db.insert('hardcoverOutbox', { userId, kind: 'deleteBook', userBookId: read.hardcoverUserBookId, bookId: work?.hardcoverId, version: 1, attempts: 0, nextAt: Date.now() })
+      await ctx.scheduler.runAfter(0, internal.hardcover.flush, {})
+    }
+    for (const table of ['progressLog', 'entries', 'buddyTurns', 'buddyQueue', 'corrections', 'reflectionPrompts'] as const) {
+      for (const row of await ctx.db.query(table).withIndex('by_read', q => q.eq('readId', readId)).collect()) await ctx.db.delete(row._id)
+    }
+    await ctx.db.delete(readId)
   },
 })
 

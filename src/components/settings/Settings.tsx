@@ -1,7 +1,8 @@
 import { useAuthActions } from '@convex-dev/auth/react'
 import { useAction, useConvex } from 'convex/react'
 import { useQuery } from 'convex-helpers/react/cache/hooks'
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
+import { Link, useSearch } from '@tanstack/react-router'
 import { AudibleImport } from './AudibleImport'
 import { KoboSettings } from './KoboSettings'
 import { PlayBooksImport } from './PlayBooksImport'
@@ -133,47 +134,55 @@ function Appearance() {
   )
 }
 
+export const TABS = ['account', 'reading', 'integrations', 'data'] as const
+type Tab = (typeof TABS)[number]
+const LABELS: Record<Tab, string> = { account: 'Account', reading: 'Reading', integrations: 'Integrations', data: 'Data' }
+
+const Section = ({ id, title, children }: { id: string; title: string; children: ReactNode }) => (
+  <section className="stack" aria-labelledby={`${id}-heading`}>
+    <h2 id={`${id}-heading`} className="head">{title}</h2>
+    {children}
+  </section>
+)
+
+/** Settings in four places, each its own address (?tab=), so a link can land on the right one. */
 export function Settings() {
+  const { tab = 'account' } = useSearch({ from: '/settings/' })
+  const waiting = useQuery(api.review.waiting)
   return (
     <div className="narrow stack">
       <h1 className="title-head">Settings</h1>
+      <nav className="segments" aria-label="Settings">
+        {TABS.map(t => (
+          <Link key={t} to="/settings" search={t === 'account' ? {} : { tab: t }} replace aria-current={tab === t ? 'page' : undefined}>{LABELS[t]}</Link>
+        ))}
+      </nav>
       <hr className="rule" />
-      <section className="stack" aria-labelledby="account-heading">
-        <h2 id="account-heading" className="head">Account</h2>
-        <Account />
-      </section>
-      <section className="stack" aria-labelledby="appearance-heading">
-        <h2 id="appearance-heading" className="head">Appearance</h2>
-        <Appearance />
-      </section>
-      <section className="stack" aria-labelledby="hardcover-heading">
-        <h2 id="hardcover-heading" className="head">Hardcover</h2>
-        <HardcoverImport />
-      </section>
-      <section className="stack" aria-labelledby="audible-heading">
-        <h2 id="audible-heading" className="head">Audible</h2>
-        <AudibleImport />
-      </section>
-      <section className="stack" aria-labelledby="kobo-heading">
-        <h2 id="kobo-heading" className="head">Kobo</h2>
-        <KoboSettings />
-      </section>
-      <section className="stack" aria-labelledby="playbooks-heading">
-        <h2 id="playbooks-heading" className="head">Play Books</h2>
-        <PlayBooksImport />
-      </section>
-      <section className="stack" aria-labelledby="buddy-heading">
-        <h2 id="buddy-heading" className="head">Buddy</h2>
-        <BuddySpend />
-      </section>
-      <section className="stack" aria-labelledby="nudges-heading">
-        <h2 id="nudges-heading" className="head">Nudges</h2>
-        <Nudges />
-      </section>
-      <section className="stack" aria-labelledby="export-heading">
-        <h2 id="export-heading" className="head">Export</h2>
-        <Export />
-      </section>
+      {tab === 'account' && (
+        <>
+          <Section id="account" title="Account"><Account /></Section>
+          <Section id="appearance" title="Appearance"><Appearance /></Section>
+        </>
+      )}
+      {tab === 'reading' && (
+        <>
+          <Section id="buddy" title="Buddy"><BuddySpend /></Section>
+          <Section id="nudges" title="Nudges"><Nudges /></Section>
+        </>
+      )}
+      {tab === 'integrations' && (
+        <>
+          <Section id="review" title="Review">
+            <p>{waiting?.length ? `${waiting.length} ${waiting.length === 1 ? 'book waits' : 'books wait'} for you to place.` : "Nothing waiting. Books an import can't place for sure wait here."}</p>
+            <div className="btn-row"><Link to="/review" className="btn">Open review</Link></div>
+          </Section>
+          <Section id="hardcover" title="Hardcover"><HardcoverImport /></Section>
+          <Section id="kobo" title="Kobo"><KoboSettings /></Section>
+          <Section id="playbooks" title="Play Books"><PlayBooksImport /></Section>
+          <Section id="audible" title="Audible"><AudibleImport /></Section>
+        </>
+      )}
+      {tab === 'data' && <Section id="export" title="Export"><Export /></Section>}
     </div>
   )
 }

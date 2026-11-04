@@ -1,8 +1,9 @@
-import { Link, useRouterState } from '@tanstack/react-router'
+import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
+import { useMutation } from 'convex/react'
 import { AnimatePresence, motion } from 'motion/react'
 import { BookOpen, X } from 'lucide-react'
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
-import type { Book } from '../../lib/books'
+import { errorText, type Book } from '../../lib/books'
 import { useLongPress } from '../../lib/longPress'
 import { useQuery } from 'convex-helpers/react/cache/hooks'
 import { api } from '../../../convex/_generated/api'
@@ -69,10 +70,47 @@ function Sheet({ book, onClose, onLogged }: { book: Book; onClose: () => void; o
               <summary>Picture</summary>
               <CoverControls readId={book.readId} book={book} cover={found.cover} />
             </details>
+            <details className="sheet-more">
+              <summary>Delete</summary>
+              <DeleteBook book={book} notes={found.entries.length} onPage={onPage} onDone={onClose} />
+            </details>
           </>
         )}
       </motion.div>
     </dialog>
+  )
+}
+
+/** Deletes the book here and on Hardcover. Two taps, because it can't be undone. */
+function DeleteBook({ book, notes, onPage, onDone }: { book: Book; notes: number; onPage: boolean; onDone: () => void }) {
+  const deleteBook = useMutation(api.library.deleteBook)
+  const navigate = useNavigate()
+  const [sure, setSure] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const go = async () => {
+    setBusy(true)
+    setError(null)
+    try {
+      await deleteBook({ readId: book.readId })
+      onDone()
+      if (onPage) void navigate({ to: '/shelves' })
+    } catch (e) {
+      setError(errorText(e, "It wasn't deleted. Check your connection and try again."))
+      setBusy(false)
+    }
+  }
+  return (
+    <div className="stack">
+      <p>Deletes {book.title} from Margin{notes ? `, with its ${notes} ${notes === 1 ? 'note' : 'notes'}` : ''}, and from Hardcover, journal and all. It can't be undone.</p>
+      <div className="btn-row">
+        {sure
+          ? <button type="button" className="btn btn-solid" disabled={busy} onClick={() => void go()}>{busy ? 'Deleting…' : 'Delete it for good'}</button>
+          : <button type="button" className="btn" onClick={() => setSure(true)}>Delete this book</button>}
+        {sure && <button type="button" className="btn" disabled={busy} onClick={() => setSure(false)}>Keep it</button>}
+      </div>
+      {error && <p role="alert">{error}</p>}
+    </div>
   )
 }
 

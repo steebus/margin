@@ -63,7 +63,7 @@ export function KoboImport() {
     return (
       <div className="box stack">
         <p>Nothing came from Kobo. Open My Books on kobo.com and tap the bookmarklet from Settings.</p>
-        <div className="btn-row"><Link to="/settings" className="btn">Go to Settings</Link></div>
+        <div className="btn-row"><Link to="/settings" search={{ tab: 'integrations' }} className="btn">Go to Settings</Link></div>
       </div>
     )
   }

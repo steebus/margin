@@ -68,6 +68,7 @@ export function PlayBooksImport() {
     } catch (e) {
       setError(e instanceof Error && /closed|refused|popup/i.test(e.message)
         ? 'Google sign-in was closed, so nothing was read.'
+        : e instanceof Error && e.message.startsWith('Google refused') ? e.message
         : errorText(e, "Play Books couldn't be read just now. Check your connection and try again."))
     } finally {
       setRunning(null)
