@@ -250,6 +250,23 @@ export default defineSchema({
   }).index('by_user_slug', ['userId', 'slug']),
 
   // One row per connected reader. Sync starts once the first import has run.
+  // Books an import couldn't place with confidence, waiting for the reader in /review, with the notes to save when one
+  // is placed. One per source and source id; one left out is never offered again.
+  reviewItems: defineTable({
+    userId: v.id('users'),
+    source: v.literal('playbooks'),
+    sourceId: v.string(),
+    title: v.string(),
+    author: v.string(),
+    isbn: v.optional(v.string()),
+    status: v.optional(v.union(v.literal('read'), v.literal('reading'), v.literal('tbr'))),
+    notes: v.array(v.object({ page: v.union(v.number(), v.null()), highlight: v.string(), note: v.string(), at: v.union(v.number(), v.null()) })),
+    state: v.union(v.literal('waiting'), v.literal('added'), v.literal('left')),
+    createdAt: v.number(),
+  })
+    .index('by_user_state', ['userId', 'state'])
+    .index('by_user_source', ['userId', 'source', 'sourceId']),
+
   // Steve's Kobo session cookie, pasted in Settings, and how the last pull went. Its own table: integrations is read as
   // Hardcover's. The cookie never leaves the server.
   koboLinks: defineTable({

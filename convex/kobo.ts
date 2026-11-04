@@ -4,7 +4,7 @@ import { internal } from './_generated/api'
 import type { Id } from './_generated/dataModel'
 import { action, internalAction, internalMutation, internalQuery, mutation, query, type ActionCtx } from './_generated/server'
 import { parseAnnotations, type KoboNote } from './lib/kobo'
-import { enqueueEntry } from './lib/outbox'
+import { saveImported } from './lib/imported'
 
 // Kobo, read-only (docs/superpowers/specs/2026-11-04-kobo-pull-design.md). Books are linked from the bookmarklet's
 // list on /settings/integrations/kobo; this pulls each linked book's annotations with Steve's session cookie.
@@ -94,28 +94,8 @@ export const saveNotes = internalMutation({
     readId: v.id('reads'),
     notes: v.array(v.object({ id: v.string(), text: v.string(), note: v.string(), chapter: v.optional(v.string()), percent: v.optional(v.number()) })),
   },
-  handler: async (ctx, { userId, readId, notes }) => {
-    const known = async (originKey: string) =>
-      ctx.db.query('entries').withIndex('by_user_origin_key', q => q.eq('userId', userId).eq('originKey', originKey)).first()
-    let added = 0
-    for (const n of notes) {
-      const pos = { percent: n.percent, chapter: n.chapter }
-      const insert = async (kind: 'excerpt' | 'note', text: string, originKey: string, parentId?: Id<'entries'>) => {
-        const id = await ctx.db.insert('entries', { userId, readId, kind, text, parentId, pos, origin: 'kobo', originKey, createdAt: Date.now() })
-        await enqueueEntry(ctx, userId, id, readId)
-        added++
-        return id
-      }
-      const key = `kobo:${n.id}`
-      if (!n.text) {
-        if (!await known(key)) await insert('note', n.note, key)
-        continue
-      }
-      const excerptId = (await known(key))?._id ?? await insert('excerpt', n.text, key)
-      if (n.note && !await known(`${key}:note`)) await insert('note', n.note, `${key}:note`, excerptId)
-    }
-    return added
-  },
+  handler: (ctx, { userId, readId, notes }) =>
+    saveImported(ctx, userId, readId, 'kobo', notes.map(n => ({ key: `kobo:${n.id}`, text: n.text, note: n.note, percent: n.percent, chapter: n.chapter }))),
 })
 
 export const record = internalMutation({

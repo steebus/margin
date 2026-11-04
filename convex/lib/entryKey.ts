@@ -14,6 +14,12 @@ const hash = (text: string) => {
   return (h >>> 0).toString(36)
 }
 
+/** Short, stable stand-in for some words, for keys. */
+export const wordsKey = (text: string) => {
+  const normal = normaliseText(text)
+  return `${normal.length}.${hash(normal)}`
+}
+
 /** Identifies an entry by book, words and place, so saving or importing it twice only keeps one. */
 export function entryKey(workId: string, kind: string, text: string, pos: Pos): string {
   const normal = normaliseText(text)
