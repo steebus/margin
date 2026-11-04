@@ -1,4 +1,4 @@
-import { Link, useParams } from '@tanstack/react-router'
+import { Link, useNavigate, useParams, useRouter } from '@tanstack/react-router'
 import { useMutation } from 'convex/react'
 import { useQuery } from 'convex-helpers/react/cache/hooks'
 import { ArrowLeft, Ellipsis } from 'lucide-react'
@@ -82,9 +82,28 @@ function Lists({ book }: { book: Book }) {
   )
 }
 
+/**
+ * The title at display size, stepping down as it grows so a long one doesn't run the page down. A subtitle after a
+ * colon sits under it, smaller.
+ */
+function BookTitle({ title }: { title: string }) {
+  const cut = title.search(/:\s/)
+  const main = cut > 0 ? title.slice(0, cut) : title
+  const sub = cut > 0 ? title.slice(cut + 1).trim() : ''
+  const size = main.length > 60 ? 'long' : main.length > 28 ? 'mid' : undefined
+  return (
+    <h1 className="book-title" data-size={size}>
+      {main}
+      {sub && <span className="book-subtitle">{sub}</span>}
+    </h1>
+  )
+}
+
 export function BookPage() {
   const { bookSlug } = useParams({ from: '/books/$bookSlug/' })
   const found = useQuery(api.library.bookBySlug, { slug: bookSlug })
+  const router = useRouter()
+  const navigate = useNavigate()
   const setStatus = useMutation(api.library.setStatus)
   const setRating = useMutation(api.library.setRating)
   const [logging, setLogging] = useState(false)
@@ -105,7 +124,10 @@ export function BookPage() {
 
   return (
     <div className="narrow stack">
-      <Link to="/shelves" className="back"><ArrowLeft aria-hidden="true" strokeWidth={2.25} />Shelves</Link>
+      {/* A book is reached from the Desk, the shelves, a note or a link, so Back goes where the reader came from. */}
+      <button type="button" className="back" onClick={() => router.history.canGoBack() ? router.history.back() : void navigate({ to: '/' })}>
+        <ArrowLeft aria-hidden="true" strokeWidth={2.25} />Back
+      </button>
 
       {/* The book's catalog entry: the cover, its status stamped across the corner, and the title at full size. */}
       <header className="book-head">
@@ -127,7 +149,7 @@ export function BookPage() {
           {book.status === 'read' && book.finishedAt && <p className="where">Finished {formatDate(book.finishedAt)}</p>}
         </div>
         <div className="book-name">
-          <h1 className="book-title">{book.title}</h1>
+          <BookTitle title={book.title} />
           <p className="book-author">{book.author}</p>
         </div>
       </header>
