@@ -36,8 +36,8 @@ export function Explore() {
     const dots: Dot[] = graph.nodes.map(n => ({ ...n, r: radius(n) }))
     const byId = new Map(dots.map(d => [d.id, d]))
     const lines: Line[] = graph.links.map(l => ({ source: byId.get(l.source)!, target: byId.get(l.target)! }))
-    // Topics ranked by how many books they hold: the order their names appear in as you zoom.
-    const rank = new Map(dots.filter(d => d.kind === 'topic').sort((a, b) => b.size - a.size).map((d, i) => [d, i]))
+    // Names are offered biggest topic first, then books: the order they appear in as you zoom.
+    const labelOrder = [...dots].sort((a, b) => (a.kind === b.kind ? b.size - a.size : a.kind === 'topic' ? -1 : 1))
     const center = focus ? byId.get(focus) : undefined
     if (center) { center.fx = 0; center.fy = 0 }
     const local = !!focus
@@ -109,22 +109,31 @@ export function Explore() {
       }
 
       // The biggest topics' names first, more as you zoom in; book titles once there's room to read them.
+      // Names print at one size on the screen, whatever the zoom: the picked dot, then the biggest topics, then books
+      // once zoomed in. A name that would land on one already printed is left off, so zooming in reveals more.
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
       ctx.textAlign = 'center'
       ctx.textBaseline = 'top'
       ctx.lineJoin = 'round'
-      const named = local ? Infinity : Math.round(14 * view.k * view.k)
-      for (const d of dots) {
-        const show = (d.kind === 'topic' && (rank.get(d) ?? Infinity) < named) || local || view.k > 2.2 || d === selected || d === center
-        if (!show) continue
-        const px = d.kind === 'topic' ? 15 : 12
-        ctx.font = d.kind === 'topic' ? `${px / Math.max(view.k, 0.75)}px ${head}` : `${px / view.k}px ${token('--book')}`
-        const text = d.kind === 'topic' ? d.label.toUpperCase() : d.label.length > 32 ? `${d.label.slice(0, 31)}…` : d.label
-        const y = d.y! + d.r + 3 / view.k
-        ctx.lineWidth = 4 / view.k
+      const book = token('--book')
+      const taken: [number, number, number, number][] = []
+      const candidates = labelOrder.filter(d => d.kind === 'topic' || local || view.k > 1.6 || d === selected)
+      for (const d of [...(selected ? [selected] : []), ...candidates]) {
+        const text = d.kind === 'topic' ? d.label.toUpperCase() : d.label.length > 30 ? `${d.label.slice(0, 29)}…` : d.label
+        ctx.font = d.kind === 'topic' ? `17px ${head}` : `13px ${book}`
+        const w = ctx.measureText(text).width
+        const x = width / 2 + view.x + d.x! * view.k
+        const y = height / 2 + view.y + (d.y! + d.r) * view.k + 3
+        const h = d.kind === 'topic' ? 17 : 14
+        const rect: [number, number, number, number] = [x - w / 2 - 3, y - 1, x + w / 2 + 3, y + h + 1]
+        if (x + w / 2 < 0 || x - w / 2 > width || y > height || y + h < 0) continue
+        if (taken.some(r => rect[0] < r[2] && rect[2] > r[0] && rect[1] < r[3] && rect[3] > r[1])) continue
+        taken.push(rect)
+        ctx.lineWidth = 4
         ctx.strokeStyle = paper
-        ctx.strokeText(text, d.x!, y)
+        ctx.strokeText(text, x, y)
         ctx.fillStyle = ink
-        ctx.fillText(text, d.x!, y)
+        ctx.fillText(text, x, y)
       }
     }
     const redraw = () => { if (!frame) frame = requestAnimationFrame(draw) }
@@ -135,15 +144,19 @@ export function Explore() {
       .force('collide', forceCollide<Dot>(d => d.r + 3))
       .force('center', forceCenter(0, 0).strength(0.04))
       .on('tick', redraw)
-    // Opens framed: the settled shape scaled to fill the stage, leaving a margin for names.
+    // Opens framed on the library's mass: the middle 96% of dots fill the stage, so a stray few far out don't
+    // shrink it to a speck. The strays stay a drag away.
     const fit = () => {
-      const xs = dots.map(d => d.x!)
-      const ys = dots.map(d => d.y!)
-      const w = Math.max(...xs) - Math.min(...xs) + 80
-      const h = Math.max(...ys) - Math.min(...ys) + 80
-      view.k = Math.min(local ? 2 : 1.2, Math.max(0.15, Math.min(box.width / w, box.height / h)))
-      view.x = -((Math.max(...xs) + Math.min(...xs)) / 2) * view.k
-      view.y = -((Math.max(...ys) + Math.min(...ys)) / 2) * view.k
+      const within = (values: number[]) => {
+        const sorted = [...values].sort((a, b) => a - b)
+        const cut = local ? 0 : Math.floor(sorted.length * 0.02)
+        return [sorted[cut], sorted[sorted.length - 1 - cut]]
+      }
+      const [x0, x1] = within(dots.map(d => d.x!))
+      const [y0, y1] = within(dots.map(d => d.y!))
+      view.k = Math.min(local ? 2 : 1.2, Math.max(0.15, Math.min(box.width / (x1 - x0 + 80), box.height / (y1 - y0 + 80))))
+      view.x = -((x0 + x1) / 2) * view.k
+      view.y = -((y0 + y1) / 2) * view.k
     }
     // A big library settles a little before it's shown, so the first frame isn't a burst of dots from one point.
     // With reduced motion it settles completely first, and is drawn once, still.
