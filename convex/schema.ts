@@ -316,6 +316,7 @@ export default defineSchema({
   hiddenTopics: defineTable({
     userId: v.id('users'),
     key: v.string(),
+    name: v.optional(v.string()),
   }).index('by_user', ['userId', 'key']),
 
   tags: defineTable({

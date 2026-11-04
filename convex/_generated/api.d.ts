@@ -41,6 +41,7 @@ import type * as lib_playbooks from "../lib/playbooks.js";
 import type * as lib_redirects from "../lib/redirects.js";
 import type * as lib_reflection from "../lib/reflection.js";
 import type * as lib_shareRead from "../lib/shareRead.js";
+import type * as lib_topics from "../lib/topics.js";
 import type * as library from "../library.js";
 import type * as milestones from "../milestones.js";
 import type * as playbooks from "../playbooks.js";
@@ -49,6 +50,7 @@ import type * as pushNode from "../pushNode.js";
 import type * as reflect from "../reflect.js";
 import type * as review from "../review.js";
 import type * as share from "../share.js";
+import type * as topics from "../topics.js";
 import type * as users from "../users.js";
 
 import type {
@@ -91,6 +93,7 @@ declare const fullApi: ApiFromModules<{
   "lib/redirects": typeof lib_redirects;
   "lib/reflection": typeof lib_reflection;
   "lib/shareRead": typeof lib_shareRead;
+  "lib/topics": typeof lib_topics;
   library: typeof library;
   milestones: typeof milestones;
   playbooks: typeof playbooks;
@@ -99,6 +102,7 @@ declare const fullApi: ApiFromModules<{
   reflect: typeof reflect;
   review: typeof review;
   share: typeof share;
+  topics: typeof topics;
   users: typeof users;
 }>;
 
