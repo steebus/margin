@@ -3,6 +3,7 @@ import { useAction, useConvex } from 'convex/react'
 import { useQuery } from 'convex-helpers/react/cache/hooks'
 import { useState } from 'react'
 import { AudibleImport } from './AudibleImport'
+import { KoboSettings } from './KoboSettings'
 import { Nudges } from './Nudges'
 import { api } from '../../../convex/_generated/api'
 import { errorText } from '../../lib/books'
@@ -151,6 +152,10 @@ export function Settings() {
       <section className="stack" aria-labelledby="audible-heading">
         <h2 id="audible-heading" className="head">Audible</h2>
         <AudibleImport />
+      </section>
+      <section className="stack" aria-labelledby="kobo-heading">
+        <h2 id="kobo-heading" className="head">Kobo</h2>
+        <KoboSettings />
       </section>
       <section className="stack" aria-labelledby="buddy-heading">
         <h2 id="buddy-heading" className="head">Buddy</h2>
