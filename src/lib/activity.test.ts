@@ -22,3 +22,9 @@ test('a quiet book is a flat line at its place; a book with no history at all dr
   expect(progressSteps([{ at: since - 3 * DAY, percent: 40 }], since, now, null)).toMatchObject({ gained: 0, last: { percent: 40 } })
   expect(progressSteps([], since, now, null)).toBeNull()
 })
+
+test("with no log before the window, the line starts at the first log, not at a made-up nothing", () => {
+  const steps = progressSteps([{ at: since + 2 * DAY, percent: 70 }, { at: since + 8 * DAY, percent: 80 }], since, now, since - 60 * DAY)
+  expect(steps?.points[0]).toEqual({ at: since + 2 * DAY, percent: 70 })
+  expect(steps?.gained).toBe(10)
+})

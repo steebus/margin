@@ -84,16 +84,17 @@ export function Desk() {
         <h2 id="reading-heading" className="head">Reading</h2>
         {current.length > 0 ? current.map(book => {
           const logs = activity?.logs.find(l => l.readId === book.readId)?.logs ?? []
-          const steps = progressSteps(logs, since, now, book.startedAt) ?? { points: [{ at: since, percent: book.percent }], gained: 0 }
+          const steps = progressSteps(logs, since, now, book.startedAt) ?? { points: [{ at: since, percent: book.percent }], opened: true, gained: 0 }
+          const logged = steps.points.length - (steps.opened ? 1 : 0)
           return (
             <article key={book.readId} className="desk-book">
               <Card book={book} />
               <div className="desk-book-chart">
                 <p className="desk-book-head">
                   <span className="selected-title">{book.title}</span>
-                  <span className="where">{steps.gained > 0 ? `+${steps.gained}% in two weeks` : 'No progress logged in two weeks'}</span>
+                  <span className="where">{steps.gained > 0 ? `+${steps.gained}% in two weeks` : logged ? `Logged at ${book.percent}%, no further in two weeks` : 'No progress logged in two weeks'}</span>
                 </p>
-                {activity !== undefined && <ProgressChart points={steps.points} since={since} now={now} title={book.title} />}
+                {activity !== undefined && <ProgressChart points={steps.points} opened={steps.opened} since={since} now={now} title={book.title} />}
               </div>
             </article>
           )

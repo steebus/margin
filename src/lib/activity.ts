@@ -13,11 +13,14 @@ export function progressSteps(logs: Logged[], since: number, now: number, starte
   const sorted = [...logs].sort((a, b) => a.at - b.at)
   const before = sorted.filter(l => l.at < since).at(-1)
   const inside = sorted.filter(l => l.at >= since && l.at <= now)
-  const from = startedAt && startedAt > since ? Math.min(startedAt, now) : since
-  const opening = before?.percent ?? (startedAt && startedAt > since ? 0 : inside.length ? 0 : null)
-  if (opening === null && !inside.length) return null
-  const points = [{ at: from, percent: opening ?? inside[0].percent }, ...inside]
-  return { points, last: { at: now, percent: points.at(-1)!.percent }, gained: Math.max(0, points.at(-1)!.percent - points[0].percent) }
+  const startedInside = !!startedAt && startedAt > since
+  // Where the book stood as the window opened: the last log before it, or nothing if it was picked up inside it.
+  // Otherwise it isn't known, and the line starts at the first log rather than inventing a starting place.
+  const opening = before ? { at: since, percent: before.percent } : startedInside ? { at: Math.min(startedAt!, now), percent: 0 } : null
+  const points = opening ? [opening, ...inside] : inside
+  if (!points.length) return null
+  // `opened`: the first point is where the window opened, not a log of its own.
+  return { points, opened: !!opening, last: { at: now, percent: points.at(-1)!.percent }, gained: Math.max(0, points.at(-1)!.percent - points[0].percent) }
 }
 
 export const windowStart = (now: number) => {

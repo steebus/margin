@@ -21,7 +21,7 @@ function useWidth() {
  * Where a book got to across the window: one ink, a stepped line (a place holds until the next log), a mark at each
  * log with its date and place on hover, and the start and end labelled (dataviz: one series, so no legend).
  */
-export function ProgressChart({ points, since, now, title }: { points: Logged[]; since: number; now: number; title: string }) {
+export function ProgressChart({ points, opened, since, now, title }: { points: Logged[]; opened: boolean; since: number; now: number; title: string }) {
   const [ref, width] = useWidth()
   const H = 132, pl = 4, pr = 44, pt = 16, pb = 24
   const W = Math.max(width, 160)
@@ -41,12 +41,12 @@ export function ProgressChart({ points, since, now, title }: { points: Logged[];
         <svg width={W} height={H} role="img" aria-label={summary}>
           <line className="act-base" x1={pl} x2={W - pr} y1={H - pb} y2={H - pb} />
           <path className="act-line" d={d} />
-          {points.slice(1).map(p => (
+          {(opened ? points.slice(1) : points).map(p => (
             <circle key={p.at} className="act-mark" cx={x(p.at)} cy={y(p.percent)} r={4}>
               <title>{`${fmt(p.at)}: ${p.percent}%`}</title>
             </circle>
           ))}
-          <text className="act-label act-quiet" x={x(points[0].at)} y={y(points[0].percent) - 6}>{points[0].percent}%</text>
+          {points[0].percent !== end.percent && <text className="act-label act-quiet" x={x(points[0].at)} y={y(points[0].percent) - 8}>{points[0].percent}%</text>}
           <text className="act-label" x={W - pr + 6} y={y(end.percent) + 5}>{end.percent}%</text>
           <text className="act-axis" x={pl} y={H - 6}>{fmt(since)}</text>
           <text className="act-axis" x={W - pr} y={H - 6} textAnchor="end">Today</text>
