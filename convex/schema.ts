@@ -34,6 +34,8 @@ export default defineSchema({
     pages: v.optional(v.number()),
     audioSeconds: v.optional(v.number()),
     subjects: v.array(v.string()),
+    // Hardcover's genres and readers' tags, as topics (convex/lib/topics.ts). Missing until the hourly reconcile fills it.
+    tags: v.optional(v.array(v.object({ name: v.string(), kind: v.union(v.literal('genre'), v.literal('tag')), count: v.optional(v.number()) }))),
     originalLanguage: v.optional(v.string()),
     // The first author's, from Hardcover, for the stats. Missing where Hardcover doesn't know.
     authorGender: v.optional(v.string()),
@@ -157,6 +159,8 @@ export default defineSchema({
     // Keyed on work, normalised text and position, so re-importing is always safe.
     originKey: v.string(),
     imageId: v.optional(v.id('_storage')),
+    // Topics and reserved labels, as typed. Synced with the journal's tags on Hardcover.
+    tags: v.optional(v.array(v.string())),
     hardcoverJournalId: v.optional(v.number()),
     createdAt: v.number(),
   })
@@ -307,6 +311,12 @@ export default defineSchema({
     .index('by_next', ['nextAt'])
     .index('by_user', ['userId'])
     .index('by_read', ['readId']),
+
+  // Topics Steve doesn't want to see, by topicKey. Hiding always wins.
+  hiddenTopics: defineTable({
+    userId: v.id('users'),
+    key: v.string(),
+  }).index('by_user', ['userId', 'key']),
 
   tags: defineTable({
     userId: v.id('users'),

@@ -5,6 +5,7 @@ import { mutation, query } from './_generated/server'
 import { positionOf, toBook } from './lib/books'
 import { entryKey } from './lib/entryKey'
 import { enqueueEntry, enqueueJournalDelete } from './lib/outbox'
+import { topicKey } from './lib/topics'
 
 const MAX_LENGTH = 20_000
 
@@ -136,6 +137,31 @@ export const updateEntry = mutation({
 
     await enqueueJournalDelete(ctx, userId, id, entry.hardcoverJournalId)
     await ctx.db.patch(id, { text: words, kind: nextKind, pos, originKey, hardcoverJournalId: undefined })
+    await enqueueEntry(ctx, userId, id, entry.readId)
+  },
+})
+
+const MAX_TAGS = 20
+
+/** A note's tags, as typed: the first spelling of each wins. Goes to Hardcover by replacing the journal, as edits do. */
+export const setTags = mutation({
+  args: { id: v.id('entries'), tags: v.array(v.string()) },
+  handler: async (ctx, { id, tags }) => {
+    const userId = await getAuthUserId(ctx)
+    if (!userId) throw new ConvexError('Sign in to change this')
+    const entry = await ctx.db.get(id)
+    if (!entry || entry.userId !== userId) throw new ConvexError('That entry is not yours')
+    if (entry.kind === 'review') throw new ConvexError('Change your review on Hardcover')
+    const seen = new Set<string>()
+    const next = tags.map(t => t.trim().slice(0, 60)).filter(t => {
+      const key = topicKey(t)
+      if (!key || seen.has(key)) return false
+      seen.add(key)
+      return true
+    }).slice(0, MAX_TAGS)
+    if (JSON.stringify(next) === JSON.stringify(entry.tags ?? [])) return
+    await enqueueJournalDelete(ctx, userId, id, entry.hardcoverJournalId)
+    await ctx.db.patch(id, { tags: next, hardcoverJournalId: undefined })
     await enqueueEntry(ctx, userId, id, entry.readId)
   },
 })

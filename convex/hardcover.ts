@@ -72,6 +72,7 @@ const bookItem = v.object({
     pages: v.optional(v.number()),
     audioSeconds: v.optional(v.number()),
     subjects: v.array(v.string()),
+    tags: v.optional(v.array(v.object({ name: v.string(), kind: v.union(v.literal('genre'), v.literal('tag')), count: v.optional(v.number()) }))),
     authorGender: v.optional(v.string()),
     authorCountry: v.optional(v.string()),
     authorBipoc: v.optional(v.boolean()),
@@ -202,14 +203,22 @@ export const saveJournal = internalMutation({
       page: v.optional(v.number()),
       percent: v.optional(v.number()),
       at: v.optional(v.number()),
+      tags: v.optional(v.array(v.string())),
     })),
   },
   handler: async (ctx, { userId, items }) => {
     let added = 0
+    // Journals Margin is deleting, to replace them (a tag or place changed here): their old copies mustn't undo that.
+    const replacing = new Set((await ctx.db.query('hardcoverOutbox').withIndex('by_user', q => q.eq('userId', userId)).collect())
+      .filter(row => row.kind === 'deleteJournal').map(row => row.journalId))
     for (const item of items) {
+      if (replacing.has(item.journalId)) continue
       const known = await ctx.db.query('entries').withIndex('by_user_journal', q => q.eq('userId', userId).eq('hardcoverJournalId', item.journalId)).first()
       if (known) {
-        if (known.text !== item.text) await ctx.db.patch(known._id, { text: item.text })
+        const tags = item.tags ?? []
+        const sameTags = stable(known.tags ?? []) === stable(tags)
+        // Hardcover's copy is the truth here, so nothing goes back out.
+        if (known.text !== item.text || !sameTags) await ctx.db.patch(known._id, { text: item.text, tags })
         continue
       }
       const work = await ctx.db.query('works').withIndex('by_hardcover', q => q.eq('hardcoverId', item.hardcoverBookId)).first()
@@ -222,12 +231,12 @@ export const saveJournal = internalMutation({
       let same = null
       for (const key of keys) same ??= await ctx.db.query('entries').withIndex('by_user_origin_key', q => q.eq('userId', userId).eq('originKey', key)).first()
       if (same) {
-        await ctx.db.patch(same._id, { hardcoverJournalId: item.journalId })
+        await ctx.db.patch(same._id, { hardcoverJournalId: item.journalId, ...(item.tags?.length ? { tags: item.tags } : {}) })
         continue
       }
       await ctx.db.insert('entries', {
         userId, readId: read._id, kind: item.kind, text: item.text, pos, origin: 'hardcover', originKey,
-        hardcoverJournalId: item.journalId, createdAt: item.at ?? Date.now(),
+        hardcoverJournalId: item.journalId, createdAt: item.at ?? Date.now(), ...(item.tags?.length ? { tags: item.tags } : {}),
       })
       added++
     }
@@ -669,7 +678,7 @@ export const flush = internalAction({
             await pace()
             const data = await gql<{ insert_reading_journal: { id?: number; errors?: unknown } }>(
               'mutation($object: ReadingJournalCreateType!) { insert_reading_journal(object: $object) { id errors } }',
-              { object: journalObject({ kind: entry.kind, text: entry.text, page: entry.pos.page, percent: entry.pos.percent, createdAt: entry.createdAt }, state.hardcoverBookId) },
+              { object: journalObject({ kind: entry.kind, text: entry.text, page: entry.pos.page, percent: entry.pos.percent, createdAt: entry.createdAt, tags: entry.tags }, state.hardcoverBookId) },
             )
             check(data.insert_reading_journal, 'the note')
             journalId = data.insert_reading_journal.id

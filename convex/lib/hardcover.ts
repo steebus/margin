@@ -1,4 +1,5 @@
 // Turns Hardcover's records into Margin's. Pure, so it can be tested and run against real data without saving anything.
+import { bookTags, type CachedTags } from './topics'
 export const LIBRARY_QUERY = `query Library($limit: Int!, $offset: Int!) {
   me { user_books(limit: $limit, offset: $offset, order_by: {id: asc}) {
     id status_id rating first_started_reading_date last_read_date date_added recommended_by owned review_raw reviewed_at
@@ -28,7 +29,7 @@ export type HardcoverUserBook = {
     release_year?: number | null
     cached_contributors?: { author?: { name?: string | null } | null; contribution?: string | null }[] | null
     cached_image?: { url?: string | null } | null
-    cached_tags?: { Genre?: { tag?: string | null }[] | null } | null
+    cached_tags?: CachedTags | null
     contributions?: { author?: { gender_id?: number | null; location?: string | null; is_bipoc?: boolean | null; is_lgbtq?: boolean | null } | null }[] | null
   } | null
   user_book_reads?: { id?: number | null; progress?: number | null; progress_pages?: number | null; progress_seconds?: number | null; started_at?: string | null; finished_at?: string | null }[] | null
@@ -113,6 +114,7 @@ export function mapUserBook(ub: HardcoverUserBook) {
       pages,
       audioSeconds: ub.edition?.audio_seconds || book.audio_seconds || undefined,
       subjects: (book.cached_tags?.Genre ?? []).map(g => g.tag).filter((t): t is string => !!t).slice(0, 5),
+      tags: bookTags(book.cached_tags),
       ...authorFacts(book.contributions?.[0]?.author),
     },
     read: {
@@ -196,7 +198,7 @@ export const listSlug = (list: { name?: string | null; slug?: string | null; id:
   return ['reading', 'paused', 'tbr', 'read', 'stopped'].includes(slug) ? `list-${slug}` : slug
 }
 
-export const JOURNAL_FIELDS = 'id event entry metadata book_id action_at'
+export const JOURNAL_FIELDS = 'id event entry metadata book_id action_at taggings { tag { tag } }'
 
 export type HardcoverJournal = {
   id: number
@@ -205,6 +207,7 @@ export type HardcoverJournal = {
   book_id?: number | null
   action_at?: string | null
   metadata?: { position?: { type?: string | null; value?: number | null; percent?: number | null } | null } | null
+  taggings?: { tag?: { tag?: string | null } | null }[] | null
 }
 
 /** A quote or note from the reading journal, or null for anything else in there, such as "rated". */
@@ -215,7 +218,8 @@ export function mapJournal(j: HardcoverJournal) {
   const position = j.metadata?.position
   const page = position?.type === 'pages' && position.value ? Math.round(position.value) : undefined
   const percent = position?.percent != null ? Math.min(100, Math.max(0, Math.round(position.percent))) : undefined
-  return { journalId: j.id, hardcoverBookId: j.book_id, kind, text, page, percent: page ? undefined : percent, at: Date.parse(j.action_at ?? '') || undefined }
+  const tags = (j.taggings ?? []).map(t => t.tag?.tag?.trim()).filter((t): t is string => !!t)
+  return { journalId: j.id, hardcoverBookId: j.book_id, kind, text, page, percent: page ? undefined : percent, at: Date.parse(j.action_at ?? '') || undefined, tags }
 }
 
 const STATUS_ID = { tbr: 1, reading: 2, read: 3, paused: 4, dnf: 5 } as const
@@ -253,14 +257,15 @@ export const readingDates = (reading: { startedAt?: number; finishedAt?: number 
 })
 
 /** A Margin entry as a journal record. Private on Hardcover, as Steve's existing ones are. */
-export function journalObject(entry: { kind: string; text: string; page?: number; percent?: number; createdAt: number }, hardcoverBookId: number) {
+export function journalObject(entry: { kind: string; text: string; page?: number; percent?: number; createdAt: number; tags?: string[] }, hardcoverBookId: number) {
   const position = entry.page ? { type: 'pages', value: entry.page } : entry.percent != null ? { type: 'percent', value: entry.percent, percent: entry.percent } : undefined
   return {
     book_id: hardcoverBookId,
     event: entry.kind === 'excerpt' ? 'quote' : 'note',
     entry: entry.text,
     privacy_setting_id: 3,
-    tags: [],
+    // ponytail: the shape Hardcover's journal tags take, unverified until Steve tags a real note (design doc).
+    tags: (entry.tags ?? []).map(tag => ({ category: 'general', spoiler: false, tag })),
     action_at: isoDay(entry.createdAt),
     metadata: position ? { position } : {},
   }

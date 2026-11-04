@@ -223,6 +223,36 @@ test('notes come in once, match ones sent from Margin, and follow edits; other j
   expect(texts).toEqual(['Edited on Hardcover.', 'Mine first.'])
 })
 
+test('tags come in on journals, follow edits there, and go out with the note when changed here', async () => {
+  const calls = fakeHardcover()
+  const { t, as, userId } = await setup()
+  const save = (items: any[]) => t.mutation(internal.hardcover.saveJournal, { userId, items })
+  const note = { journalId: 5, hardcoverBookId: 1, kind: 'note' as const, text: 'Tagged there.', tags: ['Theme'] }
+  await save([note])
+  await save([{ ...note, tags: ['Theme', 'Feminism'] }])
+  const [entry] = await t.run(ctx => ctx.db.query('entries').collect())
+  expect(entry.tags).toEqual(['Theme', 'Feminism'])
+  await flushTimers(t.action(internal.hardcover.flush, {}))
+  expect(writes(calls)).toEqual([])
+
+  await as.mutation(api.entries.setTags, { id: entry._id, tags: [' Feminism', 'feminism', 'Grief', ''] })
+  await as.mutation(api.entries.setTags, { id: entry._id, tags: ['Feminism', 'Grief'] })
+  expect((await t.run(ctx => ctx.db.get(entry._id)))?.tags).toEqual(['Feminism', 'Grief'])
+  // The old copy, still on Hardcover until it's deleted, mustn't undo the change.
+  await save([note])
+  expect((await t.run(ctx => ctx.db.get(entry._id)))?.tags).toEqual(['Feminism', 'Grief'])
+
+  await flushTimers(t.action(internal.hardcover.flush, {}))
+  const sent = writes(calls)
+  expect(sent.filter(c => c.query.includes('delete_reading_journal(')).map(c => c.variables.id)).toEqual([5])
+  const inserts = sent.filter(c => c.query.includes('insert_reading_journal'))
+  expect(inserts).toHaveLength(1)
+  expect(inserts[0].variables.object.tags).toEqual([
+    { category: 'general', spoiler: false, tag: 'Feminism' },
+    { category: 'general', spoiler: false, tag: 'Grief' },
+  ])
+})
+
 test('a review comes in, follows edits, and can\'t be deleted from Margin', async () => {
   fakeHardcover()
   const { t, as, userId } = await setup()
@@ -266,7 +296,8 @@ test('pure pieces: lengths, journal mapping and rounding', () => {
   expect(mapJournal({ id: 1, event: 'quote', entry: 'Hi', book_id: 2, metadata: { position: { type: 'pages', value: 415, percent: 95 } } })).toMatchObject({ kind: 'excerpt', page: 415, percent: undefined })
   expect(mapJournal({ id: 1, event: 'note', entry: 'Hi', book_id: 2, metadata: { position: { type: 'seconds', value: 900, percent: 12.4 } } })).toMatchObject({ kind: 'note', page: undefined, percent: 12 })
 
-  expect(journalObject({ kind: 'summary', text: 'S', createdAt: 0 }, 3)).toMatchObject({ event: 'note', metadata: {} })
+  expect(journalObject({ kind: 'summary', text: 'S', createdAt: 0 }, 3)).toMatchObject({ event: 'note', metadata: {}, tags: [] })
+  expect(mapJournal({ id: 1, event: 'note', entry: 'x', book_id: 2, taggings: [{ tag: { tag: ' Theme ' } }, { tag: null }] })?.tags).toEqual(['Theme'])
   expect(progressChanged(50, 51)).toBe(false)
   expect(progressChanged(50, 52)).toBe(true)
 })
