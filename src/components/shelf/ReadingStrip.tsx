@@ -3,7 +3,7 @@ import type { Book } from '../../lib/books'
 import { useBookHold } from '../book/BookActions'
 import { Thumb } from '../thumb/Thumb'
 
-function Card({ book }: { book: Book }) {
+export function Card({ book }: { book: Book }) {
   const hold = useBookHold(book)
   return (
     <Link to="/books/$bookSlug" params={{ bookSlug: book.slug }} className="strip-card" aria-label={`${book.title} by ${book.author}, ${book.percent}%`} {...hold}>

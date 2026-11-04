@@ -6,7 +6,10 @@ import { api } from '../../../convex/_generated/api'
 import { useBooks, useEntries } from '../../lib/offline'
 import { toastDue } from '../../lib/drawer-rules'
 import { Reflection } from '../book/Reflection'
-import { ReadingStrip } from '../shelf/ReadingStrip'
+import { Card } from '../shelf/ReadingStrip'
+import { ProgressChart } from './ProgressChart'
+import { RecentPile } from './RecentPile'
+import { progressSteps, windowStart } from '../../lib/activity'
 import { Typewriter } from '../typewriter/Typewriter'
 
 const TOAST_KEY = 'margin.drawerToastAt'
@@ -36,6 +39,10 @@ export function Desk() {
   const current = (books ?? []).filter(b => b.status === 'reading')
   const latest = entries?.[0]
   const prompt = waiting?.[0]
+  // The window is fixed when the Desk opens, so the query isn't asked afresh every render.
+  const [now] = useState(Date.now)
+  const since = windowStart(now)
+  const activity = useQuery(api.library.activity, { since })
   const shown = entries?.length ? entries[Math.floor(pick * entries.length)] : undefined
 
   // Only once there's something in the drawer to offer.
@@ -73,26 +80,49 @@ export function Desk() {
     <div className="desk">
       <Masthead />
 
-      {current.length > 0 ? <ReadingStrip books={current} /> : (
-        <div className="box stack">
-          <p>You're not reading anything right now. Pick something from your TBR.</p>
-          <div className="btn-row"><Link to="/shelves/$shelfSlug" params={{ shelfSlug: 'tbr' }} className="btn btn-solid">Open your TBR</Link></div>
-        </div>
-      )}
-
-      <hr className="rule" />
-
-      <section className="note" aria-labelledby="note-heading">
-        <h2 id="note-heading" className="head">{prompt ? 'A question' : 'Latest note'}</h2>
-        {prompt ? <Reflection key={prompt.id} prompt={prompt} /> : latest ? (
-          <Link to="/e/$entryId" params={{ entryId: latest.id }} className="box box-link">
-            {latest.kind === 'excerpt' ? <p className="book-voice">{latest.text}</p> : <p className="hand">{latest.text}</p>}
-            <p className="where">{latest.where}</p>
-          </Link>
-        ) : (
-          <Typewriter text="Nothing here yet. Your notes, and your buddy's questions, will land on this sheet." />
+      <section className="desk-reading stack" aria-labelledby="reading-heading">
+        <h2 id="reading-heading" className="head">Reading</h2>
+        {current.length > 0 ? current.map(book => {
+          const logs = activity?.logs.find(l => l.readId === book.readId)?.logs ?? []
+          const steps = progressSteps(logs, since, now, book.startedAt) ?? { points: [{ at: since, percent: book.percent }], gained: 0 }
+          return (
+            <article key={book.readId} className="desk-book">
+              <Card book={book} />
+              <div className="desk-book-chart">
+                <p className="desk-book-head">
+                  <span className="selected-title">{book.title}</span>
+                  <span className="where">{steps.gained > 0 ? `+${steps.gained}% in two weeks` : 'No progress logged in two weeks'}</span>
+                </p>
+                {activity !== undefined && <ProgressChart points={steps.points} since={since} now={now} title={book.title} />}
+              </div>
+            </article>
+          )
+        }) : (
+          <div className="box stack">
+            <p>You're not reading anything right now. Pick something from your TBR.</p>
+            <div className="btn-row"><Link to="/shelves/$shelfSlug" params={{ shelfSlug: 'tbr' }} className="btn btn-solid">Open your TBR</Link></div>
+          </div>
         )}
       </section>
+
+      <aside className="desk-side stack" aria-labelledby="window-heading">
+        {prompt && <Reflection key={prompt.id} prompt={prompt} />}
+        <h2 id="window-heading" className="head">The last two weeks</h2>
+        <dl className="tiles desk-tiles">
+          <div><dt>Notes written</dt><dd className="pct">{activity?.notes ?? '…'}</dd></div>
+          <div><dt>Added to the TBR</dt><dd className="pct">{activity?.added.length ?? '…'}</dd></div>
+        </dl>
+        {activity?.notes ? <Link to="/notes" search={{ sort: 'written' }} className="btn">Read them</Link> : null}
+        {activity && activity.added.length > 0 && (
+          <section className="stack" aria-labelledby="tbr-heading">
+            <h3 id="tbr-heading" className="where">Newly on the TBR</h3>
+            <RecentPile books={activity.added} />
+          </section>
+        )}
+        {activity && !activity.notes && !activity.added.length && !latest && (
+          <Typewriter text="Nothing here yet. Your notes, and your buddy's questions, will land on this sheet." />
+        )}
+      </aside>
 
       <AnimatePresence>
         {toast && latest && (

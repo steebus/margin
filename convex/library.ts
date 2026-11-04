@@ -42,6 +42,35 @@ export const latestRead = query({
   },
 })
 
+/**
+ * The Desk's window (Steve, 2026-11-04): each book in hand's progress logs since `since`, plus the one before it so
+ * the line starts where the book stood, the books put on the TBR, and how many notes were written.
+ */
+export const activity = query({
+  args: { since: v.number() },
+  handler: async (ctx, { since }) => {
+    const userId = await getAuthUserId(ctx)
+    if (!userId) return null
+    const reading = await ctx.db.query('reads').withIndex('by_user_status', q => q.eq('userId', userId).eq('status', 'reading')).collect()
+    const logs = await Promise.all(reading.map(async read => {
+      const inside = await ctx.db.query('progressLog').withIndex('by_read', q => q.eq('readId', read._id).gte('at', since)).collect()
+      const before = await ctx.db.query('progressLog').withIndex('by_read', q => q.eq('readId', read._id).lt('at', since)).order('desc').first()
+      return { readId: read._id, logs: [...(before ? [before] : []), ...inside].map(l => ({ at: l.at, percent: l.percent })) }
+    }))
+    const tbr = await ctx.db.query('reads').withIndex('by_user_status', q => q.eq('userId', userId).eq('status', 'tbr')).collect()
+    const added = await Promise.all(tbr.filter(r => (r.addedAt ?? 0) >= since).map(async r => {
+      const work = await ctx.db.get(r.workId)
+      return work && { slug: work.slug, title: work.title, author: work.authors[0] ?? 'Unknown author', pages: work.pages ?? null, subjects: work.subjects, addedAt: r.addedAt! }
+    }))
+    const notes = await ctx.db.query('entries').withIndex('by_user', q => q.eq('userId', userId).gte('createdAt', since)).collect()
+    return {
+      logs,
+      added: added.filter(a => a !== null).sort((a, b) => b.addedAt - a.addedAt),
+      notes: notes.filter(e => e.kind !== 'review').length,
+    }
+  },
+})
+
 /** One book and its entries, or null if it isn't on this reader's shelves. */
 export const bookBySlug = query({
   args: { slug: v.string() },
