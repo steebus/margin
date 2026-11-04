@@ -5,6 +5,7 @@ import '@fontsource/playfair-display/latin-700.css'
 import '@fontsource/special-elite/latin-400.css'
 
 import { Link } from '@tanstack/react-router'
+import { ArrowLeft } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useBooks, useEntries } from '../../lib/offline'
 import { formatDate } from '../../lib/books'
@@ -40,13 +41,18 @@ export function Pile() {
 
   const rows = pileOf(books ?? [])
   const list = useRef<HTMLOListElement>(null)
-  const open = useMiddleRow(list, rows.length)
+  const middle = useMiddleRow(list, rows.length)
+  // With a mouse, the book under the pointer unfurls; on a touch screen, the one crossing the middle (Steve, 2026-11-04).
+  const [mouse] = useState(() => matchMedia('(hover: hover) and (pointer: fine)').matches)
+  const [hovered, setHovered] = useState<string | null>(null)
+  const open = mouse ? hovered : middle
   const bySlug = Map.groupBy(entries ?? [], e => e.slug)
   const pages = rows.reduce((sum, r) => sum + (r.book.pages ?? 0), 0)
   let lastYear: number | null = null
 
   return (
     <div className="stack pile-page">
+      <Link to="/shelves" className="back"><ArrowLeft aria-hidden="true" strokeWidth={2.25} />Shelves</Link>
       <header className="shelves-head">
         <h1 className="title-head">The pile</h1>
         {books && <p>{rows.length} {rows.length === 1 ? 'book' : 'books'}, {pages.toLocaleString('en-GB')} pages</p>}
@@ -55,7 +61,7 @@ export function Pile() {
       {books === undefined && <p role="status">Stacking your books…</p>}
       {books && rows.length === 0 && <p>Nothing finished yet. Books land here as you finish them.</p>}
 
-      <ol className="pile" ref={list}>
+      <ol className="pile" ref={list} onMouseLeave={() => setHovered(null)}>
         {rows.map(({ key, book, finishedAt, days }) => {
           const spine = spineOf(book.slug, book.pages)
           const year = finishedAt === null ? null : new Date(finishedAt).getUTCFullYear()
@@ -66,7 +72,7 @@ export function Pile() {
           const isOpen = open === key && notes.length > 0
           const roomy = spine.height >= 40
           return (
-            <li key={key} data-key={key} data-open={isOpen || undefined} className="pile-row" style={{ height: spine.height, '--row': `${spine.height}px` } as React.CSSProperties}>
+            <li key={key} data-key={key} data-open={isOpen || undefined} className="pile-row" onMouseEnter={() => setHovered(key)} style={{ height: spine.height, '--row': `${spine.height}px` } as React.CSSProperties}>
               <div className="pile-book">
                 <Link
                   to="/books/$bookSlug"

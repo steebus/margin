@@ -44,3 +44,23 @@ export function groupNotes<E extends Entry, B extends BookDates>(entries: E[], b
     return order * sign || a.book.title.localeCompare(b.book.title)
   })
 }
+
+export type NoteFilter = { kind?: string; status?: string; from?: number; to?: number; words: string[] }
+type Filterable = { kind: string; text: string; question?: string | null; where: string; slug: string | null; createdAt: number }
+
+/** The notes that pass every filter: kind, the book's status, the years they were written in, and the search words. */
+export function filterNotes<E extends Filterable>(entries: E[], statusOf: (slug: string | null) => string | undefined, f: NoteFilter) {
+  return entries.filter(e => {
+    if (f.kind && e.kind !== f.kind) return false
+    if (f.status && statusOf(e.slug) !== f.status) return false
+    const year = new Date(e.createdAt).getUTCFullYear()
+    if (f.from && year < f.from) return false
+    if (f.to && year > f.to) return false
+    const text = `${e.text} ${e.question ?? ''} ${e.where}`.toLowerCase()
+    return f.words.every(w => text.includes(w))
+  })
+}
+
+/** The years notes were written in, newest first, for the date filter. */
+export const noteYears = (entries: { createdAt: number }[]) =>
+  [...new Set(entries.map(e => new Date(e.createdAt).getUTCFullYear()))].sort((a, b) => b - a)

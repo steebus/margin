@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { groupNotes, sortByWritten } from './notes'
+import { filterNotes, groupNotes, noteYears, sortByWritten } from './notes'
 
 const DAY = 86_400_000
 const book = (slug: string, title: string, finishedAt: number | null) =>
@@ -28,4 +28,20 @@ test('grouped notes can follow the date read, with undated books last, or the ti
   expect(groupNotes(entries, books, 'read').map(g => g.book.slug)).toEqual(['a', 'b', 'c'])
   expect(groupNotes(entries, books, 'read', 'asc').map(g => g.book.slug)).toEqual(['b', 'a', 'c'])
   expect(groupNotes(entries, books, 'title').map(g => g.book.title)).toEqual(['Apple', 'Mango', 'Zebra'])
+})
+
+test('notes filter by kind, book status, years and words together', () => {
+  const at = (y: number) => Date.UTC(y, 5, 1)
+  const notes = [
+    { id: 1, kind: 'excerpt', text: 'A storm came', where: 'A', slug: 'a', createdAt: at(2019) },
+    { id: 2, kind: 'note', text: 'Calm sea', where: 'A', slug: 'a', createdAt: at(2024) },
+    { id: 3, kind: 'note', text: 'Storm again', where: 'B', slug: 'b', createdAt: at(2025) },
+  ]
+  const status = (slug: string | null) => (slug === 'a' ? 'read' : 'reading')
+  const ids = (f: Parameters<typeof filterNotes>[2]) => filterNotes(notes, status, f).map(n => n.id)
+  expect(ids({ words: ['storm'] })).toEqual([1, 3])
+  expect(ids({ words: [], kind: 'note' })).toEqual([2, 3])
+  expect(ids({ words: [], status: 'read' })).toEqual([1, 2])
+  expect(ids({ words: [], from: 2020, to: 2024 })).toEqual([2])
+  expect(noteYears(notes)).toEqual([2025, 2024, 2019])
 })

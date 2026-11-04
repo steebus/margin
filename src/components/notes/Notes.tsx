@@ -1,9 +1,10 @@
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { useQuery } from 'convex-helpers/react/cache/hooks'
-import { ArrowDown, ArrowUp, Plus, Search } from 'lucide-react'
+import { ArrowDown, ArrowUp, Plus, Search, SlidersHorizontal } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { formatDate } from '../../lib/books'
-import { groupNotes, NOTE_SORTS, sortByWritten, type NoteSort } from '../../lib/notes'
+import { filterNotes, groupNotes, NOTE_SORTS, noteYears, sortByWritten, type NoteSort } from '../../lib/notes'
 import { useBooks, useEntries } from '../../lib/offline'
 import { NOTE_KINDS } from '../book/BookNotes'
 import { entryLabel, EntryText } from '../book/EntryList'
@@ -11,6 +12,7 @@ import { Reflection } from '../book/Reflection'
 import { Thumb } from '../thumb/Thumb'
 
 const LATEST = 2
+const STATUSES = [['reading', 'Reading'], ['paused', 'Paused'], ['read', 'Read'], ['tbr', 'TBR'], ['dnf', 'Stopped']] as const
 
 type Note = NonNullable<ReturnType<typeof useEntries>>[number]
 
@@ -28,7 +30,7 @@ function NoteItem({ entry, where }: { entry: Note; where?: boolean }) {
 
 /** All your notes and reflections: book by book, or one by one by when you wrote them. Tap one to read, change or delete it. */
 export function Notes() {
-  const { q, kind, sort = 'book', dir } = useSearch({ from: '/notes' })
+  const { q, kind, status, from, to, sort = 'book', dir } = useSearch({ from: '/notes' })
   const navigate = useNavigate({ from: '/notes' })
   const entries = useEntries()
   const books = useBooks()
@@ -36,12 +38,23 @@ export function Notes() {
   const order = dir ?? NOTE_SORTS[sort].dir
   const Arrow = order === 'asc' ? ArrowUp : ArrowDown
 
+  // The box keeps its own words and tells the address a moment after typing stops, so filtering hundreds of notes
+  // never holds up a keystroke.
+  const [typed, setTyped] = useState(q ?? '')
+  useEffect(() => {
+    if (typed === (q ?? '')) return
+    const timer = setTimeout(() => navigate({ search: prev => ({ ...prev, q: typed || undefined }), replace: true }), 200)
+    return () => clearTimeout(timer)
+  }, [typed]) // eslint-disable-line react-hooks/exhaustive-deps
+
   const words = q?.trim().toLowerCase().split(/\s+/).filter(Boolean) ?? []
-  const shown = (entries ?? []).filter(e => {
-    if (kind && e.kind !== kind) return false
-    const text = `${e.text} ${e.question ?? ''} ${e.where}`.toLowerCase()
-    return words.every(w => text.includes(w))
-  })
+  const statusBySlug = new Map((books ?? []).map(b => [b.slug, b.status]))
+  const shown = filterNotes(entries ?? [], slug => (slug ? statusBySlug.get(slug) : undefined), { kind, status, from, to, words })
+  const years = noteYears(entries ?? [])
+  const active = [kind, status, from, to].filter(v => v !== undefined).length
+  const [open, setOpen] = useState(active > 0)
+  const set = (change: Partial<{ kind: string; status: string; from: number; to: number; sort: NoteSort; dir: 'asc' | 'desc' }>) =>
+    navigate({ search: prev => ({ ...prev, ...change }), replace: true })
   const flat = sort === 'written'
   const groups = flat ? [] : groupNotes(shown, books ?? [], sort, dir)
   const nothing = flat ? shown.length === 0 : groups.length === 0
@@ -52,38 +65,66 @@ export function Notes() {
 
       {waiting?.map(p => <Reflection key={p.id} prompt={p} />)}
 
-      <div className="notes-tools">
-      <div className="tools-top">
-        <label className="tools-search">
-          <Search aria-hidden="true" strokeWidth={2.25} />
-          <span className="sr-only">Search your notes</span>
-          <input type="search" value={q ?? ''} placeholder="Search your notes" onChange={e => navigate({ search: prev => ({ ...prev, q: e.target.value || undefined }), replace: true })} />
-        </label>
-        <Link to="/capture" search={{ kind: 'note' }} className="btn tools-view"><Plus aria-hidden="true" strokeWidth={2.25} />New</Link>
-      </div>
-
-      <div className="field">
-        <label htmlFor="notes-sort">Sort</label>
-        <div className="tools-sort-row">
-          <select id="notes-sort" value={sort} onChange={e => navigate({ search: prev => ({ ...prev, sort: e.target.value as NoteSort, dir: undefined }), replace: true })}>
-            {(Object.keys(NOTE_SORTS) as NoteSort[]).map(id => <option key={id} value={id}>{NOTE_SORTS[id].label}</option>)}
-          </select>
-          <button
-            type="button"
-            className="theme-toggle"
-            aria-label={order === 'asc' ? 'Order: oldest or A first' : 'Order: newest or Z first'}
-            onClick={() => navigate({ search: prev => ({ ...prev, dir: order === 'asc' ? 'desc' : 'asc' }), replace: true })}
-          >
-            <Arrow aria-hidden="true" strokeWidth={2.25} />
+      <div className="tools">
+        <div className="tools-top">
+          <label className="tools-search">
+            <Search aria-hidden="true" strokeWidth={2.25} />
+            <span className="sr-only">Search your notes</span>
+            <input type="search" value={typed} placeholder="Search your notes" onChange={e => setTyped(e.target.value)} />
+          </label>
+          <button type="button" className="btn tools-view" aria-expanded={open} aria-controls="notes-filter" onClick={() => setOpen(!open)}>
+            <SlidersHorizontal aria-hidden="true" strokeWidth={2.25} />Filter{active > 0 && <span className="tools-badge">{active}</span>}
           </button>
+          <Link to="/capture" search={{ kind: 'note' }} className="btn tools-view"><Plus aria-hidden="true" strokeWidth={2.25} />New</Link>
         </div>
-      </div>
 
-      <div className="segments scroll-x" role="group" aria-label="Show">
-        {NOTE_KINDS.map(k => (
-          <button key={k.label} type="button" aria-pressed={kind === k.id} onClick={() => navigate({ search: prev => ({ ...prev, kind: k.id }), replace: true })}>{k.label}</button>
-        ))}
-      </div>
+        {open && (
+          <div id="notes-filter" className="tools-panel">
+            <div className="tools-row">
+              <div className="field tools-sort">
+                <label htmlFor="notes-sort">Sort</label>
+                <div className="tools-sort-row">
+                  <select id="notes-sort" value={sort} onChange={e => set({ sort: e.target.value as NoteSort, dir: undefined })}>
+                    {(Object.keys(NOTE_SORTS) as NoteSort[]).map(id => <option key={id} value={id}>{NOTE_SORTS[id].label}</option>)}
+                  </select>
+                  <button type="button" className="theme-toggle" aria-label={order === 'asc' ? 'Order: oldest or A first' : 'Order: newest or Z first'} onClick={() => set({ dir: order === 'asc' ? 'desc' : 'asc' })}>
+                    <Arrow aria-hidden="true" strokeWidth={2.25} />
+                  </button>
+                </div>
+              </div>
+              <div className="field">
+                <label htmlFor="notes-kind">Kind</label>
+                <select id="notes-kind" value={kind ?? ''} onChange={e => set({ kind: e.target.value || undefined })}>
+                  {NOTE_KINDS.map(k => <option key={k.label} value={k.id ?? ''}>{k.id ? k.label : 'Any'}</option>)}
+                </select>
+              </div>
+              <div className="field">
+                <label htmlFor="notes-status">Book</label>
+                <select id="notes-status" value={status ?? ''} onChange={e => set({ status: e.target.value || undefined })}>
+                  <option value="">Any</option>
+                  {STATUSES.map(([id, label]) => <option key={id} value={id}>{label}</option>)}
+                </select>
+              </div>
+            </div>
+            <div className="tools-row">
+              <div className="field">
+                <label htmlFor="notes-from">Written from</label>
+                <select id="notes-from" value={from ?? ''} onChange={e => set({ from: e.target.value ? Number(e.target.value) : undefined })}>
+                  <option value="">The start</option>
+                  {years.map(y => <option key={y} value={y}>{y}</option>)}
+                </select>
+              </div>
+              <div className="field">
+                <label htmlFor="notes-to">Until</label>
+                <select id="notes-to" value={to ?? ''} onChange={e => set({ to: e.target.value ? Number(e.target.value) : undefined })}>
+                  <option value="">Now</option>
+                  {years.map(y => <option key={y} value={y}>{y}</option>)}
+                </select>
+              </div>
+            </div>
+            {active > 0 && <div className="btn-row"><button type="button" className="btn" onClick={() => set({ kind: undefined, status: undefined, from: undefined, to: undefined })}>Clear filters</button></div>}
+          </div>
+        )}
       </div>
 
       {entries === undefined && <p role="status">Opening your notes…</p>}
