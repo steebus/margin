@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { progressSteps } from './activity'
+import { movedIn, progressSteps } from './activity'
 
 const DAY = 86_400_000
 const now = 100 * DAY
@@ -27,4 +27,9 @@ test("with no log before the window, the line starts at the first log, not at a 
   const steps = progressSteps([{ at: since + 2 * DAY, percent: 70 }, { at: since + 8 * DAY, percent: 80 }], since, now, since - 60 * DAY)
   expect(steps?.points[0]).toEqual({ at: since + 2 * DAY, percent: 70 })
   expect(steps?.gained).toBe(10)
+})
+
+test('how far a read moved, as a share of the book', () => {
+  expect(movedIn([{ at: since - DAY, percent: 10 }, { at: since + DAY, percent: 35 }], since, now, null)).toBe(0.25)
+  expect(movedIn([], since, now, null)).toBe(0)
 })

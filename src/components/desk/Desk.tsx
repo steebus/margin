@@ -9,7 +9,8 @@ import { Reflection } from '../book/Reflection'
 import { Card } from '../shelf/ReadingStrip'
 import { ProgressChart } from './ProgressChart'
 import { RecentPile } from './RecentPile'
-import { progressSteps, windowStart } from '../../lib/activity'
+import { progressSteps, windowStart } from '../../../convex/lib/activity'
+import { formatClock } from '../../lib/progress'
 import { Typewriter } from '../typewriter/Typewriter'
 
 const TOAST_KEY = 'margin.drawerToastAt'
@@ -104,22 +105,24 @@ export function Desk() {
             <div className="btn-row"><Link to="/shelves/$shelfSlug" params={{ shelfSlug: 'tbr' }} className="btn btn-solid">Open your TBR</Link></div>
           </div>
         )}
+        {activity && activity.added.length > 0 && (
+          <section className="stack" aria-labelledby="tbr-heading">
+            <h2 id="tbr-heading" className="head">Newly on the TBR</h2>
+            <RecentPile books={activity.added} />
+          </section>
+        )}
       </section>
 
       <aside className="desk-side stack" aria-labelledby="window-heading">
         {prompt && <Reflection key={prompt.id} prompt={prompt} />}
         <h2 id="window-heading" className="head">The last two weeks</h2>
         <dl className="tiles desk-tiles">
-          <div><dt>Notes written</dt><dd className="pct">{activity?.notes ?? '…'}</dd></div>
-          <div><dt>Added to the TBR</dt><dd className="pct">{activity?.added.length ?? '…'}</dd></div>
+          <div><dt>Pages read</dt><dd>{activity ? activity.pages.toLocaleString('en-GB') : '…'}</dd></div>
+          <div><dt>Listened</dt><dd>{activity ? formatClock(activity.audioSeconds) : '…'}</dd></div>
+          <div><dt>Books finished</dt><dd>{activity?.finished ?? '…'}</dd></div>
+          <div><dt>Notes written</dt><dd>{activity?.notes ?? '…'}</dd></div>
         </dl>
         {activity?.notes ? <Link to="/notes" search={{ sort: 'written' }} className="btn">Read them</Link> : null}
-        {activity && activity.added.length > 0 && (
-          <section className="stack" aria-labelledby="tbr-heading">
-            <h3 id="tbr-heading" className="where">Newly on the TBR</h3>
-            <RecentPile books={activity.added} />
-          </section>
-        )}
         {activity && !activity.notes && !activity.added.length && !latest && (
           <Typewriter text="Nothing here yet. Your notes, and your buddy's questions, will land on this sheet." />
         )}

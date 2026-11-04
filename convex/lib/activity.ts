@@ -28,3 +28,9 @@ export const windowStart = (now: number) => {
   d.setHours(0, 0, 0, 0)
   return d.getTime() - (WINDOW_DAYS - 1) * DAY
 }
+
+/** How far a read moved in the window, as a share of the book (0 to 1), by the same rules as its line. */
+export function movedIn(logs: Logged[], since: number, now: number, startedAt: number | null) {
+  const steps = progressSteps(logs, since, now, startedAt)
+  return steps ? steps.gained / 100 : 0
+}

@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
-import type { Logged } from '../../lib/activity'
+import { useEffect, useId, useRef, useState } from 'react'
+import type { Logged } from '../../../convex/lib/activity'
 
 const fmt = (t: number) => new Date(t).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
 
@@ -18,11 +18,13 @@ function useWidth() {
 }
 
 /**
- * Where a book got to across the window: one ink, a stepped line (a place holds until the next log), a mark at each
- * log with its date and place on hover, and the start and end labelled (dataviz: one series, so no legend).
+ * Where a book got to across the window: one ink, straight from log to log and level to today, the ground under it
+ * etched like the art, a mark at each log with its date and place on hover, and the start and end labelled (dataviz:
+ * one series, so no legend).
  */
 export function ProgressChart({ points, opened, since, now, title }: { points: Logged[]; opened: boolean; since: number; now: number; title: string }) {
   const [ref, width] = useWidth()
+  const etch = `etch-${useId().replace(/:/g, '')}`
   const H = 132, pl = 4, pr = 44, pt = 16, pb = 24
   const W = Math.max(width, 160)
   const values = points.map(p => p.percent)
@@ -32,13 +34,20 @@ export function ProgressChart({ points, opened, since, now, title }: { points: L
   const x = (t: number) => pl + ((t - since) / (now - since)) * (W - pl - pr)
   const y = (v: number) => pt + (1 - (v - lo) / (hi - lo || 1)) * (H - pt - pb)
   const end = points.at(-1)!
-  const d = points.map((p, i) => (i === 0 ? `M${x(p.at)},${y(p.percent)}` : `H${x(p.at)}V${y(p.percent)}`)).join('') + `H${x(now)}`
+  const d = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${x(p.at)},${y(p.percent)}`).join('') + `H${x(now)}`
+  const ground = `${d}V${H - pb}H${x(points[0].at)}Z`
   const summary = `${title}: ${points[0].percent}% on ${fmt(points[0].at)}, ${end.percent}% now`
 
   return (
     <div ref={ref} className="act-chart">
       {width > 0 && (
         <svg width={W} height={H} role="img" aria-label={summary}>
+          <defs>
+            <pattern id={etch} width={5} height={5} patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+              <line className="act-etch" x1={0} y1={0} x2={0} y2={5} />
+            </pattern>
+          </defs>
+          <path d={ground} fill={`url(#${etch})`} />
           <line className="act-base" x1={pl} x2={W - pr} y1={H - pb} y2={H - pb} />
           <path className="act-line" d={d} />
           {(opened ? points.slice(1) : points).map(p => (

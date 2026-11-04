@@ -5,6 +5,7 @@ import { internal } from './_generated/api'
 import { mutation, query, type MutationCtx } from './_generated/server'
 import { datesFrom, positionOf, progressAt, readingsAfter, readingsOf, toBook } from './lib/books'
 import { askForReflection, waitingPrompt } from './lib/reflection'
+import { movedIn } from './lib/activity'
 import { enqueueRead } from './lib/outbox'
 import { checkMilestones, waitingNote } from './milestones'
 import { depthOf, guideFor } from './guides'
@@ -51,12 +52,25 @@ export const activity = query({
   handler: async (ctx, { since }) => {
     const userId = await getAuthUserId(ctx)
     if (!userId) return null
-    const reading = await ctx.db.query('reads').withIndex('by_user_status', q => q.eq('userId', userId).eq('status', 'reading')).collect()
-    const logs = await Promise.all(reading.map(async read => {
+    const byStatus = (status: Doc<'reads'>['status']) => ctx.db.query('reads').withIndex('by_user_status', q => q.eq('userId', userId).eq('status', status)).collect()
+    const reading = await byStatus('reading')
+    const finished = (await byStatus('read')).filter(r => (r.finishedAt ?? 0) >= since)
+    // Everything that could have moved in the window: books in hand, paused ones, and those finished in it.
+    const moving = [...reading, ...await byStatus('paused'), ...finished]
+    const logs = await Promise.all(moving.map(async read => {
       const inside = await ctx.db.query('progressLog').withIndex('by_read', q => q.eq('readId', read._id).gte('at', since)).collect()
       const before = await ctx.db.query('progressLog').withIndex('by_read', q => q.eq('readId', read._id).lt('at', since)).order('desc').first()
-      return { readId: read._id, logs: [...(before ? [before] : []), ...inside].map(l => ({ at: l.at, percent: l.percent })) }
+      return { read, logs: [...(before ? [before] : []), ...inside].map(l => ({ at: l.at, percent: l.percent })) }
     }))
+    let pages = 0
+    let audioSeconds = 0
+    for (const { read, logs: mine } of logs) {
+      const moved = movedIn(mine, since, Date.now(), read.startedAt ?? null)
+      if (!moved) continue
+      const work = await ctx.db.get(read.workId)
+      if (read.format === 'audio') audioSeconds += moved * (work?.audioSeconds ?? 0)
+      else pages += moved * (work?.pages ?? 0)
+    }
     const tbr = await ctx.db.query('reads').withIndex('by_user_status', q => q.eq('userId', userId).eq('status', 'tbr')).collect()
     const added = await Promise.all(tbr.filter(r => (r.addedAt ?? 0) >= since).map(async r => {
       const work = await ctx.db.get(r.workId)
@@ -64,7 +78,10 @@ export const activity = query({
     }))
     const notes = await ctx.db.query('entries').withIndex('by_user', q => q.eq('userId', userId).gte('createdAt', since)).collect()
     return {
-      logs,
+      logs: logs.filter(l => l.read.status === 'reading').map(l => ({ readId: l.read._id, logs: l.logs })),
+      pages: Math.round(pages),
+      audioSeconds: Math.round(audioSeconds),
+      finished: finished.length,
       added: added.filter(a => a !== null).sort((a, b) => b.addedAt - a.addedAt),
       notes: notes.filter(e => e.kind !== 'review').length,
     }

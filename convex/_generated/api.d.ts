@@ -22,6 +22,7 @@ import type * as guides from "../guides.js";
 import type * as hardcover from "../hardcover.js";
 import type * as http from "../http.js";
 import type * as kobo from "../kobo.js";
+import type * as lib_activity from "../lib/activity.js";
 import type * as lib_artFrame from "../lib/artFrame.js";
 import type * as lib_artPrompt from "../lib/artPrompt.js";
 import type * as lib_books from "../lib/books.js";
@@ -71,6 +72,7 @@ declare const fullApi: ApiFromModules<{
   hardcover: typeof hardcover;
   http: typeof http;
   kobo: typeof kobo;
+  "lib/activity": typeof lib_activity;
   "lib/artFrame": typeof lib_artFrame;
   "lib/artPrompt": typeof lib_artPrompt;
   "lib/books": typeof lib_books;
