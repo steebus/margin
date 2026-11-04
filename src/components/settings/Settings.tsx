@@ -4,6 +4,7 @@ import { useQuery } from 'convex-helpers/react/cache/hooks'
 import { useState } from 'react'
 import { AudibleImport } from './AudibleImport'
 import { KoboSettings } from './KoboSettings'
+import { PlayBooksImport } from './PlayBooksImport'
 import { Nudges } from './Nudges'
 import { api } from '../../../convex/_generated/api'
 import { errorText } from '../../lib/books'
@@ -156,6 +157,10 @@ export function Settings() {
       <section className="stack" aria-labelledby="kobo-heading">
         <h2 id="kobo-heading" className="head">Kobo</h2>
         <KoboSettings />
+      </section>
+      <section className="stack" aria-labelledby="playbooks-heading">
+        <h2 id="playbooks-heading" className="head">Play Books</h2>
+        <PlayBooksImport />
       </section>
       <section className="stack" aria-labelledby="buddy-heading">
         <h2 id="buddy-heading" className="head">Buddy</h2>

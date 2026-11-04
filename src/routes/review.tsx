@@ -1,6 +1,4 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { Placeholder } from '../components/placeholder/Placeholder'
+import { Review } from '../components/review/Review'
 
-export const Route = createFileRoute('/review')({
-  component: () => <Placeholder title="Review matches" />,
-})
+export const Route = createFileRoute('/review')({ component: Review })
