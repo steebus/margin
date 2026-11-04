@@ -277,7 +277,7 @@ Kindle imports were dropped on 2026-11-04 (Steve): don't build them.
 3. **Kobo** (built 2026-11-04, `docs/superpowers/specs/2026-11-04-kobo-pull-design.md`). No `KoboReader.sqlite`:
    Steve's notes are cloud-synced. A bookmarklet on My Books sends the book list to `/settings/integrations/kobo`,
    which matches, adds and links books (unsure ones are chosen there). The server pulls each linked book's
-   annotations with Steve's pasted cookie, from Settings and daily at 05:00 UTC. Kobo's library page refuses
+   annotations with Steve's pasted cookie, from Settings and daily at 19:00 UTC (5am Brisbane). Kobo's library page refuses
    servers (a bot check), so the list can't be pulled on the server.
 4. **Play Books.**
    - Incremental Google consent.
