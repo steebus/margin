@@ -69,11 +69,11 @@ These are one kind of record, an **entry**, with a `kind`:
 | reflection | a reply to the buddy | handwriting, under the buddy's typed prompt |
 
 - Every entry records where in the book it is: page, chapter, percent, and the
-  Kindle location or EPUB position when one is available.
+  EPUB position when one is available.
 - A note can be attached to an excerpt, which is how a marginal note sits next
   to the line it is about.
-- An entry also records where it came from (manual, camera, share, Kindle,
-  Kobo, Play Books, Hardcover), so re-imports can skip what is already there.
+- An entry also records where it came from (manual, share, Hardcover,
+  Kobo, Play Books), so re-imports can skip what is already there.
 - The editor is markdown-lite, with no rich-text toolbar.
 
 ### 3.3 The buddy ("have a conversation with the text")
@@ -196,9 +196,8 @@ block one.
 
 | Source | What | How | Direction |
 |---|---|---|---|
-| **Hardcover** | library, statuses, ratings, dates, progress, lists, reading journal (quotes/notes) | GraphQL API, personal API token pasted once and encrypted at rest | **two-way**: status, progress, rating and dates; quotes and notes too, behind a per-entry toggle that defaults to *on* (with a global default in Settings) |
+| **Hardcover** | library, statuses, ratings, dates, progress, lists, reading journal (quotes/notes) | GraphQL API, personal API token in the Convex env (`HARDCOVER_API_KEY`) | **two-way**: status, progress, rating and dates; quotes and notes too, behind a per-entry toggle that defaults to *on* (with a global default in Settings) |
 | **Google Play Books** | library (shelves), highlights + notes | Books API `mylibrary` for shelves; notes from the "Play Books Notes" Drive docs (the reader enables this in Play Books settings), picked through Google Picker so we only ask for `drive.file` | in |
-| **Kindle** | highlights + notes | upload `My Clippings.txt` (from the device) or the Kindle app's notebook export (HTML/CSV). Files only: no scraping. | in |
 | **Kobo** | library, % read, time read, highlights + notes | upload `KoboReader.sqlite` from the e-reader over USB, parsed in the browser with sql.js | in |
 
 - **Matching.** ISBN first, then a Hardcover/Open Library search, then a fuzzy

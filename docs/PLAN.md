@@ -234,18 +234,21 @@ grab), and the text is shared to Margin. Margin doesn't read photos itself.
 **Dropped on 2026-11-04, don't build:** the in-app camera (Gemini transcription and the Tesseract
 fallback, both removed), the Instagram screenshot reader, guessing Kindle and Play Books share formats beyond the "Title by Author" line `readWords` already reads,
 the small model choosing the book with an undo toast, and the HTTP capture endpoint for scripts.
-Phase 5's file imports from Kindle and Kobo are separate and still planned.
+Phase 5's Kobo file import is separate and still planned; Kindle imports were dropped too.
 
-## Phase 4: Hardcover two-way (2 sessions)
+## Phase 4: Hardcover two-way (done 2026-11-04)
 
-Built early, on 2026-11-02, because Steve wanted it tight (SPEC §3.5). Still to do here: list sync, the
-`/review` queue for weak matches, author facts, and the token pasted in-app rather than in the Convex env.
+Built early, on 2026-11-02, because Steve wanted it tight (SPEC §3.5). Lists sync both ways and author facts
+come in. Steve called it done on 2026-11-04, having seen Margin's changes reach Hardcover.
 
-1. **Connect.** Token connect, stored encrypted.
+**Changed 2026-11-04:** the token stays in the Convex env (`HARDCOVER_API_KEY`); pasting it in-app was dropped,
+since Margin has one reader. The `/review` queue moved to Phase 5, where the first weak matches come from.
+
+1. **Connect.** The token in the Convex env.
 2. **Full pull.** Library, statuses, dates, ratings, progress, lists and
    reading journal.
 3. **Matching.** ISBN, then a Hardcover id, then a fuzzy title+author match.
-   Weak matches go to the `/review` card stack.
+   Hardcover's own books always carry their id, so nothing here is weak.
 4. **Push.** Status, progress, rating and dates go up on change. Quotes and
    notes go up as journal entries, controlled by a per-entry toggle (default
    on).
@@ -256,16 +259,20 @@ Built early, on 2026-11-02, because Steve wanted it tight (SPEC §3.5). Still to
    - Author facts (gender, nationality) are pulled into `authors`.
 
 **Done when:**
-- [ ] Progress logged in Margin appears on Hardcover.
-- [ ] Progress logged on Hardcover appears in Margin within 2 minutes.
-- [ ] A re-pull creates no duplicates.
+- [x] Changes made in Margin appear on Hardcover (Steve, 2026-11-04).
+- [ ] Progress logged on Hardcover appears in Margin within 2 minutes. Not checked yet.
+- [ ] A re-pull creates no duplicates. Not checked yet.
 
 ## Phase 5: Backfill imports (2–3 sessions)
 
+Kindle imports were dropped on 2026-11-04 (Steve): don't build them.
+
 1. **Import jobs.** Upload, then parse, then match, then dedupe, then a
    report ("412 books, 3,180 highlights, 27 need a look"). Resumable.
-2. **Kindle.** `My Clippings.txt` and the notebook export (HTML/CSV).
    Parsers are tested against real samples.
+2. **Review queue** (moved from Phase 4). Weak matches from an import go to
+   the `/review` card stack instead of being guessed. Built with the first
+   import that produces them.
 3. **Kobo.** `KoboReader.sqlite` parsed in the browser with sql.js (books, %
    read, time read, highlights, notes).
 4. **Play Books.**
@@ -275,7 +282,7 @@ Built early, on 2026-11-02, because Steve wanted it tight (SPEC §3.5). Still to
 5. **Backfill rule.** No guides or buddy notes for finished books. Topics
    come from a cheap batch job.
 
-**Done when:** Steve's Kindle, Kobo and Play Books history is in, and
+**Done when:** Steve's Kobo and Play Books history is in, and
 re-running each import adds nothing.
 
 ## Phase 6: Knowledge graph and explore (2–3 sessions)
