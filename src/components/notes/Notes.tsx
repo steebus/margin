@@ -47,11 +47,12 @@ export function Notes() {
   const nothing = flat ? shown.length === 0 : groups.length === 0
 
   return (
-    <div className="narrow stack">
+    <div className="wide stack">
       <h1 className="title-head">Notes</h1>
 
       {waiting?.map(p => <Reflection key={p.id} prompt={p} />)}
 
+      <div className="notes-tools">
       <div className="tools-top">
         <label className="tools-search">
           <Search aria-hidden="true" strokeWidth={2.25} />
@@ -83,18 +84,19 @@ export function Notes() {
           <button key={k.label} type="button" aria-pressed={kind === k.id} onClick={() => navigate({ search: prev => ({ ...prev, kind: k.id }), replace: true })}>{k.label}</button>
         ))}
       </div>
+      </div>
 
       {entries === undefined && <p role="status">Opening your notes…</p>}
       {entries?.length === 0 && <p>Nothing here yet. Your notes, excerpts and reflections will collect here.</p>}
       {entries && entries.length > 0 && nothing && <p>Nothing matches that.</p>}
 
       {flat && shown.length > 0 && (
-        <ul className="notes-list notes-flat">
+        <ul className="notes-wall notes-cards">
           {sortByWritten(shown, order).map(e => <NoteItem key={e.id} entry={e} where />)}
         </ul>
       )}
 
-      {groups.map(({ book, list }) => {
+      {groups.length > 0 && <div className="notes-wall">{groups.map(({ book, list }) => {
         const visible = words.length > 0 ? list : list.slice(0, LATEST)
         return (
           <article key={book.slug} className="notes-book">
@@ -114,7 +116,7 @@ export function Notes() {
             )}
           </article>
         )
-      })}
+      })}</div>}
     </div>
   )
 }

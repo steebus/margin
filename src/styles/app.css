@@ -33,12 +33,14 @@ svg { flex: none; }
   position: relative;
   flex: 1;
   width: 100%;
-  max-width: 1240px;
+  max-width: 1680px;
   margin-inline: auto;
   padding: 16px 16px calc(96px + env(safe-area-inset-bottom));
 }
 .stack { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-content: start; }
 .narrow { max-width: 720px; margin-inline: auto; }
+/* Pages that spread out when there's room: the notes wall, the book page's two columns. */
+.wide { max-width: 1600px; margin-inline: auto; }
 
 /* ---------- Type ---------- */
 .head, .title-head, .masthead h1, .year, .toast-head, caption {
@@ -480,6 +482,14 @@ td a { display: inline-flex; align-items: center; min-height: 44px; color: inher
 .gallery button { display: block; width: 100%; padding: 3px; border: var(--line) solid transparent; border-radius: 3px; background: none; cursor: pointer; }
 .gallery button[aria-pressed='true'] { border-color: var(--ink); }
 .gallery .thumb { border: 1px solid var(--ink); }
+/* One column on a phone; side by side when there's room: the book and its record, then its margin. */
+.book-page { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; max-width: 720px; margin-inline: auto; }
+.book-main, .book-side { align-content: start; }
+@media (min-width: 760px) {
+  .book-page { max-width: 1440px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 40px; align-items: start; }
+  .book-page > .back, .book-page > .book-head, .book-page > .rule { grid-column: 1 / -1; }
+  .book-page > .book-head { max-width: 960px; }
+}
 .book-controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 
 /* The library card: a solid ink band over ruled cells that share their rules, labels in gothic, figures in serif. */
@@ -619,7 +629,17 @@ td a { display: inline-flex; align-items: center; min-height: 44px; color: inher
 .bar-value { flex: none; font-size: 0.9375rem; font-variant-numeric: lining-nums; }
 
 /* ---------- Notes ---------- */
-.notes-book { display: grid; gap: 10px; padding-bottom: 16px; border-bottom: 4px solid var(--rule); }
+.notes-book { display: grid; gap: 10px; padding: 12px; border: var(--line) solid var(--ink); border-radius: 3px; background: var(--paper); }
+/* A wall of cards, as many columns as fit, each card as tall as its words: the cheapest masonry there is. */
+.notes-wall { columns: 17rem; column-gap: 16px; }
+.notes-wall > * { break-inside: avoid; margin-bottom: 16px; }
+.notes-cards > li { display: block; border: var(--line) solid var(--ink); border-radius: 3px; background: var(--paper); }
+.notes-cards .note-link { padding: 12px; }
+.notes-tools { display: grid; gap: 16px; }
+@media (min-width: 760px) {
+  .notes-tools { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); align-items: end; }
+  .notes-tools > .segments { grid-column: 1 / -1; }
+}
 .notes-head { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 12px; align-items: center; color: inherit; text-decoration: none; }
 .notes-head .thumb[data-art] { border: var(--line) solid var(--ink); }
 .notes-head-text { display: grid; gap: 2px; }
@@ -912,9 +932,6 @@ button.back { justify-self: start; padding: 0; border: 0; background: none; curs
 .box-link, .note-link { display: grid; gap: 4px; color: inherit; text-decoration: none; }
 .notes-list .note-link { gap: 2px; }
 @media (hover: hover) { .box-link:hover, .note-link:hover { background: var(--soft); } }
-.notes-flat { gap: 0; border: var(--line) solid var(--ink); border-radius: 3px; }
-.notes-flat li + li { border-top: var(--line) solid var(--ink); }
-.notes-flat .note-link { padding: 12px; }
 .drawer-card { position: relative; }
 .drawer-open { position: absolute; inset: 0; border-radius: 3px; }
 .entry-meta { font: 400 1.125rem/1.2 var(--head); letter-spacing: 0.02em; text-transform: uppercase; }
@@ -931,7 +948,7 @@ button.back { justify-self: start; padding: 0; border: 0; background: none; curs
   .corner { top: 16px; right: 32px; }
   .tabs { position: static; order: -1; border-top: 0; border-bottom: var(--line) solid var(--ink); }
   .tabs a { flex-direction: row; gap: 8px; min-height: 52px; }
-  .desk { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 16px 32px; align-items: start; }
+  .desk { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 16px 32px; align-items: start; }
   .masthead { grid-column: 1 / -1; }
   .masthead h1 { font-size: 4rem; }
   .desk > .rule { display: none; }

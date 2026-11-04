@@ -124,7 +124,7 @@ export function BookPage() {
   const showProgress = book.status === 'reading' || book.status === 'paused'
 
   return (
-    <div className="narrow stack">
+    <div className="book-page">
       {/* A book is reached from the Desk, the shelves, a note or a link, so Back goes where the reader came from. */}
       <button type="button" className="back" onClick={() => router.history.canGoBack() ? router.history.back() : void navigate({ to: '/' })}>
         <ArrowLeft aria-hidden="true" strokeWidth={2.25} />Back
@@ -155,6 +155,8 @@ export function BookPage() {
         </div>
       </header>
       <hr className="rule" />
+
+      <div className="book-main stack">
 
       <QuickActions book={book} logging={logging} onLog={() => setLogging(!logging)} />
 
@@ -196,7 +198,9 @@ export function BookPage() {
 
       <ReadDates book={book} />
 
-      <hr className="rule" />
+      </div>
+
+      <div className="book-side stack">
 
       <section className="stack" aria-labelledby="margin-heading">
         <h2 id="margin-heading" className="head">In the margin</h2>
@@ -222,6 +226,7 @@ export function BookPage() {
         <h2 id="delete-heading" className="head">Delete</h2>
         <DeleteBook book={book} notes={entries.length} onPage onDone={() => {}} />
       </section>
+      </div>
     </div>
   )
 }
