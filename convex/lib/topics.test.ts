@@ -60,8 +60,8 @@ describe('buildTopics', () => {
   test('merges spellings, adds note-tagged and mentioning books with reasons, skips reserved and hidden', () => {
     const topics = buildTopics({
       works: [
-        work({ readId: 'a', tags: [{ name: 'Feminism', kind: 'tag' }, { name: 'Fiction', kind: 'genre' }] }),
         work({ readId: 'b', tags: [{ name: 'feminism', kind: 'genre' }] }),
+        work({ readId: 'a', tags: [{ name: 'Feminism', kind: 'tag', count: 3 }, { name: 'Fiction', kind: 'genre' }] }),
         work({ readId: 'c' }),
         work({ readId: 'd' }),
       ],

@@ -85,6 +85,9 @@ export function buildTopics({ works, entries, hidden }: { works: WorkIn[]; entri
     if (!topic) {
       topic = { key, slug: slugify(key) || 'topic', name: name.trim(), books: [], entries: [], byRead: new Map(), entryIds: new Set() }
       topics.set(key, topic)
+    } else if (topic.name === topic.name.toLowerCase() && name.trim() !== name.trim().toLowerCase()) {
+      // A capitalised spelling reads better than a lower-case one: "Grief", not "grief".
+      topic.name = name.trim()
     }
     return topic
   }

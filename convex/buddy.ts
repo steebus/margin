@@ -4,7 +4,9 @@ import { internal } from './_generated/api'
 import type { Doc, Id } from './_generated/dataModel'
 import { internalMutation, internalQuery, mutation, query, type MutationCtx } from './_generated/server'
 import { positionOf } from './lib/books'
-import { bookPack, CORRECTION_WORDS, costOf, LAG_STEP, MAX_LAG, MAX_NOTES, SPEND_ALERT, toMessages, visibleTo, type Found } from './lib/buddy'
+import { bookPack, CORRECTION_WORDS, costOf, LAG_STEP, MAX_LAG, MAX_NOTES, SPEND_ALERT, toMessages, topicsLine, visibleTo, type Found, type TopicFound } from './lib/buddy'
+import { topicKey } from './lib/topics'
+import { libraryTopics } from './topics'
 import { guideCost, guideText, guideUpTo, type Guide } from './lib/guide'
 import { depthOf, guideFor, stillWriting } from './guides'
 
@@ -119,6 +121,8 @@ export const context = internalQuery({
     const turns = (await turnsOf(ctx, read._id)).filter(t => t._id !== turnId)
     const visibility = visibleTo(read)
     const guide = await guideFor(ctx, work._id)
+    const { topics } = await libraryTopics(ctx, read.userId)
+    const mineTopics = topics.filter(t => t.books.some(b => b.readId === read._id)).map(t => t.name).slice(0, 12)
     return {
       waitForGuide: stillWriting(guide, Date.now()),
       // The spoiler rule, in the data: the guide is cut at the reader's place before the model ever sees it.
@@ -126,7 +130,7 @@ export const context = internalQuery({
       guide: guide?.state === 'ready'
         ? guideText(guideUpTo(guide.guide as Guide, { ...visibility, percent: Math.max(0, visibility.percent - (read.guideLag ?? 0)) }), visibility.finished)
         : null,
-      pack: bookPack({
+      pack: [topicsLine(mineTopics), bookPack({
         title: work.title,
         authors: work.authors,
         year: work.year,
@@ -135,7 +139,7 @@ export const context = internalQuery({
         notes: entries.map(e => ({ kind: e.kind, text: e.text, position: positionOf(e.pos), question: e.question })),
         otherBooks,
         corrections: (await ctx.db.query('corrections').withIndex('by_read', q => q.eq('readId', read._id)).collect()).map(c => ({ kind: c.kind, quote: c.quote })),
-      }),
+      })].filter(Boolean).join('\n\n'),
       messages: toMessages(turns),
     }
   },
@@ -158,6 +162,35 @@ export const searchEntries = internalQuery({
       const other = await ctx.db.get(e.readId)
       const work = other && await ctx.db.get(other.workId)
       return { title: work?.title ?? 'Unknown', author: work?.authors[0] ?? 'Unknown', kind: e.kind, text: e.text, position: positionOf(e.pos), current: other?.workId === read.workId }
+    }))
+  },
+})
+
+const TOPIC_LIMIT = 3
+const TOPIC_NOTES = 6
+
+/**
+ * topic_links, for the buddy: the reader's other books and notes under a topic, dated. Hidden topics never appear.
+ * Notes on the book being discussed are left out: the pack already has them, and none can run ahead of the reader.
+ */
+export const topicLinks = internalQuery({
+  args: { turnId: v.id('buddyTurns'), topic: v.string() },
+  handler: async (ctx, { turnId, topic }): Promise<TopicFound[]> => {
+    const turn = await ctx.db.get(turnId)
+    const read = turn && await ctx.db.get(turn.readId)
+    const wanted = topicKey(topic.slice(0, 120))
+    if (!read || !wanted) return []
+    const { topics, books, entries } = await libraryTopics(ctx, read.userId)
+    const exact = topics.filter(t => t.key === wanted)
+    const near = topics.filter(t => t.key !== wanted && (t.key.includes(wanted) || wanted.includes(t.key)))
+    return [...exact, ...near].slice(0, TOPIC_LIMIT).map(t => ({
+      name: t.name,
+      books: t.books.filter(b => b.readId !== read._id).map(b => books.get(b.readId)!)
+        .map(b => ({ title: b.title, author: b.author, status: b.status, at: b.at }))
+        .sort((a, b) => (b.at ?? 0) - (a.at ?? 0)),
+      notes: t.entries.map(e => entries.get(e.id)!).filter(e => e.readId !== read._id)
+        .sort((a, b) => b.createdAt - a.createdAt).slice(0, TOPIC_NOTES)
+        .map(e => ({ title: books.get(e.readId)!.title, kind: e.kind, text: e.text, at: e.createdAt })),
     }))
   },
 })

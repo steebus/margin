@@ -4,7 +4,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import { v } from 'convex/values'
 import { internal } from './_generated/api'
 import { internalAction } from './_generated/server'
-import { BUDDY_EFFORT, BUDDY_MODEL, foundText, PERSONA, SEARCH_TOOL } from './lib/buddy'
+import { BUDDY_EFFORT, BUDDY_MODEL, foundText, PERSONA, SEARCH_TOOL, TOPIC_TOOL, topicText } from './lib/buddy'
 
 // Often enough to read as typing, without a database write for every word.
 const WRITE_EVERY_MS = 350
@@ -56,7 +56,7 @@ export const reply = internalAction({
           betas: ['server-side-fallback-2026-07-01'],
           fallbacks: 'default',
           output_config: { effort: BUDDY_EFFORT },
-          tools: [SEARCH_TOOL],
+          tools: [SEARCH_TOOL, TOPIC_TOOL],
           // The last round has to answer with what it has.
           ...(round === MAX_ROUNDS - 1 ? { tool_choice: { type: 'none' } } : {}),
           system: [
@@ -82,13 +82,18 @@ export const reply = internalAction({
         if (message.stop_reason === 'refusal') { await writing; return fail("Your buddy can't talk about that. Try asking another way.") }
         if (message.stop_reason !== 'tool_use') break
 
-        // It wants to look something up in the reader's notes. The search runs here, and the answer goes back.
+        // It wants to look something up in the reader's notes or topics. That runs here, and the answer goes back.
         messages.push({ role: 'assistant', content: message.content })
-        const results = await Promise.all(message.content.flatMap(block => block.type === 'tool_use' ? [block] : []).map(async block => ({
-          type: 'tool_result' as const,
-          tool_use_id: block.id,
-          content: foundText(await ctx.runQuery(internal.buddy.searchEntries, { turnId, query: String((block.input as { query?: unknown }).query ?? '') })),
-        })))
+        const results = await Promise.all(message.content.flatMap(block => block.type === 'tool_use' ? [block] : []).map(async block => {
+          const input = block.input as { query?: unknown; topic?: unknown }
+          return {
+            type: 'tool_result' as const,
+            tool_use_id: block.id,
+            content: block.name === TOPIC_TOOL.name
+              ? topicText(await ctx.runQuery(internal.buddy.topicLinks, { turnId, topic: String(input.topic ?? '') }))
+              : foundText(await ctx.runQuery(internal.buddy.searchEntries, { turnId, query: String(input.query ?? '') })),
+          }
+        }))
         messages.push({ role: 'user', content: results })
         if (text.trim()) text += ' '
       }

@@ -260,10 +260,10 @@ test('a guide that is partly wrong keeps what is right, and rubbish is no guide'
   expect(parseGuide('no guide here')).toBeNull()
 })
 
-const toolCall = (query: string) => [
+const toolCall = (query: string, name = 'search_entries') => [
   { type: 'message_start', message: { id: 'm', type: 'message', role: 'assistant', model: 'x', content: [], stop_reason: null, stop_sequence: null, usage: { input_tokens: 100, output_tokens: 0 } } },
-  { type: 'content_block_start', index: 0, content_block: { type: 'tool_use', id: 'tu1', name: 'search_entries', input: {} } },
-  { type: 'content_block_delta', index: 0, delta: { type: 'input_json_delta', partial_json: JSON.stringify({ query }) } },
+  { type: 'content_block_start', index: 0, content_block: { type: 'tool_use', id: 'tu1', name, input: {} } },
+  { type: 'content_block_delta', index: 0, delta: { type: 'input_json_delta', partial_json: JSON.stringify(name === 'search_entries' ? { query } : { topic: query }) } },
   { type: 'content_block_stop', index: 0 },
   { type: 'message_delta', delta: { stop_reason: 'tool_use', stop_sequence: null }, usage: { output_tokens: 10 } },
   { type: 'message_stop' },
@@ -289,13 +289,49 @@ test("the buddy searches the reader's notes across books, and cites the book a n
   await settle(t)
 
   const [first, second] = chats(bodies)
-  expect(first.tools?.map(tool => tool.name)).toEqual(['search_entries'])
+  expect(first.tools?.map(tool => tool.name)).toEqual(['search_entries', 'topic_links'])
   const result = JSON.stringify(second.messages.at(-1))
   expect(result).toContain('tool_result')
   expect(result).toContain('From \\"Other Book\\" by Someone Else, note, Page 40: The lighthouse is her mother.')
   expect((await as.query(api.buddy.thread, { readId }))!.turns[0]).toMatchObject({ state: 'done', text: 'You wrote about a lighthouse in Other Book.' })
   const spend = await as.query(api.buddy.monthSpend, {})
   expect(spend!.dollars).toBeGreaterThan(0)
+})
+
+test("the buddy knows the book's topics, and topic_links brings back other books and dated notes, not this book's", async () => {
+  let call = 0
+  const bodies = fakeClaude(() => sse(call++ === 0 ? toolCall('grief', 'topic_links') : message(['You wrote about grief in Other Book.'])))
+  const { t, as, userId, readId } = await setup()
+  await t.run(async ctx => {
+    const read = await ctx.db.get(readId)
+    await ctx.db.patch(read!.workId, { tags: [{ name: 'Grief', kind: 'genre' }] })
+  })
+  await t.mutation(internal.hardcover.saveBooks, {
+    userId,
+    items: [
+      { work: { hardcoverId: 2, slug: 'book-2', title: 'Other Book', authors: ['Someone Else'], isbns: [], subjects: [], pages: 100, tags: [{ name: 'grief', kind: 'tag', count: 3 }] },
+        read: { hardcoverUserBookId: 20, status: 'read', percent: 100, format: 'print', owned: false, finishedAt: Date.UTC(2021, 4, 1) } },
+      { work: { hardcoverId: 3, slug: 'book-3', title: 'Waiting Book', authors: ['Later'], isbns: [], subjects: [], tags: [{ name: 'Grief', kind: 'genre' }] },
+        read: { hardcoverUserBookId: 30, status: 'tbr', percent: 0, format: 'print', owned: false } },
+    ],
+  })
+  const other = (await as.query(api.library.myBooks, {})).find(b => b.slug === 'book-2')!.readId
+  await t.run(async ctx => {
+    await ctx.db.insert('entries', { userId, readId: other, kind: 'note', text: 'Grief as a house you keep.', pos: { page: 40 }, origin: 'manual', originKey: 'k1', createdAt: Date.UTC(2021, 3, 2) })
+    await ctx.db.insert('entries', { userId, readId, kind: 'note', text: 'More grief here.', pos: { page: 10 }, origin: 'manual', originKey: 'k2', createdAt: 5 })
+  })
+
+  await as.mutation(api.buddy.start, { readId })
+  await settle(t)
+
+  const [first, second] = chats(bodies)
+  expect(first.system[1].text).toContain("This book's topics in the reader's library: Grief.")
+  const result = JSON.stringify(second.messages.at(-1))
+  expect(result).toContain('Topic \\"Grief\\"')
+  expect(result).toContain('\\"Other Book\\" by Someone Else (read, 2021-05)')
+  expect(result).toContain('\\"Waiting Book\\" by Later (on their TBR, unread')
+  expect(result).toContain('Their note on \\"Other Book\\", 2021-04')
+  expect(result).not.toContain('More grief here.')
 })
 
 test("a correction is kept for the read, never repeated, and 'not yet' moves the guide later", async () => {

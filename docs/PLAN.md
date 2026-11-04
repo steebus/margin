@@ -289,22 +289,14 @@ Kindle imports were dropped on 2026-11-04 (Steve): don't build them.
 **Done when:** Steve's Kobo and Play Books history is in, and
 re-running each import adds nothing.
 
-## Phase 6: Knowledge graph and explore (2–3 sessions)
+## Phase 6: Topics and explore (built 2026-11-04)
 
-1. **Topic extraction** from guides, entries and metadata. Facets as in
-   SPEC §3.6. Suggested topics need the reader's confirmation; near
-   duplicates are merged by embedding.
-2. **Topic pages.** Books, entries, and the topic memory: how Steve's
-   thinking moved over time.
-3. **`/explore`.** The force graph, with focus and depth set in the URL;
-   focusing a topic pulls its books in.
-4. **Connective prompts.** The buddy can say "this echoes X", drawing from
-   the graph.
-5. **"Ask your library".** A box on top of the same tool layer.
+Design: `docs/superpowers/specs/2026-11-04-topics-design.md`; plan: `docs/superpowers/plans/2026-11-04-topics.md`.
+Topics from Hardcover's tags and note tags (no model, no cost), topic timelines, note tags synced with Hardcover,
+`/explore` with a local view, and the buddy's `topic_links`. "Ask your library" waits.
 
-**Done when:** "show me everything about ergodic texts" returns books,
-excerpts and notes, and the graph renders Steve's full library smoothly on
-the phone.
+**Done when:** Steve finds a topic's timeline useful, a tag set in Margin shows on Hardcover and back, `/explore`
+is smooth on his phone with the whole library, and the buddy brings up an older book on its own without a spoiler.
 
 ## Phase 7: Data and delight (2 sessions)
 

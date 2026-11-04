@@ -103,6 +103,7 @@ export const page = query({
     return {
       name: topic.name,
       slug: topic.slug,
+      key: topic.key,
       hidden: hidden.has(topic.key),
       items,
       tbr: cards.filter(b => !READ.has(b.status)),
