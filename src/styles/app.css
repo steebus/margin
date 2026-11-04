@@ -515,7 +515,8 @@ td a { display: inline-flex; align-items: center; min-height: 44px; color: inher
   .book-page { max-width: 1440px; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); column-gap: 40px; align-items: start; }
   .book-page > .back, .book-page > .book-head, .book-page > .rule { grid-column: 1 / -1; }
   .book-page > .book-head { max-width: 960px; }
-  .book-page > .book-side { display: grid; align-content: start; }
+  .book-page > .book-side { display: grid; align-content: start; grid-column: 2; grid-row: 4; }
+  .book-page > .book-margin { grid-column: 1; grid-row: 4; }
 }
 /* In the margin on its book's page: lines in the book's serif under a highlighter, notes beside them in hand. */
 .book-margin .entries .book-voice { display: inline; font-size: 1.375rem; line-height: 1.5; background: linear-gradient(transparent 12%, color-mix(in srgb, var(--rule) 22%, transparent) 12% 88%, transparent 88%); box-decoration-break: clone; -webkit-box-decoration-break: clone; }
