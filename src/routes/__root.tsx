@@ -9,7 +9,7 @@ export const Route = createRootRoute({ component: Root })
 
 const tabs = [
   { to: '/', label: 'Desk', Icon: LampDesk, match: (path: string) => path === '/' },
-  { to: '/shelves', label: 'Shelves', Icon: Library, match: (path: string) => path.startsWith('/shelves') || path.startsWith('/books') || path.startsWith('/pile') },
+  { to: '/shelves', label: 'Shelves', Icon: Library, match: (path: string) => path.startsWith('/shelves') || path.startsWith('/pile') },
   { to: '/notes', label: 'Notes', Icon: NotebookPen, match: (path: string) => path.startsWith('/notes') || path.startsWith('/e/') },
   { to: '/drawer', label: 'Drawer', Icon: Archive, match: (path: string) => path.startsWith('/drawer') },
   { to: '/capture', label: 'Capture', Icon: PenLine, match: (path: string) => path.startsWith('/capture') },
