@@ -312,9 +312,9 @@ p a { color: inherit; text-underline-offset: 3px; }
 .desk-book { display: grid; grid-template-columns: minmax(96px, 150px) minmax(0, 1fr); gap: 16px; align-items: start; }
 .desk-book-chart { display: grid; gap: 8px; min-width: 0; }
 .desk-book-head { display: grid; gap: 2px; }
-.desk-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.desk-tiles > div:nth-child(3) { border-left: 0; }
-.desk-tiles > div:nth-child(n + 3) { border-top: var(--line) solid var(--ink); }
+.tiles.desk-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.tiles.desk-tiles > div:nth-child(3) { border-left: 0; }
+.tiles.desk-tiles > div:nth-child(n + 3) { border-top: var(--line) solid var(--ink); }
 .act-chart { width: 100%; min-width: 0; }
 .act-chart svg { display: block; overflow: visible; }
 .act-line { fill: none; stroke: var(--ink); stroke-width: 2; stroke-linejoin: round; }
