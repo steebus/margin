@@ -52,9 +52,11 @@ function ReviewCard({ card, left }: { card: Card; left: number }) {
     }
   }
   const hit = hits?.find(h => h.book.hardcoverId === picked)
+  // Merging into a book already on the shelves: addBooks hands back its read untouched, so no status is needed.
+  const merge = !!hit?.onShelves
   const add = () => act(async () => {
-    if (!hit || !status) return
-    const [added] = await addBooks({ books: [hit.book], status, format: 'ebook', undated: status === 'read' })
+    if (!hit || (!status && !merge)) return
+    const [added] = await addBooks({ books: [hit.book], status: status ?? 'read', format: 'ebook', undated: status === 'read' })
     await placed({ id: card.id, readId: added.readId })
   })
 
@@ -81,18 +83,18 @@ function ReviewCard({ card, left }: { card: Card; left: number }) {
           <legend className="where">Hardcover's matches</legend>
           {hits.map(h => (
             <label key={h.book.hardcoverId} className="check">
-              <input type="radio" name="review-hit" checked={picked === h.book.hardcoverId} disabled={h.onShelves} onChange={() => setPicked(h.book.hardcoverId)} />
-              {h.book.title}, {h.book.authors.join(', ') || 'unknown author'}{h.book.year ? ` (${h.book.year})` : ''}{h.onShelves ? ', already on your shelves' : ''}
+              <input type="radio" name="review-hit" checked={picked === h.book.hardcoverId} onChange={() => setPicked(h.book.hardcoverId)} />
+              {h.book.title}, {h.book.authors.join(', ') || 'unknown author'}{h.book.year ? ` (${h.book.year})` : ''}{h.onShelves ? ', already on your shelves, merge into it' : ''}
             </label>
           ))}
         </fieldset>
       )}
 
       <div className="btn-row">
-        <button type="button" className="btn btn-solid" disabled={busy || !hit || !status} onClick={() => void add()}>{busy ? 'Adding…' : 'Add'}</button>
+        <button type="button" className="btn btn-solid" disabled={busy || !hit || (!status && !merge)} onClick={() => void add()}>{merge ? (busy ? 'Merging…' : 'Merge') : busy ? 'Adding…' : 'Add'}</button>
         <button type="button" className="btn" disabled={busy} onClick={() => void act(() => leave({ id: card.id }))}>Leave out</button>
       </div>
-      {!status && hit && <p className="where">Choose how far you got to add it.</p>}
+      {!status && hit && !merge && <p className="where">Choose how far you got to add it.</p>}
       {error && <p role="alert">{error}</p>}
     </article>
   )
