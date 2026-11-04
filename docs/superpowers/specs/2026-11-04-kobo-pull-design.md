@@ -128,3 +128,11 @@ Waiting items are counted in the pull's report and on Settings.
 ## Plan changes
 
 PLAN's Phase 5 item 3 (Kobo via `KoboReader.sqlite`) becomes this. Its review queue (item 2) is built here.
+
+## Change after building began (2026-11-04, Steve)
+
+Kobo's library page started answering scripts with a 403 bot check ("Challenged") while the annotations endpoint
+kept working. So the book list now comes from a bookmarklet Steve taps on My Books, which hands it to Margin's
+`/settings/integrations/kobo` page. That page matches, adds and links books in the browser, the way the Audible import
+does, and unsure matches are chosen there rather than on `/review`. The server pull and daily cron fetch annotations
+only, for every read that has a Kobo id. New Kobo books need the bookmarklet run again.
