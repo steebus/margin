@@ -105,12 +105,6 @@ export function Desk() {
             <div className="btn-row"><Link to="/shelves/$shelfSlug" params={{ shelfSlug: 'tbr' }} className="btn btn-solid">Open your TBR</Link></div>
           </div>
         )}
-        {activity && activity.added.length > 0 && (
-          <section className="stack" aria-labelledby="tbr-heading">
-            <h2 id="tbr-heading" className="head">Newly on the TBR</h2>
-            <RecentPile books={activity.added} />
-          </section>
-        )}
       </section>
 
       <aside className="desk-side stack" aria-labelledby="window-heading">
@@ -123,6 +117,12 @@ export function Desk() {
           <div><dt>Notes written</dt><dd>{activity?.notes ?? '…'}</dd></div>
         </dl>
         {activity?.notes ? <Link to="/notes" search={{ sort: 'written' }} className="btn">Read them</Link> : null}
+        {activity && activity.added.length > 0 && (
+          <section className="stack" aria-labelledby="tbr-heading">
+            <h2 id="tbr-heading" className="head">Newly on the TBR</h2>
+            <RecentPile books={activity.added} />
+          </section>
+        )}
         {activity && !activity.notes && !activity.added.length && !latest && (
           <Typewriter text="Nothing here yet. Your notes, and your buddy's questions, will land on this sheet." />
         )}

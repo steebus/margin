@@ -22,7 +22,7 @@ import { Thumb } from '../thumb/Thumb'
 const STATUS: Record<Status, string> = { tbr: 'TBR', reading: 'Reading', paused: 'Paused', read: 'Read', dnf: 'Stopped' }
 const FORMAT: Record<Book['format'], string> = { print: 'Print', ebook: 'Ebook', audio: 'Audiobook' }
 const RATINGS = [5, 4.5, 4, 3.5, 3, 2.5, 2, 1.5, 1, 0.5]
-const PREVIEW = 3
+const PREVIEW = 6
 
 export function NotFoundBook() {
   return (
@@ -156,53 +156,8 @@ export function BookPage() {
       </header>
       <hr className="rule" />
 
-      <div className="book-main stack">
-
-      <QuickActions book={book} logging={logging} onLog={() => setLogging(!logging)} />
-
-      {logging && book.status !== 'read' && <ProgressForm book={book} onSaved={label => { setLogging(false); setLogged(label) }} />}
-      {logged && <p role="status">Logged: {logged}</p>}
-
-      {prompt && <Reflection key={prompt.id} prompt={prompt} />}
-      {!prompt && note && <BuddyNote key={note.id} note={note} slug={book.slug} />}
-
-      <div className="book-controls">
-        <div className="field">
-          <label htmlFor="book-status">Status</label>
-          <select id="book-status" value={book.status} onChange={e => void setStatus({ readId: book.readId, status: e.target.value as Status })}>
-            {(Object.keys(STATUS) as Status[]).map(s => <option key={s} value={s}>{STATUS[s]}</option>)}
-          </select>
-        </div>
-        <div className="field">
-          <label htmlFor="book-rating">Rating</label>
-          <select id="book-rating" value={book.rating ?? ''} onChange={e => void setRating({ readId: book.readId, rating: e.target.value ? Number(e.target.value) : null })}>
-            <option value="">Not rated</option>
-            {RATINGS.map(r => <option key={r} value={r}>{r} {r === 1 ? 'star' : 'stars'}</option>)}
-          </select>
-        </div>
-      </div>
-
-      <Lists book={book} />
-
-      <section className="card" aria-labelledby="card-heading">
-        <h2 id="card-heading" className="card-band">Library card</h2>
-        <dl className="card-grid">
-          {bookFacts(book, entries.length).map(([label, value]) => (
-            <div key={label} className="card-cell" data-wide={WIDE.has(label) || undefined} data-date={DATES.has(label) || undefined}>
-              <dt>{label}</dt>
-              <dd>{value}</dd>
-            </div>
-          ))}
-        </dl>
-      </section>
-
-      <ReadDates book={book} />
-
-      </div>
-
-      <div className="book-side stack">
-
-      <section className="stack" aria-labelledby="margin-heading">
+      {/* The margin is the page's hero; what the book is, and what can be done to it, sit beside it. */}
+      <section className="book-margin stack" aria-labelledby="margin-heading">
         <h2 id="margin-heading" className="head">In the margin</h2>
         {entries.length > 0 ? <EntryList entries={[...entries].reverse()} readId={book.readId} limit={PREVIEW} /> : <p>Nothing in the margin yet. Add a line you underlined, or a thought about it.</p>}
         {entries.length > 0 && (
@@ -212,20 +167,60 @@ export function BookPage() {
         )}
       </section>
 
-      {/* The book's own page holds what the hold sheet offers elsewhere, laid out in full. */}
-      <hr className="rule" />
-      <section className="stack" aria-labelledby="guide-heading">
-        <h2 id="guide-heading" className="head">Guide</h2>
-        <GuideControls readId={book.readId} guide={guide} />
-      </section>
-      <section className="stack" aria-labelledby="picture-heading">
-        <h2 id="picture-heading" className="head">Picture</h2>
-        <CoverControls readId={book.readId} book={book} cover={cover} />
-      </section>
-      <section className="stack" aria-labelledby="delete-heading">
-        <h2 id="delete-heading" className="head">Delete</h2>
-        <DeleteBook book={book} notes={entries.length} onPage onDone={() => {}} />
-      </section>
+      <div className="book-side stack">
+        <div className="book-now stack">
+          <QuickActions book={book} logging={logging} onLog={() => setLogging(!logging)} />
+          {logging && book.status !== 'read' && <ProgressForm book={book} onSaved={label => { setLogging(false); setLogged(label) }} />}
+          {logged && <p role="status">Logged: {logged}</p>}
+          {prompt && <Reflection key={prompt.id} prompt={prompt} />}
+          {!prompt && note && <BuddyNote key={note.id} note={note} slug={book.slug} />}
+        </div>
+
+        <section className="card" aria-labelledby="card-heading">
+          <h2 id="card-heading" className="card-band">Library card</h2>
+          <div className="book-controls card-controls">
+            <div className="field">
+              <label htmlFor="book-status">Status</label>
+              <select id="book-status" value={book.status} onChange={e => void setStatus({ readId: book.readId, status: e.target.value as Status })}>
+                {(Object.keys(STATUS) as Status[]).map(s => <option key={s} value={s}>{STATUS[s]}</option>)}
+              </select>
+            </div>
+            <div className="field">
+              <label htmlFor="book-rating">Rating</label>
+              <select id="book-rating" value={book.rating ?? ''} onChange={e => void setRating({ readId: book.readId, rating: e.target.value ? Number(e.target.value) : null })}>
+                <option value="">Not rated</option>
+                {RATINGS.map(r => <option key={r} value={r}>{r} {r === 1 ? 'star' : 'stars'}</option>)}
+              </select>
+            </div>
+          </div>
+          <dl className="card-grid">
+            {bookFacts(book, entries.length).map(([label, value]) => (
+              <div key={label} className="card-cell" data-wide={WIDE.has(label) || undefined} data-date={DATES.has(label) || undefined}>
+                <dt>{label}</dt>
+                <dd>{value}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+
+        <ReadDates book={book} />
+
+        {/* The rarer things folded away: lists, the guide, the picture, and deleting the book. */}
+        <div className="book-more">
+          <Lists book={book} />
+          <details className="tools-filters">
+            <summary>Guide</summary>
+            <GuideControls readId={book.readId} guide={guide} />
+          </details>
+          <details className="tools-filters">
+            <summary>Picture</summary>
+            <CoverControls readId={book.readId} book={book} cover={cover} />
+          </details>
+          <details className="tools-filters">
+            <summary>Delete</summary>
+            <DeleteBook book={book} notes={entries.length} onPage onDone={() => {}} />
+          </details>
+        </div>
       </div>
     </div>
   )
