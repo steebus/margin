@@ -1,11 +1,10 @@
-import { Link, useSearch } from '@tanstack/react-router'
+import { Link, Navigate, useSearch } from '@tanstack/react-router'
 import { useAction, useMutation } from 'convex/react'
 import type { FunctionReturnType } from 'convex/server'
 import { useEffect, useRef, useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { errorText } from '../../lib/books'
-import { readPage } from '../../lib/ocr'
 import { bookmarklet, matchBook, readShare } from '../../lib/share-read'
 import { useBooks } from '../../lib/offline'
 import { bookLine, ListChoice, type Result } from '../capture/AddBook'
@@ -99,7 +98,6 @@ function FromPost({ url, code, handle: readHandle, words, popup }: { url: string
   const readPost = useAction(api.share.readPost)
   const readWords = useAction(api.share.readWords)
   const findTitles = useAction(api.share.findTitles)
-  const transcribe = useAction(api.capture.transcribe)
   const addBooks = useMutation(api.books.addBooks)
   const [found, setFound] = useState<Candidate[]>([])
   const [unticked, setUnticked] = useState<number[]>([])
@@ -137,7 +135,7 @@ function FromPost({ url, code, handle: readHandle, words, popup }: { url: string
       const post = await readPost({ code })
       if (post.account) setHandle(h => h || post.account!)
       take(post)
-      if (!post.hadWords) setNote("Instagram didn't give Margin any words from this post. A reel's books are often only spoken or on screen, so type the titles or use a screenshot.")
+      if (!post.hadWords) setNote("Instagram didn't give Margin any words from this post. A reel's books are often only spoken or on screen, so type the titles, or paste text from a screenshot.")
     })
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -204,22 +202,6 @@ function FromPost({ url, code, handle: readHandle, words, popup }: { url: string
           </div>
           <div className="btn-row">
             <button type="submit" className="btn" disabled={!typed.trim()}>Find them</button>
-            <label className="btn">
-              Use a screenshot
-              <input
-                className="sr-only"
-                type="file"
-                accept="image/*"
-                onChange={e => {
-                  const file = e.target.files?.[0]
-                  if (file) void reader(async () => {
-                    const page = await readPage(file, transcribe)
-                    if (!page.paragraphs.length) { setNote('No words could be read from that screenshot.'); return }
-                    take(await readWords({ text: page.paragraphs.join('\n') }))
-                  })
-                }}
-              />
-            </label>
           </div>
         </form>
       )}
@@ -227,62 +209,17 @@ function FromPost({ url, code, handle: readHandle, words, popup }: { url: string
   )
 }
 
-/** Words shared from a reading app or anywhere else, kept as an excerpt or a note on the book they belong to. */
+/** Words shared from a reading app or anywhere else are a quote, kept with the same form as a typed one (SPEC 3.4). */
 function FromWords({ quote, title, author, page, popup }: { quote: string; title: string | null; author: string | null; page: number | null; popup: boolean }) {
   const books = useBooks()
-  const addEntry = useMutation(api.entries.addEntry)
-  const matched = books ? matchBook(books, title, author) : null
-  const [readId, setReadId] = useState<string>('')
-  const [text, setText] = useState(quote)
-  // A named book or quotation marks mean it's the book's words; anything else reads as the reader's own.
-  const [kind, setKind] = useState<'excerpt' | 'note'>(title || /^["“]/.test(quote) ? 'excerpt' : 'note')
-  const [busy, setBusy] = useState(false)
-  const [done, setDone] = useState<{ title: string; slug: string } | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const chosen = books?.find(b => b.readId === (readId || matched?.readId))
-  const inHand = books?.filter(b => b.status === 'reading') ?? []
-  const rest = books?.filter(b => b.status !== 'reading').sort((a, b) => a.title.localeCompare(b.title)) ?? []
-
-  if (done) return <Done message={`Kept in ${done.title}.`} popup={popup} slug={done.slug} />
   if (books === undefined) return <p role="status">Finding your books…</p>
-
-  const save = async () => {
-    if (!chosen || !text.trim()) return
-    setBusy(true)
-    setError(null)
-    try {
-      await addEntry({ readId: chosen.readId, kind, text: text.trim(), ...(page ? { page } : {}) })
-      setDone({ title: chosen.title, slug: chosen.slug })
-    } catch (e) {
-      setError(errorText(e, "That didn't save. Your words are still here: check your connection and try again."))
-      setBusy(false)
-    }
-  }
-
+  const matched = matchBook(books, title, author)
   return (
-    <form className="stack" onSubmit={e => { e.preventDefault(); void save() }}>
-      {title && !matched && <p className="where">It names {title}{author ? ` by ${author}` : ''}, which isn't on your shelves. Choose where it goes.</p>}
-      <div className="segments" role="group" aria-label="What it is">
-        <button type="button" aria-pressed={kind === 'excerpt'} onClick={() => setKind('excerpt')}>From the book</button>
-        <button type="button" aria-pressed={kind === 'note'} onClick={() => setKind('note')}>My own note</button>
-      </div>
-      <div className="field">
-        <label htmlFor="shared-words">{kind === 'excerpt' ? 'The words' : 'Your note'}{page ? `, page ${page}` : ''}</label>
-        <textarea id="shared-words" className={kind === 'excerpt' ? 'book-voice' : 'hand'} rows={6} value={text} onChange={e => setText(e.target.value)} />
-      </div>
-      <div className="field">
-        <label htmlFor="shared-book">Which book</label>
-        <select id="shared-book" value={chosen?.readId ?? ''} onChange={e => setReadId(e.target.value)}>
-          <option value="" disabled>Choose a book</option>
-          {inHand.length > 0 && <optgroup label="Reading">{inHand.map(b => <option key={b.readId} value={b.readId}>{b.title}, {b.author}</option>)}</optgroup>}
-          <optgroup label="Everything else">{rest.map(b => <option key={b.readId} value={b.readId}>{b.title}, {b.author}</option>)}</optgroup>
-        </select>
-      </div>
-      <div className="btn-row">
-        <button type="submit" className="btn btn-solid" disabled={!chosen || !text.trim() || busy}>{busy ? 'Saving…' : kind === 'excerpt' ? 'Save excerpt' : 'Save note'}</button>
-      </div>
-      {error && <p role="alert">{error}</p>}
-    </form>
+    <Navigate
+      to="/capture"
+      search={{ kind: 'excerpt', text: quote, book: matched?.slug, ...(page ? { page } : {}), ...(popup ? { popup: 1 } : {}) }}
+      replace
+    />
   )
 }
 

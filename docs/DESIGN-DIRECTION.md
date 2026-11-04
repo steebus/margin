@@ -80,7 +80,6 @@ Transitions (routes).
 | **Tags** | Swing on their string when added and flutter when filtered. |
 | **The drawer** | It slides open, a card rises, and Shuffle flicks the card away as the next one arrives. |
 | **Review queue** | An index-card stack: swipe to accept or reject, flick to skip. |
-| **Camera page** | The shutter flashes, the photo crossfades into a blank sheet, and the transcript is typed onto it. |
 | **Explore graph** | Nodes settle on the force layout with spring physics. Focusing a topic pulls its books in like iron filings. |
 | **Empty states** | Something small and alive, like a pencil rolling to a stop. |
 
@@ -109,7 +108,7 @@ Rules:
 
 ## Home: the Desk
 1. **Current book** (a swipeable stack if you're reading several): cover,
-   ribbon progress, and the actions Log progress · Excerpt · Camera · Note ·
+   ribbon progress, and the actions Log progress · Excerpt · Note ·
    Talk
 2. **Latest note**: the buddy's pending prompt, typed out, or your most recent
    entry

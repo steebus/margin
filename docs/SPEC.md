@@ -135,24 +135,17 @@ mid-tier model, and routing and classification on the smallest. All prompts
 are cached. There's no hard budget; a cost meter is shown in Settings, with an alert when monthly spend passes **$20** (agreed).
 
 ### 3.4 Capture
-- **Camera (PWA).** Photograph a page with the phone's own camera. Gemini's small vision model transcribes it
-  (paragraphs, page number, chapter if a header names one), and the text is *typed onto the page* for a few seconds
-  (the signature animation). Tap the first and last word to mark a passage, correct it if needed, save it as an excerpt,
-  and add a handwritten-style note, which is attached to it. **The photo is never stored.**
-  Gemini's filter refuses some published text (`RECITATION`: tested on 2026-11-02 with the opening of *1984*), and it needs
-  credit and a connection. Whenever it can't help, the device reads the photo itself with Tesseract (`src/lib/ocr.ts`), which
-  downloads about 10 MB once. It's the reader's own photo of their own book, kept as a personal note.
-- **Quick share.** Share text or a screenshot from Kindle, Play Books, a
-  browser, anywhere:
-  - Android: Web Share Target in the PWA manifest. The service worker takes
-    the POST and opens `/capture`.
-  - iOS: out of scope (no Web Share Target in Safari). An HTTP capture
-    endpoint with a personal token exists anyway, for scripts.
-  - **Filing.** First parse the share heuristically (Kindle and Play Books
-    shares carry the title, author and location). Then the small model picks
-    which currently-read book it belongs to and whether it is an excerpt or a
-    note, with a confidence score. Above the confidence threshold it files
-    automatically with an undo toast; below it, it asks with a single tap.
+Decided 2026-11-04 (Steve): Margin doesn't read photos. A page is turned into text in another app (Google Lens,
+the phone's own text grab) and shared in.
+- **Typing.** `/capture` takes an excerpt, a note or a summary for any book, with a page (or percent for audio).
+  An excerpt can carry the reader's note, which is saved under it.
+- **Sharing text.** Text shared from anywhere (Android's `share_target`, or the bookmarklet on a computer) arrives
+  at `/capture/share`, which hands it to `/capture` filled in, as an excerpt. The book is the one the words name if
+  it's on the shelves (`readWords`/`matchBook` in `src/lib/share-read.ts`), otherwise the latest book being read:
+  the one with the most recent progress or entry. Books being read are listed first, then everything else. A page
+  in the words fills in the page.
+- iOS is out of scope (no Web Share Target in Safari). There's no capture endpoint for scripts.
+- Entries written offline wait in the outbox, as typed ones do.
 
 ### 3.4.1 Adding books by sharing
 A book worth reading usually turns up somewhere else. Share it to Margin and it lands
@@ -182,7 +175,7 @@ some posts give it nothing, and that's an ordinary outcome rather than an error 
 
 **When there's nothing to read.** A reel's books are often only spoken or shown on screen,
 and private or embed-disabled posts have no caption to fetch. The screen says so plainly and
-offers typing titles, or sharing a screenshot for vision to read (§3.4). On a computer, words
+offers typing titles, or pasting text taken from a screenshot in another app (§3.4). On a computer, words
 selected on the page travel with the bookmarklet and are read first.
 
 **Hardcover gets it too.** A book added this way is pushed straight away, not at the next
@@ -195,7 +188,7 @@ responses showed a rate limit of 15, with the window not yet known, so bulk work
 
 **To check when building.** Instagram's embed page isn't
 an official API, Meta's terms restrict extracting from oEmbed, and it can change without notice.
-This is personal, low-volume use and screenshots remain as the way round it if it breaks. Check
+This is personal, low-volume use and typing or pasting the titles remains the way round it if it breaks. Check
 the bookmarklet actually runs on Instagram and Goodreads, since a page's security rules can
 block one.
 
@@ -316,7 +309,7 @@ into every prompt. Three layers:
 ### 3.10 Home: the Desk
 At the top are the books being read, each with its cover and progress: one is the
 current book and the others offer *Switch to*. Tapping a book opens its page. Under them are the quick actions for the
-current book, which every book's page also carries: *Log progress*, *Add excerpt*, *Camera* (phones only), *Add note*, *Talk*. Under them, the space
+current book, which every book's page also carries: *Log progress*, *Add excerpt*, *Add note*, *Talk*. Under them, the space
 for the **latest note** (the buddy's pending prompt if there is one,
 otherwise your most recent entry). The drawer has its own tab.
 
@@ -408,11 +401,11 @@ Convex ── queries/mutations (library, entries, graph)
        ├─ actions: Anthropic (research, converse, OCR, route), Hardcover, Google
        ├─ Workflow component: book research, imports (resumable, step-retried)
        ├─ scheduler/crons: Hardcover sync, milestone checks
-       ├─ file storage: photos, uploaded export files
+       ├─ file storage: uploaded export files
        ├─ vector index: topics, entries (Gemini embeddings, on the key Margin already has; Anthropic has no embedding model. Steve, 2026-11-02: no Voyage, no AI gateway)
        ├─ search index + vector index: entries, topics, guide themes (hybrid retrieval, §3.8)
        ├─ crons: Web Push for absence and delay nudges (VAPID)
-       └─ HTTP actions: capture endpoint (token), OAuth callbacks
+       └─ HTTP actions: OAuth callbacks
 Auth: Convex Auth with Google sign-in (basic scopes); Books/Drive access is a
       separate, incremental "Connect Google" consent that stores its own refresh token
 Hosting: Vercel (static SPA) + Convex cloud
@@ -453,7 +446,7 @@ they open over their parent, and Back closes them.
 /topics  /topics/:topicSlug         topic index and topic page
 /people/:personSlug                 a recommender and what came from them
 /stats                              ?range=year
-/capture  /capture/add  /capture/camera  /capture/share   capture flows (share_target posts here)
+/capture  /capture/add  /capture/share   capture flows (share_target posts here)
 /review                             import match queue
 /imports/:jobId                     import job report
 /settings  /settings/integrations/:provider

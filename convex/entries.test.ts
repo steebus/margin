@@ -155,3 +155,24 @@ test("an entry with no place given is at the reader's last known page, and a not
   expect(at('About that line.')).toBe('Page 12')
   expect(at('The whole thing.')).toBe('')
 })
+
+test('an excerpt can carry its note in the same write, and only an excerpt can', async () => {
+  const { as, readId } = await setup()
+  const { id } = await as.mutation(api.entries.addEntry, { readId, kind: 'excerpt', text: 'Shared words.', page: 7, origin: 'share', note: '  Mine.  ' })
+  const found = await as.query(api.library.bookBySlug, { slug: 'book-1' })
+  expect(found?.entries.find(e => e.kind === 'note')).toMatchObject({ text: 'Mine.', parentId: id, position: 'Page 7' })
+  await expect(as.mutation(api.entries.addEntry, { readId, kind: 'note', text: 'A note.', note: 'On a note.' })).rejects.toThrow()
+})
+
+test('the latest book is the one being read that was last written on', async () => {
+  const { t, as, readId } = await setup()
+  const other = await t.run(async ctx => {
+    const read = (await ctx.db.get(readId))!
+    const workId = await ctx.db.insert('works', { slug: 'book-2', title: 'Book Two', authors: [], isbns: [], subjects: [] })
+    return ctx.db.insert('reads', { ...read, _id: undefined, _creationTime: undefined, workId } as never)
+  })
+  await as.mutation(api.entries.addEntry, { readId, kind: 'note', text: 'First.' })
+  await new Promise(r => setTimeout(r, 5))
+  await as.mutation(api.entries.addEntry, { readId: other, kind: 'note', text: 'Later.' })
+  expect(await as.query(api.library.latestRead, {})).toBe(other)
+})

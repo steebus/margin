@@ -23,6 +23,24 @@ export const myBooks = query({
   },
 })
 
+/** The book being read that the reader last logged progress or wrote on. Null when nothing's being read. */
+export const latestRead = query({
+  args: {},
+  handler: async ctx => {
+    const userId = await getAuthUserId(ctx)
+    if (!userId) return null
+    const reading = await ctx.db.query('reads').withIndex('by_user_status', q => q.eq('userId', userId).eq('status', 'reading')).collect()
+    let latest: { readId: Id<'reads'>; at: number } | null = null
+    for (const read of reading) {
+      const logged = await ctx.db.query('progressLog').withIndex('by_read', q => q.eq('readId', read._id)).order('desc').first()
+      const wrote = await ctx.db.query('entries').withIndex('by_read', q => q.eq('readId', read._id)).order('desc').first()
+      const at = Math.max(logged?.at ?? 0, wrote?.createdAt ?? 0, read.startedAt ?? 0)
+      if (!latest || at > latest.at) latest = { readId: read._id, at }
+    }
+    return latest?.readId ?? null
+  },
+})
+
 /** One book and its entries, or null if it isn't on this reader's shelves. */
 export const bookBySlug = query({
   args: { slug: v.string() },

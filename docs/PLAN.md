@@ -217,26 +217,24 @@ itself.
 - [ ] The buddy correctly cites a note from a different book in conversation.
 - [ ] A push arrives after a simulated 7-day gap.
 
-## Phase 3: Capture (2 sessions)
+## Phase 3: Capture (done 2026-11-04)
 
-1. **Camera.**
-   - `getUserMedia` capture is sent to Claude vision, which returns
-     paragraphs, page number and running head.
-   - The transcript is typed onto a fresh sheet.
-   - Swipe to highlight, save as an excerpt, add a note.
-   - The photo is deleted once saved.
-2. **Share target.**
-   - Extends the share route from Phase 1 with a POST handled in the service
-     worker, so screenshots and highlights can be shared too.
-   - The share is parsed for Kindle and Play Books formats.
-   - The small model routes it (which book, excerpt or note, confidence).
-     Above the threshold it files automatically with an undo toast; below
-     it, one tap to choose.
-3. **Capture endpoint.** A Convex HTTP action with a personal token, for
-   scripts.
+Rethought on 2026-11-04 (Steve): photo-to-text is done in another app (Google Lens, the phone's own text
+grab), and the text is shared to Margin. Margin doesn't read photos itself.
 
-**Done when:** a photo of a printed page becomes a highlighted excerpt in
-under 15 seconds, and sharing a Kindle highlight files it to the right book.
+1. **Share text in.** Text shared to Margin (`share_target` or the bookmarklet, via `/capture/share`) opens
+   the ordinary capture form at `/capture`, filled in, the same form as a typed quote.
+   - It's always an excerpt. An optional note can go with it, saved under it in the same write
+     (`addEntry`'s `note`), so it survives the offline outbox.
+   - The book starts on the latest one: the book being read with the most recent progress or entry
+     (`library.latestRead`), unless the shared words name a book on the shelves. The list shows books
+     being read first, then everything else.
+   - A page in the shared words fills in the page field.
+
+**Dropped on 2026-11-04, don't build:** the in-app camera (Gemini transcription and the Tesseract
+fallback, both removed), the Instagram screenshot reader, guessing Kindle and Play Books share formats beyond the "Title by Author" line `readWords` already reads,
+the small model choosing the book with an undo toast, and the HTTP capture endpoint for scripts.
+Phase 5's file imports from Kindle and Kobo are separate and still planned.
 
 ## Phase 4: Hardcover two-way (2 sessions)
 
@@ -317,7 +315,7 @@ a11y and performance on mobile, and Steve has nothing left that annoys him.
 
 - **Pile:** thinner books; on a phone, unfurl summaries only in the middle area to save space. Not loving the book style.
 - **Missing data:** built 2026-11-03 as Missing details on /stats.
-- **Grouping:** note, quote, progress and camera are similar actions and could sit together.
+- **Grouping:** note, quote and progress are similar actions and could sit together.
 - **Audible sync:** built 2026-11-03 as an import of audible-cli's export in Settings (Audible has no API). It shows what would change, then marks finished books read without a made-up date, moves progress on, and adds missing audiobooks through Hardcover search. Re-running it changes nothing new.
 
 ---

@@ -1,6 +1,6 @@
 import { getAuthUserId } from '@convex-dev/auth/server'
 import { ConvexError, v } from 'convex/values'
-import type { Doc } from './_generated/dataModel'
+import type { Doc, Id } from './_generated/dataModel'
 import { mutation, query } from './_generated/server'
 import { positionOf, toBook } from './lib/books'
 import { entryKey } from './lib/entryKey'
@@ -54,18 +54,23 @@ export const addEntry = mutation({
     page: v.optional(v.number()),
     percent: v.optional(v.number()),
     chapter: v.optional(v.string()),
-    origin: v.optional(v.literal('camera')),
+    // 'camera' only so writes queued offline before the camera went (2026-11-04) still replay.
+    origin: v.optional(v.union(v.literal('camera'), v.literal('share'))),
     // The excerpt this note belongs to.
     parentId: v.optional(v.id('entries')),
+    // A note written with an excerpt, saved under it in the same write so it survives the offline outbox.
+    note: v.optional(v.string()),
   },
-  handler: async (ctx, { readId, kind, text, page, percent, chapter, origin, parentId }) => {
+  handler: async (ctx, { readId, kind, text, page, percent, chapter, origin, parentId, note }) => {
     const userId = await getAuthUserId(ctx)
     if (!userId) throw new ConvexError('Sign in to save this')
     const read = await ctx.db.get(readId)
     if (!read || read.userId !== userId) throw new ConvexError('That book is not on your shelves')
     const words = text.trim()
     if (!words) throw new ConvexError('There are no words to save')
-    if (words.length > MAX_LENGTH) throw new ConvexError('That is too long to save as one entry')
+    const noteWords = note?.trim() ?? ''
+    if (words.length > MAX_LENGTH || noteWords.length > MAX_LENGTH) throw new ConvexError('That is too long to save as one entry')
+    if (noteWords && kind !== 'excerpt') throw new ConvexError('Only an excerpt can carry a note')
     checkPosition(page, percent)
 
     const parent = parentId ? await ctx.db.get(parentId) : null
@@ -79,12 +84,17 @@ export const addEntry = mutation({
       : {}
     const pos = given ? { page, percent, chapter } : parent ? parent.pos : here
     // Keyed on the place as given, so the same words come back from Hardcover or an import as the same entry.
-    const originKey = entryKey(read.workId, kind, words, { page, percent, chapter })
-    const same = await ctx.db.query('entries').withIndex('by_user_origin_key', q => q.eq('userId', userId).eq('originKey', originKey)).first()
-    if (same) return { id: same._id, duplicate: true }
-    const id = await ctx.db.insert('entries', { userId, readId, kind, text: words, parentId, pos, origin: origin ?? 'manual', originKey, createdAt: Date.now() })
-    await enqueueEntry(ctx, userId, id, readId)
-    return { id, duplicate: false }
+    const keep = async (kind: Doc<'entries'>['kind'], words: string, parentId: Id<'entries'> | undefined, pos: Doc<'entries'>['pos']) => {
+      const originKey = entryKey(read.workId, kind, words, { page, percent, chapter })
+      const same = await ctx.db.query('entries').withIndex('by_user_origin_key', q => q.eq('userId', userId).eq('originKey', originKey)).first()
+      if (same) return { id: same._id, duplicate: true }
+      const id = await ctx.db.insert('entries', { userId, readId, kind, text: words, parentId, pos, origin: origin ?? 'manual', originKey, createdAt: Date.now() })
+      await enqueueEntry(ctx, userId, id, readId)
+      return { id, duplicate: false }
+    }
+    const saved = await keep(kind, words, parentId, pos)
+    if (noteWords) await keep('note', noteWords, saved.id, pos)
+    return saved
   },
 })
 

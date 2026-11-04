@@ -24,11 +24,11 @@ A reading buddy that asks, not tells. It has read about the book; you are the on
 
 ## Operating Context
 
-Short sessions, often one-handed, between or during reading. Capture happens from the camera, the Android share sheet or a typed note. The buddy's notes wait until the book is next opened; push only fires for absence or delay. Installed as a standalone PWA on Android; used in a browser on desktop.
+Short sessions, often one-handed, between or during reading. Capture happens from the Android share sheet (text from another app, including a photo of a page turned to text there) or a typed note. The buddy's notes wait until the book is next opened; push only fires for absence or delay. Installed as a standalone PWA on Android; used in a browser on desktop.
 
 ## Capabilities and Constraints
 
-Library with statuses, shelves, tags, sources and people; entries (excerpt, note, summary, reflection) with positions; a per-book guide and Socratic buddy with long-term memory; camera and share capture; Hardcover two-way sync; Kindle, Kobo and Play Books imports; topic graph; stats; the drawer of random past entries. Every object has a URL; filters live in the URL; sheets are routes. Full detail in `docs/SPEC.md`.
+Library with statuses, shelves, tags, sources and people; entries (excerpt, note, summary, reflection) with positions; a per-book guide and Socratic buddy with long-term memory; typed and shared capture; Hardcover two-way sync; Kindle, Kobo and Play Books imports; topic graph; stats; the drawer of random past entries. Every object has a URL; filters live in the URL; sheets are routes. Full detail in `docs/SPEC.md`.
 
 ## Brand Commitments
 

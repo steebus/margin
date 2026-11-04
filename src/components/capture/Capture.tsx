@@ -1,7 +1,7 @@
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
-import { useMutation } from 'convex/react'
-import { Camera as CameraIcon, Plus } from 'lucide-react'
-import { useState } from 'react'
+import { useMutation, useQuery } from 'convex/react'
+import { Plus } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useBooks } from '../../lib/offline'
 import { errorText, type Book } from '../../lib/books'
@@ -16,14 +16,18 @@ const KINDS = [
 const byTitle = (a: Book, b: Book) => a.title.localeCompare(b.title)
 
 function Form({ books }: { books: Book[] }) {
-  const { book: slug, kind = 'excerpt' } = useSearch({ from: '/capture/' })
+  // Words shared in from another app arrive as text, and maybe a page (SPEC 3.4).
+  const { book: slug, kind = 'excerpt', text: shared, page: sharedPage, popup } = useSearch({ from: '/capture/' })
   const navigate = useNavigate({ from: '/capture/' })
   const addEntry = useMutation(api.entries.addEntry)
+  // Offline this stays undefined, and the first book being read stands in.
+  const latest = useQuery(api.library.latestRead)
   const reading = books.filter(b => b.status === 'reading').sort(byTitle)
   const others = books.filter(b => b.status !== 'reading').sort(byTitle)
-  const chosen = books.find(b => b.slug === slug) ?? reading[0] ?? others[0]
-  const [text, setText] = useState('')
-  const [place, setPlace] = useState('')
+  const chosen = books.find(b => b.slug === slug) ?? books.find(b => b.readId === latest) ?? reading[0] ?? others[0]
+  const [text, setText] = useState(shared ?? '')
+  const [note, setNote] = useState('')
+  const [place, setPlace] = useState(sharedPage ? String(sharedPage) : '')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState<{ slug: string; message: string } | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -32,6 +36,13 @@ function Form({ books }: { books: Book[] }) {
   const words = text.trim()
   const number = place.trim() === '' ? undefined : Number(place)
   const current = KINDS.find(k => k.id === kind)!
+  const withNote = kind === 'excerpt' && note.trim() !== ''
+
+  useEffect(() => {
+    if (!popup || !saved) return
+    const timer = setTimeout(() => window.close(), 1800)
+    return () => clearTimeout(timer)
+  }, [popup, saved])
 
   const save = async () => {
     setSaving(true)
@@ -42,6 +53,8 @@ function Form({ books }: { books: Book[] }) {
         readId: chosen.readId,
         kind,
         text: words,
+        ...(withNote ? { note: note.trim() } : {}),
+        ...(shared ? { origin: 'share' as const } : {}),
         ...(number === undefined ? {} : audio ? { percent: number } : { page: number }),
       }
       const sent = await sendOrKeep('addEntry', args, () => addEntry(args))
@@ -52,6 +65,7 @@ function Form({ books }: { books: Book[] }) {
           : sent.result.duplicate ? `Already saved to ${chosen.title}.` : `Saved to ${chosen.title}.`,
       })
       setText('')
+      setNote('')
       setPlace('')
       navigator.vibrate?.(15)
     } catch (e) {
@@ -100,6 +114,13 @@ function Form({ books }: { books: Book[] }) {
         />
       </div>
 
+      {kind === 'excerpt' && (
+        <div className="field">
+          <label htmlFor="capture-note">Your note, if you have one</label>
+          <textarea id="capture-note" className="hand" rows={3} value={note} placeholder="What you thought" onChange={e => { setNote(e.target.value); setSaved(null) }} />
+        </div>
+      )}
+
       <div className="field field-short">
         <label htmlFor="capture-place">{audio ? 'Percent through' : 'Page'}</label>
         <input
@@ -142,7 +163,6 @@ export function Capture() {
       {books && books.length > 0 && (
         <>
           <Link to="/capture/add" className="btn"><Plus aria-hidden="true" strokeWidth={2.25} />Add a book</Link>
-          <Link to="/capture/camera" className="btn action-camera"><CameraIcon aria-hidden="true" strokeWidth={2.25} />Photograph a page</Link>
           <Form books={books} />
         </>
       )}

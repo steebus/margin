@@ -17,7 +17,6 @@ import { Route as ReviewRouteImport } from './routes/review'
 import { Route as StatsRouteImport } from './routes/stats'
 import { Route as CaptureIndexRouteImport } from './routes/capture.index'
 import { Route as CaptureAddRouteImport } from './routes/capture.add'
-import { Route as CaptureCameraRouteImport } from './routes/capture.camera'
 import { Route as CaptureShareRouteImport } from './routes/capture.share'
 import { Route as EEntryIdRouteImport } from './routes/e.$entryId'
 import { Route as ImportsJobIdRouteImport } from './routes/imports.$jobId'
@@ -74,11 +73,6 @@ const CaptureIndexRoute = CaptureIndexRouteImport.update({
 const CaptureAddRoute = CaptureAddRouteImport.update({
   id: '/capture/add',
   path: '/capture/add',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CaptureCameraRoute = CaptureCameraRouteImport.update({
-  id: '/capture/camera',
-  path: '/capture/camera',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CaptureShareRoute = CaptureShareRouteImport.update({
@@ -178,7 +172,6 @@ export interface FileRoutesByFullPath {
   '/review': typeof ReviewRoute
   '/stats': typeof StatsRoute
   '/capture/add': typeof CaptureAddRoute
-  '/capture/camera': typeof CaptureCameraRoute
   '/capture/share': typeof CaptureShareRoute
   '/e/$entryId': typeof EEntryIdRoute
   '/imports/$jobId': typeof ImportsJobIdRoute
@@ -206,7 +199,6 @@ export interface FileRoutesByTo {
   '/review': typeof ReviewRoute
   '/stats': typeof StatsRoute
   '/capture/add': typeof CaptureAddRoute
-  '/capture/camera': typeof CaptureCameraRoute
   '/capture/share': typeof CaptureShareRoute
   '/e/$entryId': typeof EEntryIdRoute
   '/imports/$jobId': typeof ImportsJobIdRoute
@@ -235,7 +227,6 @@ export interface FileRoutesById {
   '/review': typeof ReviewRoute
   '/stats': typeof StatsRoute
   '/capture/add': typeof CaptureAddRoute
-  '/capture/camera': typeof CaptureCameraRoute
   '/capture/share': typeof CaptureShareRoute
   '/e/$entryId': typeof EEntryIdRoute
   '/imports/$jobId': typeof ImportsJobIdRoute
@@ -265,7 +256,6 @@ export interface FileRouteTypes {
     | '/review'
     | '/stats'
     | '/capture/add'
-    | '/capture/camera'
     | '/capture/share'
     | '/e/$entryId'
     | '/imports/$jobId'
@@ -293,7 +283,6 @@ export interface FileRouteTypes {
     | '/review'
     | '/stats'
     | '/capture/add'
-    | '/capture/camera'
     | '/capture/share'
     | '/e/$entryId'
     | '/imports/$jobId'
@@ -321,7 +310,6 @@ export interface FileRouteTypes {
     | '/review'
     | '/stats'
     | '/capture/add'
-    | '/capture/camera'
     | '/capture/share'
     | '/e/$entryId'
     | '/imports/$jobId'
@@ -350,7 +338,6 @@ export interface RootRouteChildren {
   ReviewRoute: typeof ReviewRoute
   StatsRoute: typeof StatsRoute
   CaptureAddRoute: typeof CaptureAddRoute
-  CaptureCameraRoute: typeof CaptureCameraRoute
   CaptureShareRoute: typeof CaptureShareRoute
   EEntryIdRoute: typeof EEntryIdRoute
   ImportsJobIdRoute: typeof ImportsJobIdRoute
@@ -427,13 +414,6 @@ declare module '@tanstack/react-router' {
       path: '/capture/add'
       fullPath: '/capture/add'
       preLoaderRoute: typeof CaptureAddRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/capture/camera': {
-      id: '/capture/camera'
-      path: '/capture/camera'
-      fullPath: '/capture/camera'
-      preLoaderRoute: typeof CaptureCameraRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/capture/share': {
@@ -566,7 +546,6 @@ const rootRouteChildren: RootRouteChildren = {
   ReviewRoute: ReviewRoute,
   StatsRoute: StatsRoute,
   CaptureAddRoute: CaptureAddRoute,
-  CaptureCameraRoute: CaptureCameraRoute,
   CaptureShareRoute: CaptureShareRoute,
   EEntryIdRoute: EEntryIdRoute,
   ImportsJobIdRoute: ImportsJobIdRoute,
