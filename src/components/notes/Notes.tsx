@@ -1,3 +1,4 @@
+import { RESERVED } from '../../../convex/lib/topics'
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { useQuery } from 'convex-helpers/react/cache/hooks'
 import { ArrowDown, ArrowUp, Plus, Search, SlidersHorizontal } from 'lucide-react'
@@ -30,7 +31,7 @@ function NoteItem({ entry, where }: { entry: Note; where?: boolean }) {
 
 /** All your notes and reflections: book by book, or one by one by when you wrote them. Tap one to read, change or delete it. */
 export function Notes() {
-  const { q, kind, status, from, to, sort = 'book', dir } = useSearch({ from: '/notes' })
+  const { q, kind, status, label, from, to, sort = 'book', dir } = useSearch({ from: '/notes' })
   const navigate = useNavigate({ from: '/notes' })
   const entries = useEntries()
   const books = useBooks()
@@ -49,11 +50,11 @@ export function Notes() {
 
   const words = q?.trim().toLowerCase().split(/\s+/).filter(Boolean) ?? []
   const statusBySlug = new Map((books ?? []).map(b => [b.slug, b.status]))
-  const shown = filterNotes(entries ?? [], slug => (slug ? statusBySlug.get(slug) : undefined), { kind, status, from, to, words })
+  const shown = filterNotes(entries ?? [], slug => (slug ? statusBySlug.get(slug) : undefined), { kind, status, label, from, to, words })
   const years = noteYears(entries ?? [])
-  const active = [kind, status, from, to].filter(v => v !== undefined).length
+  const active = [kind, status, label, from, to].filter(v => v !== undefined).length
   const [open, setOpen] = useState(active > 0)
-  const set = (change: Partial<{ kind: string; status: string; from: number; to: number; sort: NoteSort; dir: 'asc' | 'desc' }>) =>
+  const set = (change: Partial<{ kind: string; status: string; label: string; from: number; to: number; sort: NoteSort; dir: 'asc' | 'desc' }>) =>
     navigate({ search: prev => ({ ...prev, ...change }), replace: true })
   const flat = sort === 'written'
   const groups = flat ? [] : groupNotes(shown, books ?? [], sort, dir)
@@ -122,7 +123,16 @@ export function Notes() {
                 </select>
               </div>
             </div>
-            {active > 0 && <div className="btn-row"><button type="button" className="btn" onClick={() => set({ kind: undefined, status: undefined, from: undefined, to: undefined })}>Clear filters</button></div>}
+            <div className="tools-row">
+              <div className="field">
+                <label htmlFor="notes-label">Label</label>
+                <select id="notes-label" value={label ?? ''} onChange={e => set({ label: e.target.value || undefined })}>
+                  <option value="">Any</option>
+                  {RESERVED.map(l => <option key={l} value={l}>{l}</option>)}
+                </select>
+              </div>
+            </div>
+            {active > 0 && <div className="btn-row"><button type="button" className="btn" onClick={() => set({ kind: undefined, status: undefined, label: undefined, from: undefined, to: undefined })}>Clear filters</button></div>}
           </div>
         )}
       </div>

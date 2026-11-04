@@ -40,6 +40,7 @@ export const entry = query({
       position: positionOf(e.pos),
       createdAt: e.createdAt,
       origin: e.origin,
+      tags: e.tags ?? [],
       book: toBook(read, work),
       parent: parent && brief(parent),
       children: children.map(brief),

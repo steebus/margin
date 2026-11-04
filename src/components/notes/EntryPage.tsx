@@ -8,6 +8,7 @@ import type { FunctionReturnType } from 'convex/server'
 import { errorText, formatDate } from '../../lib/books'
 import { EntryText } from '../book/EntryList'
 import { Thumb } from '../thumb/Thumb'
+import { TagField } from './TagField'
 
 type Found = NonNullable<FunctionReturnType<typeof api.entries.entry>>
 
@@ -137,6 +138,7 @@ export function EntryPage() {
       {editing ? <Editor entry={found} onDone={() => setEditing(false)} /> : (
         <>
           <div className="entry-full"><EntryText entry={found} /></div>
+          {found.kind !== 'review' && <TagField entryId={found.id} tags={found.tags} />}
           {found.kind === 'review'
             ? <p className="where">Your review lives on Hardcover. Change it there.</p>
             : (

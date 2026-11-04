@@ -7,6 +7,8 @@ export const Route = createFileRoute('/notes')({
     q: z.string().optional().catch(undefined),
     kind: z.string().optional().catch(undefined),
     status: z.string().optional().catch(undefined),
+    label: z.string().optional().catch(undefined),
+    drawer: z.coerce.boolean().optional().catch(undefined),
     from: z.coerce.number().int().optional().catch(undefined),
     to: z.coerce.number().int().optional().catch(undefined),
     sort: z.enum(['book', 'written', 'read', 'title']).optional().catch(undefined),

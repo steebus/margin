@@ -1,3 +1,4 @@
+import { topicKey } from '../../convex/lib/topics'
 import { dateOf } from './shelf'
 import type { Book } from './books'
 
@@ -45,14 +46,15 @@ export function groupNotes<E extends Entry, B extends BookDates>(entries: E[], b
   })
 }
 
-export type NoteFilter = { kind?: string; status?: string; from?: number; to?: number; words: string[] }
-type Filterable = { kind: string; text: string; question?: string | null; where: string; slug: string | null; createdAt: number }
+export type NoteFilter = { kind?: string; status?: string; from?: number; to?: number; label?: string; words: string[] }
+type Filterable = { kind: string; text: string; question?: string | null; where: string; slug: string | null; createdAt: number; tags?: string[] }
 
 /** The notes that pass every filter: kind, the book's status, the years they were written in, and the search words. */
 export function filterNotes<E extends Filterable>(entries: E[], statusOf: (slug: string | null) => string | undefined, f: NoteFilter) {
   return entries.filter(e => {
     if (f.kind && e.kind !== f.kind) return false
     if (f.status && statusOf(e.slug) !== f.status) return false
+    if (f.label && !(e.tags ?? []).some(t => topicKey(t) === topicKey(f.label!))) return false
     const year = new Date(e.createdAt).getUTCFullYear()
     if (f.from && year < f.from) return false
     if (f.to && year > f.to) return false

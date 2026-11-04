@@ -149,6 +149,7 @@ export const allEntries = query({
         question: e.question ?? null,
         position,
         createdAt: e.createdAt,
+        tags: e.tags ?? [],
         where: [work?.title, position].filter(Boolean).join(', '),
         slug: work?.slug ?? null,
       }
