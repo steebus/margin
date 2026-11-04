@@ -1,7 +1,7 @@
 import { Link, useNavigate, useParams, useRouter } from '@tanstack/react-router'
 import { useMutation } from 'convex/react'
 import { useQuery } from 'convex-helpers/react/cache/hooks'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Waypoints } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { slugify } from '../../../convex/lib/hardcover'
 import { api } from '../../../convex/_generated/api'
@@ -64,6 +64,21 @@ function bookFacts(book: Book, notes: number) {
 }
 
 /** The Hardcover lists a book is on, changed with a tick. */
+/** The book's topics, each leading to its timeline, and the book in Explore. */
+function BookTopics({ readId, slug }: { readId: Book['readId']; slug: string }) {
+  const topics = useQuery(api.topics.forBook, { readId })
+  if (!topics?.length) return null
+  return (
+    <section className="stack" aria-labelledby="topics-heading">
+      <h2 id="topics-heading" className="head">Topics</h2>
+      <ul className="book-topics">
+        {topics.map(t => <li key={t.slug}><Link to="/topics/$topicSlug" params={{ topicSlug: t.slug }}>{t.name}</Link></li>)}
+      </ul>
+      <div className="btn-row"><Link to="/explore" search={{ focus: `book:${slug}` }} className="btn"><Waypoints aria-hidden="true" strokeWidth={2.25} />See it in Explore</Link></div>
+    </section>
+  )
+}
+
 function Lists({ book }: { book: Book }) {
   const lists = useQuery(api.books.myLists)?.filter(l => !l.filter)
   const setOnList = useMutation(api.books.setOnList)
@@ -204,6 +219,8 @@ export function BookPage() {
         </section>
 
         <ReadDates book={book} />
+
+        <BookTopics readId={book.readId} slug={book.slug} />
 
         {/* The rarer things folded away: lists, the guide, the picture, and deleting the book. */}
         <div className="book-more">

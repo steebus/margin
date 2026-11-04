@@ -1,11 +1,6 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { z } from 'zod'
-import { Drawer } from '../components/drawer/Drawer'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 
+// The drawer opens from Notes now (Explore took its tab), so old links land there with it open.
 export const Route = createFileRoute('/drawer')({
-  validateSearch: z.object({
-    kind: z.enum(['excerpt', 'note']).optional().catch(undefined),
-    topic: z.string().optional(),
-  }),
-  component: Drawer,
+  beforeLoad: () => { throw redirect({ to: '/notes', search: { drawer: true }, replace: true }) },
 })

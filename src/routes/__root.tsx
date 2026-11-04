@@ -1,6 +1,6 @@
 import { createRootRoute, Link, Outlet, useRouterState } from '@tanstack/react-router'
 import { useConvexAuth } from 'convex/react'
-import { Archive, LampDesk, Library, NotebookPen, PenLine, UserRound } from 'lucide-react'
+import { LampDesk, Library, NotebookPen, PenLine, UserRound, Waypoints } from 'lucide-react'
 import { BookActionsProvider } from '../components/book/BookActions'
 import { SignIn } from '../components/settings/SignIn'
 import { useOnline, useReplayOutbox } from '../lib/offline'
@@ -11,7 +11,7 @@ const tabs = [
   { to: '/', label: 'Desk', Icon: LampDesk, match: (path: string) => path === '/' },
   { to: '/shelves', label: 'Shelves', Icon: Library, match: (path: string) => path.startsWith('/shelves') || path.startsWith('/pile') },
   { to: '/notes', label: 'Notes', Icon: NotebookPen, match: (path: string) => path.startsWith('/notes') || path.startsWith('/e/') },
-  { to: '/drawer', label: 'Drawer', Icon: Archive, match: (path: string) => path.startsWith('/drawer') },
+  { to: '/explore', label: 'Explore', Icon: Waypoints, match: (path: string) => path.startsWith('/explore') || path.startsWith('/topics') },
   { to: '/capture', label: 'Capture', Icon: PenLine, match: (path: string) => path.startsWith('/capture') },
 ] as const
 

@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DrawerRouteImport } from './routes/drawer'
+import { Route as ExploreRouteImport } from './routes/explore'
 import { Route as NotesRouteImport } from './routes/notes'
 import { Route as PileRouteImport } from './routes/pile'
 import { Route as ReviewRouteImport } from './routes/review'
@@ -43,6 +44,11 @@ const IndexRoute = IndexRouteImport.update({
 const DrawerRoute = DrawerRouteImport.update({
   id: '/drawer',
   path: '/drawer',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExploreRoute = ExploreRouteImport.update({
+  id: '/explore',
+  path: '/explore',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NotesRoute = NotesRouteImport.update({
@@ -167,6 +173,7 @@ const BooksBookSlugReadsNRoute = BooksBookSlugReadsNRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/drawer': typeof DrawerRoute
+  '/explore': typeof ExploreRoute
   '/notes': typeof NotesRoute
   '/pile': typeof PileRoute
   '/review': typeof ReviewRoute
@@ -194,6 +201,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/drawer': typeof DrawerRoute
+  '/explore': typeof ExploreRoute
   '/notes': typeof NotesRoute
   '/pile': typeof PileRoute
   '/review': typeof ReviewRoute
@@ -222,6 +230,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/drawer': typeof DrawerRoute
+  '/explore': typeof ExploreRoute
   '/notes': typeof NotesRoute
   '/pile': typeof PileRoute
   '/review': typeof ReviewRoute
@@ -251,6 +260,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/drawer'
+    | '/explore'
     | '/notes'
     | '/pile'
     | '/review'
@@ -278,6 +288,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/drawer'
+    | '/explore'
     | '/notes'
     | '/pile'
     | '/review'
@@ -305,6 +316,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/drawer'
+    | '/explore'
     | '/notes'
     | '/pile'
     | '/review'
@@ -333,6 +345,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DrawerRoute: typeof DrawerRoute
+  ExploreRoute: typeof ExploreRoute
   NotesRoute: typeof NotesRoute
   PileRoute: typeof PileRoute
   ReviewRoute: typeof ReviewRoute
@@ -372,6 +385,13 @@ declare module '@tanstack/react-router' {
       path: '/drawer'
       fullPath: '/drawer'
       preLoaderRoute: typeof DrawerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/explore': {
+      id: '/explore'
+      path: '/explore'
+      fullPath: '/explore'
+      preLoaderRoute: typeof ExploreRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/notes': {
@@ -541,6 +561,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DrawerRoute: DrawerRoute,
+  ExploreRoute: ExploreRoute,
   NotesRoute: NotesRoute,
   PileRoute: PileRoute,
   ReviewRoute: ReviewRoute,

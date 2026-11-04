@@ -1023,3 +1023,54 @@ button.back { justify-self: start; padding: 0; border: 0; background: none; curs
 .tag-chip button svg { width: 16px; height: 16px; }
 .tag-add { display: flex; gap: 8px; }
 .tag-add input { flex: 1; min-width: 0; min-height: 48px; padding: 8px 12px; border: var(--line) solid var(--ink); border-radius: 3px; background: transparent; color: var(--ink); font: inherit; }
+
+/* ---------- Topic pages: a timeline down a single ink rule, years in the magenta rule ---------- */
+.topic-up { justify-self: start; font: 400 1.125rem/1 var(--head); letter-spacing: 0.04em; text-transform: uppercase; text-decoration: none; color: inherit; }
+.topic-up::before { content: '\2190\00a0'; }
+.topic-page .title-head { overflow-wrap: anywhere; }
+.topic-page .title-head[data-size='long'] { font-size: clamp(2.25rem, 10vw, 3.75rem); }
+.topic-meta { font: 400 1.0625rem/1.3 var(--book); font-variant-numeric: lining-nums; }
+.timeline { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+.tl-year { margin: 18px 0 10px; }
+.timeline > .tl-year:first-child { margin-top: 0; }
+.tl-item { position: relative; padding: 0 0 22px 26px; border-left: var(--line) solid var(--ink); }
+/* A tick on the rule for each item: solid for a book read, open for something written. */
+.tl-item::before { content: ''; position: absolute; top: 6px; left: -7px; width: 12px; height: 12px; border: var(--line) solid var(--ink); border-radius: 50%; background: var(--ink); }
+.tl-item[data-kind='entry']::before { background: var(--paper); }
+.tl-did { font: 400 1rem/1 var(--head); letter-spacing: 0.04em; text-transform: uppercase; }
+.tl-book { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 14px; align-items: start; color: inherit; text-decoration: none; }
+.tl-book .thumb[data-art] { border: var(--line) solid var(--ink); }
+.tl-book-text { display: grid; gap: 4px; }
+.tl-why { justify-self: start; padding: 1px 6px; border: 1.5px solid var(--ink); border-radius: 3px; font-size: 0.875rem; }
+@media (hover: hover) { .tl-book:hover .selected-title { text-decoration: underline; text-underline-offset: 3px; } }
+.tl-entry { gap: 6px; margin-left: -8px; padding: 2px 8px 6px; border-radius: 3px; }
+.tl-entry .hand { font-size: 1.25rem; }
+.tl-quote span { background: linear-gradient(transparent 12%, color-mix(in srgb, var(--rule) 22%, transparent) 12% 88%, transparent 88%); box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+.tl-entry .hand, .tl-quote { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 8; overflow: hidden; }
+.tl-list { display: grid; gap: 18px; margin: 0; padding: 0; list-style: none; }
+
+.topic-index { display: grid; margin: 0; padding: 0; list-style: none; border-top: var(--line) solid var(--ink); }
+.topic-index a { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; min-height: 52px; padding: 12px 4px; border-bottom: 1.5px solid var(--ink); color: inherit; text-decoration: none; }
+.topic-name { font: 400 1.5rem/1.05 var(--head); letter-spacing: 0.02em; text-transform: uppercase; overflow-wrap: anywhere; }
+.topic-count { flex: none; font: 400 1rem/1 var(--book); font-variant-numeric: lining-nums; }
+@media (hover: hover) { .topic-index a:hover { background: var(--soft); } }
+.book-topics { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.book-topics a { display: inline-flex; align-items: center; min-height: 36px; padding: 0 10px; border: 1.5px solid var(--ink); border-radius: 3px; color: inherit; font: 400 1.0625rem/1 var(--head); letter-spacing: 0.03em; text-decoration: none; text-transform: uppercase; }
+@media (hover: hover) { .book-topics a:hover { background: var(--soft); } }
+
+/* ---------- Explore: the library as dots, on the page's own paper ---------- */
+.explore-head { display: grid; gap: 6px; }
+.explore-head .title-head { overflow-wrap: anywhere; }
+.explore-head a { color: inherit; text-underline-offset: 3px; }
+.explore-depth { max-width: 320px; }
+.explore-stage { position: relative; height: min(72vh, 820px); min-height: 360px; border: var(--line) solid var(--ink); border-radius: 3px; overflow: hidden; }
+.explore-canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+.explore-canvas:active { cursor: grabbing; }
+.explore-note { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; pointer-events: none; }
+.explore-zoom { position: absolute; right: 10px; bottom: 10px; display: grid; gap: 8px; }
+.explore-zoom .theme-toggle { background: var(--paper); }
+.explore-picked { position: relative; padding-right: 52px; }
+.explore-close { position: absolute; top: 6px; right: 6px; display: grid; place-items: center; width: 44px; height: 44px; border: 0; background: none; color: inherit; cursor: pointer; }
+.drawer-sheet .sheet-body { position: relative; }
+.drawer-close { position: absolute; top: 14px; right: 14px; z-index: 1; }
+.drawer-sheet .title-head { font-size: clamp(2.5rem, 11vw, 3.5rem); }

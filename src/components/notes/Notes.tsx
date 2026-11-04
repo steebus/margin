@@ -1,7 +1,8 @@
 import { RESERVED } from '../../../convex/lib/topics'
+import { DrawerSheet } from '../drawer/Drawer'
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { useQuery } from 'convex-helpers/react/cache/hooks'
-import { ArrowDown, ArrowUp, Plus, Search, SlidersHorizontal } from 'lucide-react'
+import { Archive, ArrowDown, ArrowUp, Plus, Search, SlidersHorizontal } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { formatDate } from '../../lib/books'
@@ -31,7 +32,7 @@ function NoteItem({ entry, where }: { entry: Note; where?: boolean }) {
 
 /** All your notes and reflections: book by book, or one by one by when you wrote them. Tap one to read, change or delete it. */
 export function Notes() {
-  const { q, kind, status, label, from, to, sort = 'book', dir } = useSearch({ from: '/notes' })
+  const { q, kind, status, label, from, to, sort = 'book', dir, drawer } = useSearch({ from: '/notes' })
   const navigate = useNavigate({ from: '/notes' })
   const entries = useEntries()
   const books = useBooks()
@@ -63,6 +64,7 @@ export function Notes() {
   return (
     <div className="wide stack">
       <h1 className="title-head">Notes</h1>
+      {drawer && <DrawerSheet onClose={() => void navigate({ search: prev => ({ ...prev, drawer: undefined }), replace: true })} />}
 
       {waiting?.map(p => <Reflection key={p.id} prompt={p} />)}
 
@@ -76,6 +78,7 @@ export function Notes() {
           <button type="button" className="btn tools-view" aria-expanded={open} aria-controls="notes-filter" onClick={() => setOpen(!open)}>
             <SlidersHorizontal aria-hidden="true" strokeWidth={2.25} />Filter{active > 0 && <span className="tools-badge">{active}</span>}
           </button>
+          <button type="button" className="btn tools-view" onClick={() => void navigate({ search: prev => ({ ...prev, drawer: true }) })}><Archive aria-hidden="true" strokeWidth={2.25} />Drawer</button>
           <Link to="/capture" search={{ kind: 'note' }} className="btn tools-view"><Plus aria-hidden="true" strokeWidth={2.25} />New</Link>
         </div>
 

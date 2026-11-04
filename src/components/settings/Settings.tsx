@@ -1,5 +1,5 @@
 import { useAuthActions } from '@convex-dev/auth/react'
-import { useAction, useConvex } from 'convex/react'
+import { useAction, useConvex, useMutation } from 'convex/react'
 import { useQuery } from 'convex-helpers/react/cache/hooks'
 import { useState, type ReactNode } from 'react'
 import { Link, useSearch } from '@tanstack/react-router'
@@ -134,6 +134,21 @@ function Appearance() {
   )
 }
 
+/** Topics Steve hid, to bring back. Hidden ones stay out of Explore, the topics list and the buddy's view. */
+function HiddenTopics() {
+  const hidden = useQuery(api.topics.hidden)
+  const unhide = useMutation(api.topics.unhide)
+  if (hidden === undefined) return null
+  if (!hidden.length) return <p>None. Hide a topic from its page if you don't want it in Explore.</p>
+  return (
+    <ul className="book-topics">
+      {hidden.map(t => (
+        <li key={t.key}><button type="button" className="btn" onClick={() => void unhide({ key: t.key })}>Show {t.name}</button></li>
+      ))}
+    </ul>
+  )
+}
+
 export const TABS = ['account', 'reading', 'integrations', 'data'] as const
 type Tab = (typeof TABS)[number]
 const LABELS: Record<Tab, string> = { account: 'Account', reading: 'Reading', integrations: 'Integrations', data: 'Data' }
@@ -168,6 +183,7 @@ export function Settings() {
         <>
           <Section id="buddy" title="Buddy"><BuddySpend /></Section>
           <Section id="nudges" title="Nudges"><Nudges /></Section>
+          <Section id="hidden-topics" title="Hidden topics"><HiddenTopics /></Section>
         </>
       )}
       {tab === 'integrations' && (

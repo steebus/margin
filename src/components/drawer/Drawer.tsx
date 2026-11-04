@@ -1,6 +1,7 @@
-import { Link, useNavigate, useSearch } from '@tanstack/react-router'
+import { Link } from '@tanstack/react-router'
 import { AnimatePresence, motion } from 'motion/react'
-import { useState } from 'react'
+import { X } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 import { useEntries } from '../../lib/offline'
 import { nextCard } from '../../lib/drawer-rules'
 
@@ -10,9 +11,34 @@ const kinds = [
   { id: 'note', label: 'Notes' },
 ] as const
 
-export function Drawer() {
-  const { kind } = useSearch({ from: '/drawer' })
-  const navigate = useNavigate({ from: '/drawer' })
+type Kind = (typeof kinds)[number]['id']
+
+/** The drawer, opened from Notes as a sheet over it (Steve, 2026-11-04: Explore took its tab). */
+export function DrawerSheet({ onClose }: { onClose: () => void }) {
+  const ref = useRef<HTMLDialogElement>(null)
+  useEffect(() => {
+    const dialog = ref.current!
+    dialog.showModal()
+    return () => dialog.close()
+  }, [])
+  return (
+    <dialog
+      ref={ref}
+      className="sheet drawer-sheet"
+      aria-labelledby="drawer-title"
+      onCancel={e => { e.preventDefault(); onClose() }}
+      onClick={e => { if (e.target === e.currentTarget) onClose() }}
+    >
+      <div className="sheet-body">
+        <button type="button" className="theme-toggle drawer-close" aria-label="Close the drawer" onClick={onClose}><X aria-hidden="true" strokeWidth={2.25} /></button>
+        <Drawer />
+      </div>
+    </dialog>
+  )
+}
+
+function Drawer() {
+  const [kind, setKind] = useState<Kind>(undefined)
   const all = useEntries()
   const [card, setCard] = useState(0)
   const [hidden, setHidden] = useState<string[]>([])
@@ -21,8 +47,8 @@ export function Drawer() {
   const entry = entries[card % Math.max(entries.length, 1)]
 
   return (
-    <div className="narrow stack">
-      <h1 className="title-head">The drawer</h1>
+    <div className="stack">
+      <h2 id="drawer-title" className="title-head">The drawer</h2>
 
       <div className="segments" role="group" aria-label="Show">
         {kinds.map(k => (
@@ -32,7 +58,7 @@ export function Drawer() {
             aria-pressed={kind === k.id}
             onClick={() => {
               setCard(0)
-              navigate({ search: prev => ({ ...prev, kind: k.id }) })
+              setKind(k.id)
             }}
           >
             {k.label}
@@ -90,7 +116,7 @@ export function Drawer() {
                 className="btn btn-solid"
                 onClick={() => {
                   setHidden([])
-                  navigate({ search: prev => ({ ...prev, kind: undefined }) })
+                  setKind(undefined)
                 }}
               >
                 Show everything
