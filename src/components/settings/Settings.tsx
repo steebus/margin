@@ -154,7 +154,7 @@ export function Settings() {
       <h1 className="title-head">Settings</h1>
       <nav className="segments" aria-label="Settings">
         {TABS.map(t => (
-          <Link key={t} to="/settings" search={t === 'account' ? {} : { tab: t }} replace aria-current={tab === t ? 'page' : undefined}>{LABELS[t]}</Link>
+          <Link key={t} to="/settings" search={{ tab: t }} replace activeOptions={{ includeSearch: true, exact: true }} aria-current={tab === t ? 'page' : undefined}>{LABELS[t]}</Link>
         ))}
       </nav>
       <hr className="rule" />
