@@ -5,7 +5,7 @@
 /** What the bookmarklet sends for each book on My Books. */
 export type KoboBook = { koboId: string | null; title: string; author: string; statusText: string }
 
-export type KoboNote = { id: string; text: string; note: string; chapter?: string; percent?: number }
+export type KoboNote = { id: string; text: string; note: string; chapter?: string; percent?: number; at?: number }
 
 /** "FINISHED", "33% READ" or "UNREAD", as My Books shows them. */
 export function koboStatus(text: string): { status: 'read' | 'reading' | 'tbr'; percent: number } | null {
@@ -25,12 +25,14 @@ export function parseAnnotations(json: unknown): { notes: KoboNote[]; more: bool
   const notes = list.map(a => {
     if (typeof a?.id !== 'string') throw new Error('kobo shape')
     const span = a.location?.span
+    const at = Date.parse(str(a.clientLastModifiedUtc))
     const share = typeof span?.percentageOfBook === 'number' ? span.percentageOfBook : null
     return {
       id: a.id,
       text: str(a.highlightedText),
       note: str(a.noteText),
       ...(str(span?.chapterTitle) ? { chapter: str(span.chapterTitle) } : {}),
+      ...(Number.isFinite(at) ? { at } : {}),
       ...(share !== null && share >= 0 && share <= 1 ? { percent: Math.round(share * 1000) / 10 } : {}),
     }
   }).filter(n => n.text || n.note)

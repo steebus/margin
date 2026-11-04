@@ -31,6 +31,15 @@ test('Play Books notes are saved once, dated as they were made, and go to Hardco
   expect(await t.run(ctx => ctx.db.query('hardcoverOutbox').collect())).toHaveLength(3)
 })
 
+test('a note already in takes its source date on the next import', async () => {
+  const { t, as, readId } = await setup()
+  await as.mutation(api.playbooks.saveNotes, { readId, volumeId: 'VOL', notes })
+  await t.run(async ctx => { for (const e of await ctx.db.query('entries').collect()) await ctx.db.patch(e._id, { createdAt: 1 }) })
+  expect(await as.mutation(api.playbooks.saveNotes, { readId, volumeId: 'VOL', notes })).toBe(0)
+  const excerpt = (await t.run(ctx => ctx.db.query('entries').collect())).find(e => e.kind === 'excerpt')!
+  expect(excerpt.createdAt).toBe(Date.parse('March 26, 2026'))
+})
+
 test('a book waits in review once, is left out for good, or is placed with its notes', async () => {
   const { t, as, readId } = await setup()
   const card = { sourceId: 'VOL', title: 'Book One', author: 'An Author', notes }

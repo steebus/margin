@@ -92,10 +92,10 @@ export const saveNotes = internalMutation({
   args: {
     userId: v.id('users'),
     readId: v.id('reads'),
-    notes: v.array(v.object({ id: v.string(), text: v.string(), note: v.string(), chapter: v.optional(v.string()), percent: v.optional(v.number()) })),
+    notes: v.array(v.object({ id: v.string(), text: v.string(), note: v.string(), chapter: v.optional(v.string()), percent: v.optional(v.number()), at: v.optional(v.number()) })),
   },
   handler: (ctx, { userId, readId, notes }) =>
-    saveImported(ctx, userId, readId, 'kobo', notes.map(n => ({ key: `kobo:${n.id}`, text: n.text, note: n.note, percent: n.percent, chapter: n.chapter }))),
+    saveImported(ctx, userId, readId, 'kobo', notes.map(n => ({ key: `kobo:${n.id}`, text: n.text, note: n.note, percent: n.percent, chapter: n.chapter, at: n.at }))),
 })
 
 export const record = internalMutation({

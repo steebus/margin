@@ -12,14 +12,14 @@ test('Kobo statuses', () => {
 test('annotations keep their words, note, chapter and place, and a note on its own', () => {
   const { notes, more } = parseAnnotations({
     annotations: [
-      { id: 'a', type: 'note', highlightedText: ' A line. ', noteText: 'Mine', location: { span: { chapterTitle: 'Introduction', percentageOfBook: 0.0964912 } } },
+      { id: 'a', type: 'note', highlightedText: ' A line. ', noteText: 'Mine', location: { span: { chapterTitle: 'Introduction', percentageOfBook: 0.0964912 } }, clientLastModifiedUtc: '2024-03-05T10:00:00Z' },
       { id: 'b', type: 'note', highlightedText: '', noteText: 'Only a thought', location: {} },
       { id: 'c', type: 'highlight', highlightedText: '', noteText: '' },
     ],
     nextPageOffsetToken: null,
   })
   expect(notes).toEqual([
-    { id: 'a', text: 'A line.', note: 'Mine', chapter: 'Introduction', percent: 9.6 },
+    { id: 'a', text: 'A line.', note: 'Mine', chapter: 'Introduction', percent: 9.6, at: Date.UTC(2024, 2, 5, 10) },
     { id: 'b', text: '', note: 'Only a thought' },
   ])
   expect(more).toBe(false)

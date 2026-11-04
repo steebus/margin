@@ -1,4 +1,4 @@
-import type { Id } from '../_generated/dataModel'
+import type { Doc, Id } from '../_generated/dataModel'
 import type { MutationCtx } from '../_generated/server'
 import { enqueueEntry } from './outbox'
 
@@ -23,12 +23,22 @@ export async function saveImported(ctx: MutationCtx, userId: Id<'users'>, readId
       added++
       return id
     }
+    // One already in keeps its words, but takes the source's date, so early imports stamped with the day they came in
+    // move back to when they were written.
+    const redate = async (row: Doc<'entries'>) => {
+      if (item.at && row.createdAt !== item.at) await ctx.db.patch(row._id, { createdAt: item.at })
+      return row._id
+    }
+    const keep = async (kind: 'excerpt' | 'note', words: string, originKey: string, parentId?: Id<'entries'>) => {
+      const row = await known(originKey)
+      return row ? redate(row) : insert(kind, words, originKey, parentId)
+    }
     if (!text) {
-      if (note && !await known(item.key)) await insert('note', note, item.key)
+      if (note) await keep('note', note, item.key)
       continue
     }
-    const excerptId = (await known(item.key))?._id ?? await insert('excerpt', text, item.key)
-    if (note && !await known(`${item.key}:note`)) await insert('note', note, `${item.key}:note`, excerptId)
+    const excerptId = await keep('excerpt', text, item.key)
+    if (note) await keep('note', note, `${item.key}:note`, excerptId)
   }
   return added
 }
