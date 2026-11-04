@@ -5,3 +5,4 @@ dist
 .tanstack
 .playwright-mcp
 /.impeccable/
+.superpowers/
