@@ -271,10 +271,14 @@ Kindle imports were dropped on 2026-11-04 (Steve): don't build them.
    report ("412 books, 3,180 highlights, 27 need a look"). Resumable.
    Parsers are tested against real samples.
 2. **Review queue** (moved from Phase 4). Weak matches from an import go to
-   the `/review` card stack instead of being guessed. Built with the first
-   import that produces them.
-3. **Kobo.** `KoboReader.sqlite` parsed in the browser with sql.js (books, %
-   read, time read, highlights, notes).
+   the `/review` card stack instead of being guessed. Kobo chooses its unsure
+   books on its own page instead, so `/review` waits for an importer that
+   can't ask there.
+3. **Kobo** (built 2026-11-04, `docs/superpowers/specs/2026-11-04-kobo-pull-design.md`). No `KoboReader.sqlite`:
+   Steve's notes are cloud-synced. A bookmarklet on My Books sends the book list to `/settings/integrations/kobo`,
+   which matches, adds and links books (unsure ones are chosen there). The server pulls each linked book's
+   annotations with Steve's pasted cookie, from Settings and daily at 05:00 UTC. Kobo's library page refuses
+   servers (a bot check), so the list can't be pulled on the server.
 4. **Play Books.**
    - Incremental Google consent.
    - The Books API `mylibrary` for shelves.
