@@ -632,7 +632,7 @@ td a { display: inline-flex; align-items: center; min-height: 44px; color: inher
 .notes-book { display: grid; gap: 10px; padding: 12px; border: var(--line) solid var(--ink); border-radius: 3px; background: var(--paper); }
 /* A wall of cards, as many columns as fit, each card as tall as its words: the cheapest masonry there is. */
 .notes-wall { columns: 17rem; column-gap: 16px; }
-.notes-wall > * { break-inside: avoid; margin-bottom: 16px; }
+.notes-wall > * { break-inside: avoid; margin-bottom: 16px; overflow-wrap: anywhere; }
 .notes-cards > li { display: block; border: var(--line) solid var(--ink); border-radius: 3px; background: var(--paper); }
 .notes-cards .note-link { padding: 12px; }
 .notes-tools { display: grid; gap: 16px; }
