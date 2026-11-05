@@ -1010,6 +1010,8 @@ button.back { justify-self: start; padding: 0; border: 0; background: none; curs
   .page > .desk { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 16px 40px; align-items: start; }
   .desk > .masthead { grid-column: 1 / -1; }
   .desk .desk-book { grid-template-columns: 170px minmax(0, 1fr); gap: 24px; }
+  /* The side column scrolls with the books while it has more to show, then locks rather than scrolling off. */
+  .desk > .desk-side { position: sticky; top: 16px; max-height: calc(100dvh - 32px); overflow-y: auto; overscroll-behavior: contain; }
 }
 
 /* ---------- Tags and topics ---------- */
