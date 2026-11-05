@@ -87,7 +87,7 @@ const counted = (finishes: Finish[], labelsOf: (f: Finish) => string[], top: num
 
 const FORMAT: Record<string, string> = { print: 'Print', ebook: 'Ebook', audio: 'Audiobook' }
 export const byFormat = (finishes: Finish[]) => counted(finishes, f => [FORMAT[f.book.format]], 3)
-export const byGenre = (finishes: Finish[], top = 8) => counted(finishes, f => f.book.subjects, top)
+export const byGenre = (finishes: Finish[], top = 8) => counted(finishes, f => f.book.genres, top)
 // The first author of each book finished, as Hardcover records them. Books it has nothing for are counted, not hidden.
 const GENDER: Record<string, string> = { woman: 'Women', man: 'Men', 'non-binary': 'Non-binary' }
 export const byAuthorGender = (finishes: Finish[]) => counted(finishes, f => [GENDER[f.book.authorGender ?? ''] ?? 'Not known'], 4)

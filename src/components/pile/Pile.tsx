@@ -84,7 +84,7 @@ export function Pile() {
                 >
                   <span className="spine-etch" aria-hidden="true" />
                   <span className="spine-label">
-                    <span className="spine-title" data-face={faceOf(book.subjects)} style={{ WebkitLineClamp: spine.titleLines, '--title': `${spine.titleSize}px` } as React.CSSProperties}>{spineTitle(book.title)}</span>
+                    <span className="spine-title" data-face={faceOf(book.genres)} style={{ WebkitLineClamp: spine.titleLines, '--title': `${spine.titleSize}px` } as React.CSSProperties}>{spineTitle(book.title)}</span>
                     <span className="spine-author">{book.author}</span>
                   </span>
                 </Link>

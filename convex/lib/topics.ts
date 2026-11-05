@@ -1,3 +1,4 @@
+import { isGenreName } from './genres'
 import { slugify } from './hardcover'
 
 // Topics (design: docs/superpowers/specs/2026-11-04-topics-design.md). Nothing about a topic is stored except
@@ -110,7 +111,8 @@ export function buildTopics({ works, entries, hidden }: { works: WorkIn[]; entri
   const topics = new Map<string, Topic & { byRead: Map<string, Reason[]>; entryIds: Set<string> }>()
   const topicFor = (name: string) => {
     const key = topicKey(name)
-    if (!key || hidden.has(key) || reservedKeys.has(key)) return null
+    // Genres are their own dimension (lib/genres.ts), so "Fantasy" is never a topic, wherever it comes from.
+    if (!key || hidden.has(key) || reservedKeys.has(key) || isGenreName(name)) return null
     let topic = topics.get(key)
     if (!topic) {
       topic = { key, slug: slugify(key) || 'topic', name: name.trim(), books: [], entries: [], byRead: new Map(), entryIds: new Set() }

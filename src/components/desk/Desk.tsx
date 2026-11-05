@@ -1,10 +1,8 @@
 import { Link } from '@tanstack/react-router'
-import { useQuery } from 'convex-helpers/react/cache/hooks'
 import { AnimatePresence, motion } from 'motion/react'
 import { Plus } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { api } from '../../../convex/_generated/api'
-import { useBooks, useEntries } from '../../lib/offline'
+import { useActivity, useBooks, useEntries, useWaiting } from '../../lib/offline'
 import { toastDue } from '../../lib/drawer-rules'
 import { Reflection } from '../book/Reflection'
 import { Card } from '../shelf/ReadingStrip'
@@ -34,7 +32,7 @@ function Masthead() {
 export function Desk() {
   const books = useBooks()
   const entries = useEntries()
-  const waiting = useQuery(api.reflect.waiting)
+  const waiting = useWaiting()
   const [toast, setToast] = useState(false)
   const [pick] = useState(Math.random) // chosen once, so a data update doesn't swap the note while it shows
 
@@ -44,7 +42,7 @@ export function Desk() {
   // The window is fixed when the Desk opens, so the query isn't asked afresh every render.
   const [now] = useState(Date.now)
   const since = windowStart(now)
-  const activity = useQuery(api.library.activity, { since })
+  const activity = useActivity(since)
   const shown = entries?.length ? entries[Math.floor(pick * entries.length)] : undefined
 
   // Only once there's something in the drawer to offer.

@@ -61,10 +61,10 @@ export function filterBooks(books: Book[], { q, format, rating, genre }: Filters
   const words = q?.trim().toLowerCase().split(/\s+/).filter(Boolean) ?? []
   return books.filter(b => {
     if (format && b.format !== format) return false
-    if (genre && !b.subjects.includes(genre)) return false
+    if (genre && !b.genres.includes(genre)) return false
     if (rating === 'none' ? b.rating !== null : rating && (b.rating ?? 0) < Number(rating)) return false
     if (!words.length) return true
-    const text = `${b.title} ${b.author} ${b.subjects.join(' ')}`.toLowerCase()
+    const text = `${b.title} ${b.author} ${b.genres.join(' ')}`.toLowerCase()
     return words.every(w => text.includes(w))
   })
 }
@@ -115,7 +115,7 @@ const GROUPS = {
     of: (b: Book): Bucket => bands(b.pages, [[200, 'Under 200 pages'], [350, '200 to 350 pages'], [500, '350 to 500 pages'], [800, '500 to 800 pages']], 'Over 800 pages'),
   },
   author: { label: 'Author', newest: false, of: (b: Book): Bucket => ({ label: b.author, order: surname(b.author) }) },
-  genre: { label: 'Genre', newest: false, of: (b: Book): Bucket => (b.subjects[0] ? { label: b.subjects[0], order: b.subjects[0] } : null) },
+  genre: { label: 'Genre', newest: false, of: (b: Book): Bucket => (b.genres[0] ? { label: b.genres[0], order: b.genres[0] } : null) },
   format: { label: 'Format', newest: false, of: (b: Book): Bucket => ({ label: FORMATS[b.format], order: FORMATS[b.format] }) },
 } as const
 export type GroupId = keyof typeof GROUPS
@@ -138,7 +138,7 @@ export function groupBooks(books: Book[], group: GroupId) {
   return unknown.length ? [...rows, { label: 'Not known', order: '', books: unknown }] : rows
 }
 
-export const genresIn = (books: Book[]) => [...new Set(books.flatMap(b => b.subjects))].sort((a, b) => a.localeCompare(b))
+export const genresIn = (books: Book[]) => [...new Set(books.flatMap(b => b.genres))].sort((a, b) => a.localeCompare(b))
 
 const sortIds = Object.keys(SORTS) as [SortId, ...SortId[]]
 const groupIds = Object.keys(GROUPS) as [GroupId, ...GroupId[]]

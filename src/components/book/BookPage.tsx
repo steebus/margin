@@ -2,7 +2,7 @@ import { Link, useNavigate, useParams, useRouter } from '@tanstack/react-router'
 import { useMutation } from 'convex/react'
 import { useQuery } from 'convex-helpers/react/cache/hooks'
 import { ArrowLeft, Waypoints } from 'lucide-react'
-import { useEffect, useState, type ReactNode } from 'react'
+import { Fragment, useEffect, useState, type ReactNode } from 'react'
 import { slugify } from '../../../convex/lib/hardcover'
 import { api } from '../../../convex/_generated/api'
 import { formatDate, type Book, type Status } from '../../lib/books'
@@ -56,7 +56,7 @@ function bookFacts(book: Book, notes: number) {
     ['Pace', pace && `${pace} pages a day`],
     ['Times read', book.readings.length > 1 && book.readings.length],
     ['Notes and thoughts', notes],
-    ['Genres', book.subjects.join(', ')],
+    ['Genres', book.genres.length > 0 && book.genres.map((g, i) => <Fragment key={g}>{i > 0 && ', '}<Link to="/shelves" search={{ genre: g }}>{g}</Link></Fragment>)],
     ['ISBN', book.isbn],
     ['Recommended by', book.recommendedBy && <Link to="/people/$personSlug" params={{ personSlug: slugify(book.recommendedBy) }}>{book.recommendedBy}</Link>],
   ]

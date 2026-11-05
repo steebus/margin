@@ -6,6 +6,7 @@ import { mutation, query, type MutationCtx } from './_generated/server'
 import { datesFrom, positionOf, progressAt, readingsAfter, readingsOf, toBook } from './lib/books'
 import { askForReflection, waitingPrompt } from './lib/reflection'
 import { movedIn } from './lib/activity'
+import { genresOf } from './lib/genres'
 import { enqueueRead } from './lib/outbox'
 import { checkMilestones, waitingNote } from './milestones'
 import { depthOf, guideFor } from './guides'
@@ -74,7 +75,7 @@ export const activity = query({
     const tbr = await ctx.db.query('reads').withIndex('by_user_status', q => q.eq('userId', userId).eq('status', 'tbr')).collect()
     const added = await Promise.all(tbr.filter(r => (r.addedAt ?? 0) >= since).map(async r => {
       const work = await ctx.db.get(r.workId)
-      return work && { slug: work.slug, title: work.title, author: work.authors[0] ?? 'Unknown author', pages: work.pages ?? null, subjects: work.subjects, addedAt: r.addedAt! }
+      return work && { slug: work.slug, title: work.title, author: work.authors[0] ?? 'Unknown author', pages: work.pages ?? null, subjects: work.subjects, genres: genresOf(work.tags, work.subjects), addedAt: r.addedAt! }
     }))
     const notes = await ctx.db.query('entries').withIndex('by_user', q => q.eq('userId', userId).gte('createdAt', since)).collect()
     return {

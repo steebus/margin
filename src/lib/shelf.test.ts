@@ -4,7 +4,7 @@ import { dateOf, daysToRead, filterBooks, groupBooks, mergeSearch, parseSaved, s
 
 const day = (text: string) => Date.parse(text)
 const book = (over: Partial<Book>) => ({
-  title: 'A', author: 'Ann Lee', status: 'read', format: 'print', rating: null, pages: null, published: null, subjects: [],
+  title: 'A', author: 'Ann Lee', status: 'read', format: 'print', rating: null, pages: null, published: null, subjects: [], genres: [],
   addedAt: null, startedAt: null, finishedAt: null, ...over,
 }) as Book
 
@@ -33,8 +33,8 @@ test('a same-day read is one day, and dates the wrong way round are no answer', 
 
 test('search matches every word across title, author and genre, and filters narrow it', () => {
   const books = [
-    book({ title: 'Dune', author: 'Frank Herbert', subjects: ['Science Fiction'], rating: 5, format: 'audio' }),
-    book({ title: 'Emma', author: 'Jane Austen', subjects: ['Classics'], rating: 3 }),
+    book({ title: 'Dune', author: 'Frank Herbert', genres: ['Science Fiction'], rating: 5, format: 'audio' }),
+    book({ title: 'Emma', author: 'Jane Austen', genres: ['Classics'], rating: 3 }),
     book({ title: 'Unrated' }),
   ]
   expect(filterBooks(books, { q: 'herbert dune' }).map(b => b.title)).toEqual(['Dune'])

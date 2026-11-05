@@ -3,7 +3,7 @@ import { useConvexAuth } from 'convex/react'
 import { LampDesk, Library, NotebookPen, PenLine, UserRound, Waypoints } from 'lucide-react'
 import { BookActionsProvider } from '../components/book/BookActions'
 import { SignIn } from '../components/settings/SignIn'
-import { useOnline, useReplayOutbox } from '../lib/offline'
+import { hasSavedSignIn, useReplayOutbox } from '../lib/offline'
 
 export const Route = createRootRoute({ component: Root })
 
@@ -18,10 +18,9 @@ const tabs = [
 function Root() {
   const path = useRouterState({ select: s => s.location.pathname })
   const { isLoading, isAuthenticated } = useConvexAuth()
-  const online = useOnline()
   useReplayOutbox(isAuthenticated)
-  // With no connection, sign-in can't be confirmed, so the shell opens on what this device already holds.
-  const inside = isAuthenticated || (!online && isLoading)
+  // While Convex confirms a sign-in this device already holds, the shell opens on what the device remembers.
+  const inside = isAuthenticated || (isLoading && hasSavedSignIn())
   return (
     <div className="app">
       <main className="page">

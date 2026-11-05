@@ -4,33 +4,60 @@ import { useEffect, useState } from 'react'
 import { api } from '../../convex/_generated/api'
 import { replay } from './outbox'
 
-const KEYS = { books: 'margin.cache.books', entries: 'margin.cache.entries' }
+// Versioned: an answer saved by an older build can lack fields this one reads, so a new shape gets a new key.
+const KEYS = {
+  books: 'margin.cache.books.2',
+  entries: 'margin.cache.entries.2',
+  activity: 'margin.cache.activity.2',
+  waiting: 'margin.cache.waiting.2',
+}
+try { for (const old of ['margin.cache.books', 'margin.cache.entries']) localStorage.removeItem(old) } catch { /* nothing to clear */ }
+
+// Parsed once per load: a 600-book library is worth not re-reading on every screen.
+const memory = new Map<string, unknown>()
 
 const remember = (key: string, value: unknown) => {
-  try { localStorage.setItem(key, JSON.stringify(value)) } catch { /* full or private: it just won't be there offline */ }
+  memory.set(key, value)
+  try { localStorage.setItem(key, JSON.stringify(value)) } catch { /* full or private: it just won't be there next time */ }
 }
 const recall = <T>(key: string): T | undefined => {
+  if (memory.has(key)) return memory.get(key) as T
   try {
     const saved = localStorage.getItem(key)
-    return saved ? JSON.parse(saved) as T : undefined
+    const value = saved ? JSON.parse(saved) as T : undefined
+    memory.set(key, value)
+    return value
   } catch {
     return undefined
   }
 }
 
-/** A query's answer, or the last one this device saw when there's no connection to ask. */
-function useLastKnown<T>(live: T | undefined, key: string): T | undefined {
+/**
+ * A query's answer, or until it arrives, the last one this device saw (Steve, 2026-11-06: show the last visit at
+ * once and let the live answer replace it). `fresh` waits for the live answer, for screens that write from it.
+ */
+export function useLastKnown<T>(live: T | undefined, key: string, fresh = false): T | undefined {
   useEffect(() => { if (live !== undefined) remember(key, live) }, [live, key])
-  const [saved] = useState(() => (live === undefined ? recall<T>(key) : undefined))
   const online = useOnline()
-  return live ?? (online ? undefined : saved)
+  if (live !== undefined) return live
+  return fresh && online ? undefined : recall<T>(key)
 }
 
-export const useBooks = () => useLastKnown(useQuery(api.library.myBooks), KEYS.books)
+export const useBooks = (fresh = false) => useLastKnown(useQuery(api.library.myBooks), KEYS.books, fresh)
 export const useEntries = () => useLastKnown(useQuery(api.library.allEntries), KEYS.entries)
+export const useActivity = (since: number) => useLastKnown(useQuery(api.library.activity, { since }), KEYS.activity)
+export const useWaiting = () => useLastKnown(useQuery(api.reflect.waiting), KEYS.waiting)
+
+/** Whether this device holds a sign-in, so the shell can open on the cache while Convex confirms it. */
+export const hasSavedSignIn = () => {
+  try { return Object.keys(localStorage).some(k => k.startsWith('__convexAuthJWT')) } catch { return false }
+}
 
 /** Nothing of the library stays on the device after signing out. */
-export const forgetDevice = () => { for (const key of Object.values(KEYS)) localStorage.removeItem(key) }
+export const forgetDevice = () => {
+  memory.clear()
+  for (const key of Object.values(KEYS)) localStorage.removeItem(key)
+}
 
 export function useOnline() {
   const [online, setOnline] = useState(() => navigator.onLine)

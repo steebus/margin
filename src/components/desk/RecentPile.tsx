@@ -7,7 +7,7 @@ import '@fontsource/special-elite/latin-400.css'
 import { Link } from '@tanstack/react-router'
 import { faceOf, spineOf, spineTitle } from '../../lib/pile'
 
-type Added = { slug: string; title: string; author: string; pages: number | null; subjects: string[] }
+type Added = { slug: string; title: string; author: string; pages: number | null; subjects: string[]; genres: string[] }
 
 /** The books put on the TBR in the window, stacked like the pile, at a smaller scale. */
 export function RecentPile({ books }: { books: Added[] }) {
@@ -27,7 +27,7 @@ export function RecentPile({ books }: { books: Added[] }) {
             >
               <span className="spine-etch" aria-hidden="true" />
               <span className="spine-label">
-                <span className="spine-title" data-face={faceOf(book.subjects)} style={{ WebkitLineClamp: 1, '--title': `${Math.min(spine.titleSize, 15)}px` } as React.CSSProperties}>{spineTitle(book.title)}</span>
+                <span className="spine-title" data-face={faceOf(book.genres)} style={{ WebkitLineClamp: 1, '--title': `${Math.min(spine.titleSize, 15)}px` } as React.CSSProperties}>{spineTitle(book.title)}</span>
                 <span className="spine-author">{book.author}</span>
               </span>
             </Link>

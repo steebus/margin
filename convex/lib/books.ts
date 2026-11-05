@@ -1,4 +1,5 @@
 import type { Doc } from '../_generated/dataModel'
+import { genresOf } from './genres'
 
 export type Reading = NonNullable<Doc<'reads'>['readings']>[number]
 
@@ -40,6 +41,7 @@ export function toBook(read: Doc<'reads'>, work: Doc<'works'>) {
     progressUnit: read.progressUnit ?? null,
     published: work.year ?? null,
     subjects: work.subjects,
+    genres: genresOf(work.tags, work.subjects),
     isbn: work.isbns[0] ?? null,
     readings: readingsOf(read),
     shelfIds: read.shelfIds,

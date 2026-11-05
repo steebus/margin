@@ -21,7 +21,7 @@ type Hit = FunctionReturnType<typeof api.books.search>[number]
  */
 export function PlayBooksImport() {
   const config = useQuery(api.google.clientConfig)
-  const books = useBooks()
+  const books = useBooks(true)
   const waiting = useQuery(api.review.waiting)
   const search = useAction(api.books.search)
   const addBooks = useMutation(api.books.addBooks)

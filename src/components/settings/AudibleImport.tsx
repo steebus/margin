@@ -20,7 +20,7 @@ const pause = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
  * and everything written goes to Hardcover as usual. Running it again changes nothing new.
  */
 export function AudibleImport() {
-  const books = useBooks()
+  const books = useBooks(true)
   const search = useAction(api.books.search)
   const addBooks = useMutation(api.books.addBooks)
   const setStatus = useMutation(api.library.setStatus)

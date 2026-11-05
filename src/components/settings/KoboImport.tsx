@@ -20,7 +20,7 @@ const pause = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
  * reader says so, and it all goes to Hardcover as usual.
  */
 export function KoboImport() {
-  const books = useBooks()
+  const books = useBooks(true)
   const search = useAction(api.books.search)
   const addBooks = useMutation(api.books.addBooks)
   const setStatus = useMutation(api.library.setStatus)
