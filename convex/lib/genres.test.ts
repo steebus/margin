@@ -19,6 +19,13 @@ describe('genres', () => {
   it('falls back to stored genre names', () => {
     expect(genresOf(undefined, ['Memoir'])).toEqual(['Biography & memoir'])
   })
+  it('reads bookshop paths by their most specific genre, and never makes them topics', () => {
+    expect(genresOf([{ name: 'Fiction / Fantasy / Epic', kind: 'genre' }])).toEqual(['Fantasy'])
+    expect(genresOf([{ name: 'Crime / Thriller', kind: 'genre' }])).toEqual(['Thriller'])
+    expect(isGenreName('Fiction / General')).toBe(true)
+    expect(isGenreName('Literature & Fiction')).toBe(true)
+    expect(genresOf([{ name: 'Literature & Fiction', kind: 'genre' }])).toEqual([])
+  })
   it('keeps genres out of topics', () => {
     expect(isGenreName('science-fiction')).toBe(true)
     const topics = buildTopics({

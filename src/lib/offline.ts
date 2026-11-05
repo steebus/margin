@@ -10,6 +10,7 @@ const KEYS = {
   entries: 'margin.cache.entries.2',
   activity: 'margin.cache.activity.2',
   waiting: 'margin.cache.waiting.2',
+  graph: 'margin.cache.graph.2',
 }
 try { for (const old of ['margin.cache.books', 'margin.cache.entries']) localStorage.removeItem(old) } catch { /* nothing to clear */ }
 
@@ -47,6 +48,7 @@ export const useBooks = (fresh = false) => useLastKnown(useQuery(api.library.myB
 export const useEntries = () => useLastKnown(useQuery(api.library.allEntries), KEYS.entries)
 export const useActivity = (since: number) => useLastKnown(useQuery(api.library.activity, { since }), KEYS.activity)
 export const useWaiting = () => useLastKnown(useQuery(api.reflect.waiting), KEYS.waiting)
+export const useGraph = () => useLastKnown(useQuery(api.topics.graph), KEYS.graph)
 
 /** Whether this device holds a sign-in, so the shell can open on the cache while Convex confirms it. */
 export const hasSavedSignIn = () => {

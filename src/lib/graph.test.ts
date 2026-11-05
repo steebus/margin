@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { localGraph, parseFocus, type Graph } from './graph'
+import { layered, localGraph, parseFocus, parseShow, type Graph } from './graph'
 
 const graph: Graph = {
   nodes: [
@@ -29,4 +29,23 @@ test('an unknown focus is an empty graph, and only well-formed addresses count',
   expect(parseFocus('topic:feminism')).toBe('topic:feminism')
   expect(parseFocus('feminism')).toBeUndefined()
   expect(parseFocus('topic:')).toBeUndefined()
+})
+
+test('show reads the kinds from the address, everything when none', () => {
+  expect([...parseShow('genre,topic')].sort()).toEqual(['genre', 'topic'])
+  expect(parseShow(undefined).size).toBe(3)
+  expect(parseShow('nonsense').size).toBe(3)
+  expect(parseFocus('genre:fantasy')).toBe('genre:fantasy')
+})
+
+test('with books hidden, what shares books is joined, as heavy as how many', () => {
+  const g: Graph = {
+    nodes: [...graph.nodes, { id: 'genre:x', kind: 'genre', label: 'X', slug: 'X', size: 2 }],
+    links: [...graph.links, { source: 'genre:x', target: 'book:a' }, { source: 'genre:x', target: 'book:b' }],
+  }
+  expect(layered(g, parseShow('book,topic')).links).toHaveLength(4)
+  const joined = layered(g, parseShow('genre,topic'))
+  // F and X share A and B; G and X share only B, too few to draw, so G is left out.
+  expect(ids(joined)).toEqual(['genre:x', 'topic:f'])
+  expect(joined.links).toEqual([{ source: 'genre:x', target: 'topic:f', weight: 2 }])
 })

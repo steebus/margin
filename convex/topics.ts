@@ -3,6 +3,8 @@ import { ConvexError, v } from 'convex/values'
 import type { Doc, Id } from './_generated/dataModel'
 import { mutation, query, type QueryCtx } from './_generated/server'
 import { positionOf } from './lib/books'
+import { genresOf } from './lib/genres'
+import { slugify } from './lib/hardcover'
 import { buildTopics, isReserved, RESERVED, topicKey, type Reason, type Topic } from './lib/topics'
 
 // Topic pages, the explore graph and hiding (docs/superpowers/specs/2026-11-04-topics-design.md).
@@ -16,6 +18,7 @@ type Book = {
   coverUrl: string | null
   art: { small: string; large: string } | null
   at: number | null
+  genres: string[]
 }
 
 /** Everything a topic is worked out from. Hidden topics are left out unless asked for. */
@@ -35,6 +38,7 @@ export async function libraryTopics(ctx: QueryCtx, userId: Id<'users'>, { withHi
       coverUrl: work.coverUrl ?? null,
       art: read.artChoice !== 'cover' && work.artSmallUrl && work.artLargeUrl ? { small: work.artSmallUrl, large: work.artLargeUrl } : null,
       at: read.finishedAt ?? read.startedAt ?? null,
+      genres: genresOf(work.tags, work.subjects),
     })
     works.push({ readId: read._id as string, slug: work.slug, title: work.title, authors: work.authors, status: read.status, tags: work.tags ?? [] })
   }
@@ -125,7 +129,7 @@ export const forBook = query({
   },
 })
 
-/** The whole library as dots: topics with two books or more, and their books. */
+/** The whole library as dots: topics with two books or more, Margin's genres, and the books under them. */
 export const graph = query({
   args: {},
   handler: async ctx => {
@@ -133,20 +137,28 @@ export const graph = query({
     if (!userId) return { nodes: [], links: [] }
     const { topics, books } = await libraryTopics(ctx, userId)
     const shown = topics.filter(t => t.books.length >= 2)
-    const nodes: { id: string; kind: 'topic' | 'book'; label: string; slug: string; size: number; status?: string }[] = []
+    const nodes: { id: string; kind: 'topic' | 'genre' | 'book'; label: string; slug: string; size: number; status?: string }[] = []
     const links: { source: string; target: string }[] = []
     const seen = new Set<string>()
+    const addBook = (book: Book) => {
+      const id = `book:${book.slug}`
+      if (!seen.has(id)) {
+        seen.add(id)
+        nodes.push({ id, kind: 'book', label: book.title, slug: book.slug, size: 1, status: book.status })
+      }
+      return id
+    }
     for (const t of shown) {
       nodes.push({ id: `topic:${t.slug}`, kind: 'topic', label: t.name, slug: t.slug, size: t.books.length })
-      for (const b of t.books) {
-        const book = books.get(b.readId)!
-        const id = `book:${book.slug}`
-        if (!seen.has(id)) {
-          seen.add(id)
-          nodes.push({ id, kind: 'book', label: book.title, slug: book.slug, size: 1, status: book.status })
-        }
-        links.push({ source: `topic:${t.slug}`, target: id })
-      }
+      for (const b of t.books) links.push({ source: `topic:${t.slug}`, target: addBook(books.get(b.readId)!) })
+    }
+    // A genre's slug is its name, which is what the shelves filter by.
+    const genres = new Map<string, Book[]>()
+    for (const book of books.values()) for (const genre of book.genres) genres.set(genre, [...genres.get(genre) ?? [], book])
+    for (const [genre, under] of genres) {
+      const id = `genre:${slugify(genre)}`
+      nodes.push({ id, kind: 'genre', label: genre, slug: genre, size: under.length })
+      for (const book of under) links.push({ source: id, target: addBook(book) })
     }
     return { nodes, links }
   },

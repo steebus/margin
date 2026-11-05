@@ -1100,3 +1100,7 @@ button.back { justify-self: start; padding: 0; border: 0; background: none; curs
 
 /* A refused note's words, held in the toast in the reader's hand so nothing typed is lost. */
 .toast-words { max-height: 30vh; overflow-y: auto; white-space: pre-wrap; color: var(--biro); user-select: text; }
+
+/* Explore's tools: which kinds to draw, and every topic as a list. */
+.explore-tools { display: flex; flex-wrap: wrap; gap: 10px; align-items: stretch; }
+.explore-show { flex: 1 1 280px; max-width: 420px; }

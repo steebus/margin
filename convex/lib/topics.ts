@@ -30,7 +30,7 @@ const NOT_SUBJECTS = new Set([
   'reflective', 'relaxing', 'sad', 'challenging', 'fiction', 'non fiction', 'general', 'novel', 'novels', 'literature',
   'adult', 'english', 'book', 'books', 'genre fiction', 'female author', 'male author', 'series', 'bookclub', 'book club',
   'library', 'wishlist', 'favorites', 'favourites', 'physical', 'paperback', 'hardcover', 'ebook', 'audiobook',
-  'audible', 'kindle', 'kobo', 'owned', 'dual format', 'united states', 'did not finish', 'dnf', 'abandoned',
+  'audible', 'kindle', 'kobo', 'audiobooks', 'ebooks', 'movie', 'reference', 'how to', 'authors', 'novella', 'owned', 'dual format', 'united states', 'did not finish', 'dnf', 'abandoned',
   'currently reading', 'want to read', 'tbr', 'unread',
 ])
 const NOT_SUBJECT_PATTERN = /import|owned|\bown\b|format|\bread\b|reading plan|^phase|^to |#|\d{4}|^audible|^kindle|^from /
