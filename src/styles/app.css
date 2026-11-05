@@ -1016,7 +1016,7 @@ button.back { justify-self: start; padding: 0; border: 0; background: none; curs
    outrank the base rules by selector rather than by order. */
 @media (min-width: 760px) {
   .page > .desk { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 16px 40px; align-items: start; }
-  .desk > .masthead { grid-column: 1 / -1; }
+  .desk > .masthead-block { grid-column: 1 / -1; }
   .desk .desk-book { grid-template-columns: 170px minmax(0, 1fr); gap: 24px; }
   /* The side column scrolls with the books while it has more to show, then locks rather than scrolling off. */
   .desk > .desk-side { position: sticky; top: 16px; max-height: calc(100dvh - 32px); overflow-y: auto; overscroll-behavior: contain; }
@@ -1089,3 +1089,11 @@ button.back { justify-self: start; padding: 0; border: 0; background: none; curs
 .drawer-sheet .sheet-body { position: relative; }
 .drawer-close { position: absolute; top: 14px; right: 14px; z-index: 1; }
 .drawer-sheet .title-head { font-size: clamp(2.5rem, 11vw, 3.5rem); }
+
+/* The Desk's dateline: printed under the masthead, as a catalog dates its issue. */
+.masthead-block { display: grid; gap: 2px; }
+.dateline { margin: 0; text-align: center; font-family: var(--head); text-transform: uppercase; letter-spacing: 0.06em; font-size: 1.0625rem; padding-right: 56px; }
+
+/* A stamp in the run of a line: "Kept" lands beside where the words went. */
+.saved-line { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+.stamp-inline { position: static; display: inline-block; }

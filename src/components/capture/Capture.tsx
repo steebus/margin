@@ -4,6 +4,7 @@ import { Plus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useBooks } from '../../lib/offline'
+import { motion } from 'motion/react'
 import { errorText, type Book } from '../../lib/books'
 import { sendOrKeep } from '../../lib/outbox'
 
@@ -138,7 +139,15 @@ function Form({ books }: { books: Book[] }) {
       <button type="submit" className="btn btn-solid" disabled={!words || saving}>{saving ? 'Saving…' : `Save ${current.label.toLowerCase()}`}</button>
 
       {saved && (
-        <p role="status">
+        <p role="status" className="saved-line">
+          <motion.span
+            key={saved.message + saved.slug}
+            className="stamp stamp-inline"
+            initial={{ scale: 1.8, rotate: -12, opacity: 0 }}
+            animate={{ scale: 1, rotate: -4, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 800, damping: 26 }}
+            aria-hidden="true"
+          >Kept</motion.span>
           {saved.message} <Link to="/books/$bookSlug" params={{ bookSlug: saved.slug }}>See it in the margin</Link>
         </p>
       )}

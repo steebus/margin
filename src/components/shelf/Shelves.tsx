@@ -13,6 +13,15 @@ import type { Book } from '../../lib/books'
 
 const PREVIEW = 12
 
+function NoMatch({ onClear }: { onClear: () => void }) {
+  return (
+    <div className="box stack">
+      <p>No books match that.</p>
+      <div className="btn-row"><button type="button" className="btn" onClick={onClear}>Clear the search and filters</button></div>
+    </div>
+  )
+}
+
 function List({ books, search, size, onChange }: { books: Book[]; search: ShelfSearch; size: Size; onChange: (patch: Partial<ShelfSearch>) => void }) {
   return search.view === 'table'
     ? <BookTable books={books} sort={search.sort ?? 'recent'} dir={search.dir} onSort={(sort, dir) => onChange({ sort, dir })} />
@@ -56,7 +65,7 @@ export function Shelves() {
           </div>
           <ShelfTools search={search} onChange={onChange} books={books} size={size} onSize={setSize} />
           <SaveView search={search} />
-          {shown.length === 0 && <p>No books match that.</p>}
+          {shown.length === 0 && <NoMatch onClear={() => onChange({ q: undefined, format: undefined, rating: undefined, genre: undefined })} />}
           {SHELVES.map(shelf => {
             const all = shown.filter(b => b.status === shelf.status)
             if (!all.length) return null
@@ -150,7 +159,7 @@ export function Shelf() {
           {saved
             ? <button type="button" className="text-link save-view" onClick={() => { void removeView({ id: list!.id }); void navigate({ to: '/shelves' }) }}>Delete this saved shelf</button>
             : status && <SaveView search={search} status={status.status} />}
-          {shown.length === 0 && <p>{here.length ? 'No books match that.' : 'Nothing on this shelf yet.'}</p>}
+          {shown.length === 0 && (here.length ? <NoMatch onClear={() => onChange({ q: undefined, format: undefined, rating: undefined, genre: undefined })} /> : <p>Nothing on this shelf yet.</p>)}
           {group === 'none'
             ? shown.length > 0 && <List books={shown} search={search} size={size} onChange={onChange} />
             : groupBooks(shown, group).map(g => (

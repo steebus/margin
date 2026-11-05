@@ -2,6 +2,7 @@ import { Link, useNavigate, useParams, useRouter } from '@tanstack/react-router'
 import { useMutation } from 'convex/react'
 import { useQuery } from 'convex-helpers/react/cache/hooks'
 import { ArrowLeft, Waypoints } from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
 import { Fragment, useEffect, useState, type ReactNode } from 'react'
 import { slugify } from '../../../convex/lib/hardcover'
 import { api } from '../../../convex/_generated/api'
@@ -149,7 +150,7 @@ export function BookPage() {
       <header className="book-head">
         <div className="book-cover"><Thumb book={book} /></div>
         <div className="book-state">
-          <p className="stamp stamp-status" data-status={book.status}>{STAMP[book.status]}</p>
+          <p key={book.status} className="stamp stamp-status" data-status={book.status}>{STAMP[book.status]}</p>
           {showProgress && (
             <>
               <p className="pct pct-large">{book.percent}%</p>
@@ -186,7 +187,20 @@ export function BookPage() {
         <div className="book-now stack">
           <QuickActions book={book} logging={logging} onLog={() => setLogging(!logging)} />
           {logging && book.status !== 'read' && <ProgressForm book={book} onSaved={label => { setLogging(false); setLogged(label) }} />}
-          {logged && <p role="status">Logged: {logged}</p>}
+          <AnimatePresence>
+            {logged && (
+              <motion.p
+                className="stamp stamp-float"
+                role="status"
+                initial={{ scale: 1.9, rotate: -14, opacity: 0 }}
+                animate={{ scale: 1, rotate: -5, opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ type: 'spring', stiffness: 800, damping: 26 }}
+              >
+                Logged: {logged}
+              </motion.p>
+            )}
+          </AnimatePresence>
           {prompt && <Reflection key={prompt.id} prompt={prompt} />}
           {!prompt && note && <BuddyNote key={note.id} note={note} slug={book.slug} />}
         </div>
@@ -196,7 +210,12 @@ export function BookPage() {
           <div className="book-controls card-controls">
             <div className="field">
               <label htmlFor="book-status">Status</label>
-              <select id="book-status" value={book.status} onChange={e => void setStatus({ readId: book.readId, status: e.target.value as Status })}>
+              <select id="book-status" value={book.status} onChange={e => {
+                const status = e.target.value as Status
+                // Finishing is the one change worth feeling: two thunks, as the Read stamp lands.
+                if (status === 'read') navigator.vibrate?.([15, 70, 30])
+                void setStatus({ readId: book.readId, status })
+              }}>
                 {(Object.keys(STATUS) as Status[]).map(s => <option key={s} value={s}>{STATUS[s]}</option>)}
               </select>
             </div>

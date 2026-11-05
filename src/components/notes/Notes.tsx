@@ -142,7 +142,14 @@ export function Notes() {
 
       {entries === undefined && <p role="status">Opening your notes…</p>}
       {entries?.length === 0 && <p>Nothing here yet. Your notes, excerpts and reflections will collect here.</p>}
-      {entries && entries.length > 0 && nothing && <p>Nothing matches that.</p>}
+      {entries && entries.length > 0 && nothing && (
+        <div className="box stack">
+          <p>Nothing matches that.</p>
+          <div className="btn-row">
+            <button type="button" className="btn" onClick={() => { setTyped(''); set({ kind: undefined, status: undefined, label: undefined, from: undefined, to: undefined }) }}>Clear the search and filters</button>
+          </div>
+        </div>
+      )}
 
       {flat && shown.length > 0 && (
         <ul className="notes-wall notes-cards">

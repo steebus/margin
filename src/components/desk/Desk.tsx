@@ -21,10 +21,13 @@ const write = (key: string, value: string) => {
   try { localStorage.setItem(key, value) } catch { /* private window: the toast just shows again */ }
 }
 
-function Masthead() {
+// The catalog's dateline: today, and what's in hand. Printed, not announced.
+function Masthead({ reading }: { reading?: number }) {
+  const [today] = useState(() => new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }))
   return (
-    <header className="masthead">
-      <h1>Margin</h1>
+    <header className="masthead-block">
+      <div className="masthead"><h1>Margin</h1></div>
+      <p className="dateline">{today}{reading ? ` · ${reading} in hand` : ''}</p>
     </header>
   )
 }
@@ -78,7 +81,7 @@ export function Desk() {
 
   return (
     <div className="desk">
-      <Masthead />
+      <Masthead reading={current.length} />
 
       <section className="desk-reading stack" aria-labelledby="reading-heading">
         <h2 id="reading-heading" className="head">Reading</h2>

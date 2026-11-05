@@ -9,7 +9,7 @@ import { ArrowLeft } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useBooks, useEntries } from '../../lib/offline'
 import { formatDate } from '../../lib/books'
-import { faceOf, pileNotes, pileOf, spineOf, spineTitle } from '../../lib/pile'
+import { faceOf, pileNotes, pileOf, spineOf, spineTitle, stackHeight } from '../../lib/pile'
 
 /**
  * Which row is crossing the middle of the screen. Only that book unfurls its notes, so they get room to be read and
@@ -55,7 +55,7 @@ export function Pile() {
       <Link to="/shelves" className="back"><ArrowLeft aria-hidden="true" strokeWidth={2.25} />Shelves</Link>
       <header className="shelves-head">
         <h1 className="title-head">The pile</h1>
-        {books && <p>{rows.length} {rows.length === 1 ? 'book' : 'books'}, {pages.toLocaleString('en-GB')} pages</p>}
+        {books && <p>{rows.length} {rows.length === 1 ? 'book' : 'books'}, {pages.toLocaleString('en-GB')} pages{rows.length > 0 && `, ${stackHeight(pages, rows.length)}`}</p>}
       </header>
 
       {books === undefined && <p role="status">Stacking your books…</p>}

@@ -74,3 +74,14 @@ export function faceOf(subjects: string[]) {
 
 /** A spine has no room for a subtitle. */
 export const spineTitle = (title: string) => title.split(/:\s/)[0]
+
+/**
+ * How tall the finished books would stand, stacked, in words. A leaf is two pages at about 0.1mm, and each book
+ * adds 4mm of boards. An estimate, so it says "about".
+ */
+export function stackHeight(pages: number, books: number) {
+  const mm = (pages / 2) * 0.1 + books * 4
+  if (mm < 1000) return `about ${Math.round(mm / 10)} cm tall`
+  const metres = (mm / 1000).toFixed(1).replace(/\.0$/, '')
+  return `about ${metres} ${metres === '1' ? 'metre' : 'metres'} tall`
+}

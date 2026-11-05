@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest'
 import type { Book } from './books'
-import { faceOf, LOOKS, pileNote, pileNotes, pileOf, spineOf, spineTitle } from './pile'
+import { faceOf, LOOKS, pileNote, pileNotes, pileOf, spineOf, spineTitle, stackHeight } from './pile'
 
 const book = (slug: string, readings: Book['readings'], status = 'read') => ({ slug, title: slug, status, readings }) as Book
 
@@ -63,4 +63,10 @@ test('all fifteen bindings turn up, and bigger books print bigger', () => {
   const seen = new Set(Array.from({ length: 800 }, (_, i) => spineOf(`a-book-${i}`, 300).look))
   expect(seen.size).toBe(15)
   expect(spineOf('a', 1000).titleSize).toBeGreaterThan(spineOf('a', 100).titleSize)
+})
+
+test('a stack says centimetres under a metre, metres above', () => {
+  expect(stackHeight(600, 2)).toBe('about 4 cm tall')
+  expect(stackHeight(100_000, 300)).toBe('about 6.2 metres tall')
+  expect(stackHeight(19_200, 20)).toBe('about 1 metre tall')
 })
