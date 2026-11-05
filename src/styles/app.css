@@ -1097,3 +1097,6 @@ button.back { justify-self: start; padding: 0; border: 0; background: none; curs
 /* A stamp in the run of a line: "Kept" lands beside where the words went. */
 .saved-line { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
 .stamp-inline { position: static; display: inline-block; }
+
+/* A refused note's words, held in the toast in the reader's hand so nothing typed is lost. */
+.toast-words { max-height: 30vh; overflow-y: auto; white-space: pre-wrap; color: var(--biro); user-select: text; }

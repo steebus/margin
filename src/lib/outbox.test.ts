@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { replay, sendOrKeep, type Queued, type Store } from './outbox'
+import { keepThenSend, replay, sendOrKeep, type Queued, type Store } from './outbox'
 
 const memory = (items: Queued[] = []): Store & { items: Queued[] } => ({
   items,
@@ -55,5 +55,20 @@ test('a lost connection keeps it, but a refusal is the reader\'s to hear about',
   const store = memory()
   expect(await sendOrKeep('addEntry', {}, async () => { throw new Error('network') }, { store, online: () => true })).toEqual({ kept: true })
   await expect(sendOrKeep('addEntry', {}, async () => { throw refusal }, { store, online: () => true })).rejects.toBe(refusal)
+  expect(store.items).toHaveLength(1)
+})
+
+test('a write that is not waited for is kept until it lands, and dropped when refused', async () => {
+  const store = memory()
+  let land!: () => void
+  const sending = keepThenSend('addEntry', { text: 'a' }, () => new Promise<void>(r => { land = r }), store)
+  await new Promise(r => setTimeout(r, 0))
+  expect(store.items).toHaveLength(1)
+  land()
+  await sending
+  expect(store.items).toEqual([])
+  await expect(keepThenSend('addEntry', {}, async () => { throw refusal }, store)).rejects.toBe(refusal)
+  expect(store.items).toEqual([])
+  await keepThenSend('addEntry', {}, async () => { throw new Error('network') }, store)
   expect(store.items).toHaveLength(1)
 })

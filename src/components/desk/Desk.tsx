@@ -58,13 +58,7 @@ export function Desk() {
     return () => clearTimeout(timer)
   }, [entries?.length])
 
-  // The toast sits over the Desk, so it clears itself and never holds up the buddy's question.
-  useEffect(() => {
-    if (!toast) return
-    const timer = setTimeout(() => setToast(false), 9000)
-    return () => clearTimeout(timer)
-  }, [toast])
-
+  // The toast stays until it's dismissed or opened (Steve, 2026-11-06).
   if (books === undefined) return <div className="desk"><Masthead /><p role="status">Opening your desk…</p></div>
 
   if (books.length === 0) {

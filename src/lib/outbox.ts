@@ -79,3 +79,21 @@ export async function sendOrKeep<T>(
     clearTimeout(timer)
   }
 }
+
+/**
+ * Keeps a write on the device first, then sends it, for screens that don't wait (lib/quiet.ts). Closing the app
+ * mid-send leaves it kept, and the next open replays it, which entries' and progress's replay rules make safe.
+ * Landed or refused, it's taken off the device; a refusal is thrown for the reader to hear about.
+ */
+export async function keepThenSend(name: Queued['name'], args: Record<string, unknown>, send: () => Promise<unknown>, store: Store = deviceStore) {
+  const id = `${Date.now().toString().padStart(15, '0')}-${Math.random().toString(36).slice(2)}`
+  await store.put({ id, name, args }).catch(() => { /* no IndexedDB: it simply isn't kept */ })
+  try {
+    await send()
+  } catch (e) {
+    if (!refused(e)) return // kept, so it goes on the next replay
+    await store.remove(id).catch(() => {})
+    throw e
+  }
+  await store.remove(id).catch(() => {})
+}

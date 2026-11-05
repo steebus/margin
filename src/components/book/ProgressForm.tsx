@@ -1,15 +1,21 @@
 import { useMutation } from 'convex/react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
-import { errorText, type Book } from '../../lib/books'
-import { sendOrKeep } from '../../lib/outbox'
+import type { Book } from '../../lib/books'
+import { movedTo, sendQuietly } from '../../lib/quiet'
 import { formatClock, toClock, unitFor, unitsFor, type Unit } from '../../lib/progress'
 
 const LABEL: Record<Unit, string> = { page: 'Page', time: 'Time', percent: '%' }
 
 /** Logs a place in the book, by page, time or percent. The choice is remembered per book. */
 export function ProgressForm({ book, onSaved }: { book: Book; onSaved?: (label: string) => void }) {
-  const logProgress = useMutation(api.library.logProgress)
+  // The Desk and the book page show the new place at once; the server's answer replaces it.
+  const logProgress = useMutation(api.library.logProgress).withOptimisticUpdate((store, args) => {
+    const books = store.getQuery(api.library.myBooks, {})
+    if (books) store.setQuery(api.library.myBooks, {}, books.map(b => (b.readId === args.readId ? movedTo(b, args) : b)))
+    const found = store.getQuery(api.library.bookBySlug, { slug: book.slug })
+    if (found) store.setQuery(api.library.bookBySlug, { slug: book.slug }, { ...found, book: movedTo(found.book, args) })
+  })
   const setProgressUnit = useMutation(api.library.setProgressUnit)
   const units = unitsFor(book)
   const [unit, setUnit] = useState(unitFor(book))
@@ -19,8 +25,6 @@ export function ProgressForm({ book, onSaved }: { book: Book; onSaved?: (label: 
   const [hours, setHours] = useState('')
   const [minutes, setMinutes] = useState('')
   const [percent, setPercent] = useState('')
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   // Typing only minutes keeps the hour the reader was in; typing only hours means on the hour.
   const seconds = Number(hours || clock.hours) * 3600 + Number(minutes || 0) * 60
@@ -35,23 +39,17 @@ export function ProgressForm({ book, onSaved }: { book: Book; onSaved?: (label: 
     void setProgressUnit({ readId: book.readId, unit: next })
   }
 
-  const save = async () => {
-    setSaving(true)
-    setError(null)
-    try {
-      const args = { readId: book.readId, ...at }
-      const sent = await sendOrKeep('logProgress', args, () => logProgress(args))
-      navigator.vibrate?.(15)
-      onSaved?.(sent.kept ? 'Kept for when you\'re online' : atEnd ? 'Finished' : unit === 'page' ? `Page ${page}` : unit === 'time' ? formatClock(seconds) : `${percent}%`)
-    } catch (e) {
-      setError(errorText(e, "That didn't save. Check your connection and try again."))
-    } finally {
-      setSaving(false)
-    }
+  // Done the moment it's tapped (Steve, 2026-11-06). The write goes quietly; only a refusal speaks up.
+  const save = () => {
+    const args = { readId: book.readId, ...at }
+    const where = unit === 'page' ? `page ${page}` : unit === 'time' ? formatClock(seconds) : `${percent}%`
+    sendQuietly('logProgress', args, () => logProgress(args), { message: `${book.title} wasn't moved to ${where}.` })
+    navigator.vibrate?.(15)
+    onSaved?.(!navigator.onLine ? 'Kept for when you\'re online' : atEnd ? 'Finished' : unit === 'page' ? `Page ${page}` : where)
   }
 
   return (
-    <form className="log box" onSubmit={e => { e.preventDefault(); if (valid) void save() }}>
+    <form className="log box" onSubmit={e => { e.preventDefault(); if (valid) save() }}>
       <p className="log-title">{book.title}</p>
 
       {units.length > 1 && (
@@ -91,8 +89,7 @@ export function ProgressForm({ book, onSaved }: { book: Book; onSaved?: (label: 
 
       {units.length === 1 && <p className="where">Hardcover has no length for this book, so it's logged by percent.</p>}
 
-      <button type="submit" className="btn btn-solid" disabled={saving || !valid}>{saving ? 'Saving…' : atEnd ? 'Save and mark finished' : 'Save progress'}</button>
-      {error && <p role="alert">{error}</p>}
+      <button type="submit" className="btn btn-solid" disabled={!valid}>{atEnd ? 'Save and mark finished' : 'Save progress'}</button>
     </form>
   )
 }

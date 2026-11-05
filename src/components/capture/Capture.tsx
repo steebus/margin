@@ -1,12 +1,12 @@
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { useMutation, useQuery } from 'convex/react'
 import { Plus } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useBooks } from '../../lib/offline'
 import { motion } from 'motion/react'
-import { errorText, type Book } from '../../lib/books'
-import { sendOrKeep } from '../../lib/outbox'
+import type { Book } from '../../lib/books'
+import { sendQuietly } from '../../lib/quiet'
 
 const KINDS = [
   { id: 'excerpt', label: 'Excerpt', prompt: 'The line, as the book has it' },
@@ -29,9 +29,7 @@ function Form({ books }: { books: Book[] }) {
   const [text, setText] = useState(shared ?? '')
   const [note, setNote] = useState('')
   const [place, setPlace] = useState(sharedPage ? String(sharedPage) : '')
-  const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState<{ slug: string; message: string } | null>(null)
-  const [error, setError] = useState<string | null>(null)
 
   const audio = chosen.format === 'audio'
   const words = text.trim()
@@ -39,45 +37,31 @@ function Form({ books }: { books: Book[] }) {
   const current = KINDS.find(k => k.id === kind)!
   const withNote = kind === 'excerpt' && note.trim() !== ''
 
-  useEffect(() => {
-    if (!popup || !saved) return
-    const timer = setTimeout(() => window.close(), 1800)
-    return () => clearTimeout(timer)
-  }, [popup, saved])
-
-  const save = async () => {
-    setSaving(true)
-    setError(null)
-    setSaved(null)
-    try {
-      const args = {
-        readId: chosen.readId,
-        kind,
-        text: words,
-        ...(withNote ? { note: note.trim() } : {}),
-        ...(shared ? { origin: 'share' as const } : {}),
-        ...(number === undefined ? {} : audio ? { percent: number } : { page: number }),
-      }
-      const sent = await sendOrKeep('addEntry', args, () => addEntry(args))
-      setSaved({
-        slug: chosen.slug,
-        message: sent.kept
-          ? `Kept on this device. It goes to ${chosen.title} when you're back online.`
-          : sent.result.duplicate ? `Already saved to ${chosen.title}.` : `Saved to ${chosen.title}.`,
-      })
-      setText('')
-      setNote('')
-      setPlace('')
-      navigator.vibrate?.(15)
-    } catch (e) {
-      setError(errorText(e, "That didn't save. Your words are still here: check your connection and try again."))
-    } finally {
-      setSaving(false)
+  const save = () => {
+    const args = {
+      readId: chosen.readId,
+      kind,
+      text: words,
+      ...(withNote ? { note: note.trim() } : {}),
+      ...(shared ? { origin: 'share' as const } : {}),
+      ...(number === undefined ? {} : audio ? { percent: number } : { page: number }),
     }
+    // Done the moment it's tapped (Steve, 2026-11-06). If the server refuses it, a toast brings the words back.
+    // A popup closes once the words are safe (landed, or kept on the device after a while), never on a refusal.
+    const sent = sendQuietly('addEntry', args, () => addEntry(args), { message: `That ${current.label.toLowerCase()} didn't save to ${chosen.title}.`, words: [words, withNote ? note.trim() : ''].filter(Boolean).join('\n\n') })
+    if (popup) void Promise.race([sent, new Promise<boolean>(r => setTimeout(() => r(true), 8000))]).then(ok => { if (ok) setTimeout(() => window.close(), 1200) })
+    setSaved({
+      slug: chosen.slug,
+      message: navigator.onLine ? `Saved to ${chosen.title}.` : `Kept on this device. It goes to ${chosen.title} when you're back online.`,
+    })
+    setText('')
+    setNote('')
+    setPlace('')
+    navigator.vibrate?.(15)
   }
 
   return (
-    <form className="stack" onSubmit={e => { e.preventDefault(); if (words) void save() }}>
+    <form className="stack" onSubmit={e => { e.preventDefault(); if (words) save() }}>
       <div className="segments" role="group" aria-label="What is it?">
         {KINDS.map(k => (
           <button
@@ -136,7 +120,7 @@ function Form({ books }: { books: Book[] }) {
         />
       </div>
 
-      <button type="submit" className="btn btn-solid" disabled={!words || saving}>{saving ? 'Saving…' : `Save ${current.label.toLowerCase()}`}</button>
+      <button type="submit" className="btn btn-solid" disabled={!words}>{`Save ${current.label.toLowerCase()}`}</button>
 
       {saved && (
         <p role="status" className="saved-line">
@@ -151,7 +135,6 @@ function Form({ books }: { books: Book[] }) {
           {saved.message} <Link to="/books/$bookSlug" params={{ bookSlug: saved.slug }}>See it in the margin</Link>
         </p>
       )}
-      {error && <p role="alert">{error}</p>}
     </form>
   )
 }

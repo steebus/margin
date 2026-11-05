@@ -267,7 +267,7 @@ The buddy's note types one character at a time from the top line down, with unev
 The book's page is its catalog entry. The cover runs large (52% on a phone, 260px wide) with an ink rule, the status is a double-ruled stamp set -5deg (Read inverts to solid ink; Abandoned is struck through) that lands with a 380ms ease-out scale, and the magenta divider closes the head. The library card is a solid ink band over ruled cells sharing their rules: gothic labels at 1rem, serif figures at 1.5rem, and dates as small double-ruled stamps a few degrees off true.
 
 ### Stamps and Physical Moments
-Logging progress stamps a rotated, double-ruled label over the reading cells, with a 15ms vibration where supported. The drawer's card rises and flicks away on Shuffle. The toast rises about once a week and clears itself after 9 seconds. These run on Motion springs that are lightly underdamped, so they settle with a small natural overshoot. Library card dates sit a few degrees off true, and a reader's turn tilts -0.8deg.
+Logging progress stamps a rotated, double-ruled label over the reading cells, with a 15ms vibration where supported. The drawer's card rises and flicks away on Shuffle. The toast rises about once a week and stays until dismissed. A write that the server refuses raises the same toast, holding the reader's words. These run on Motion springs that are lightly underdamped, so they settle with a small natural overshoot. Library card dates sit a few degrees off true, and a reader's turn tilts -0.8deg.
 
 ## Do's and Don'ts
 
