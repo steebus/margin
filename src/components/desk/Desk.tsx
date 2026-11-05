@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router'
 import { useQuery } from 'convex-helpers/react/cache/hooks'
 import { AnimatePresence, motion } from 'motion/react'
+import { Plus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useBooks, useEntries } from '../../lib/offline'
@@ -116,13 +117,11 @@ export function Desk() {
           <div><dt>Books finished</dt><dd>{activity?.finished ?? '…'}</dd></div>
           <div><dt>Notes written</dt><dd>{activity?.notes ?? '…'}</dd></div>
         </dl>
-        {activity?.notes ? <Link to="/notes" search={{ sort: 'written' }} className="btn">Read them</Link> : null}
-        {activity && activity.added.length > 0 && (
-          <section className="stack" aria-labelledby="tbr-heading">
-            <h2 id="tbr-heading" className="head">Newly on the TBR</h2>
-            <RecentPile books={activity.added} />
-          </section>
-        )}
+        <section className="stack" aria-labelledby="tbr-heading">
+          <h2 id="tbr-heading" className="head">Newly on the TBR</h2>
+          {activity && activity.added.length > 0 && <RecentPile books={activity.added} />}
+          <div className="btn-row"><Link to="/capture/add" className="btn"><Plus aria-hidden="true" strokeWidth={2.25} />Add a book</Link></div>
+        </section>
         {activity && !activity.notes && !activity.added.length && !latest && (
           <Typewriter text="Nothing here yet. Your notes, and your buddy's questions, will land on this sheet." />
         )}

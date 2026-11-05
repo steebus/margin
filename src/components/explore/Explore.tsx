@@ -10,7 +10,10 @@ type Dot = GraphNode & SimulationNodeDatum & { r: number }
 type Line = SimulationLinkDatum<Dot>
 type View = { x: number; y: number; k: number }
 
-const radius = (n: GraphNode) => (n.kind === 'topic' ? 7 + Math.min(16, Math.sqrt(n.size) * 3) : 4)
+/** Topics grow with how many books sit under them: the biggest is about four times the width of a book's dot. */
+const radius = (n: GraphNode, biggest: number) => (n.kind === 'topic' ? 7 + 17 * Math.sqrt(n.size / Math.max(1, biggest)) : 4)
+const STATUS_FILL: Record<string, string> = { tbr: '--paper', reading: '--biro', read: '--grey', paused: '--soft', dnf: '--rule' }
+type Colour = 'plain' | 'status'
 const token = (name: string) => getComputedStyle(document.documentElement).getPropertyValue(name).trim()
 
 /**
@@ -24,6 +27,12 @@ export function Explore() {
   const whole = useQuery(api.topics.graph)
   const graph: Graph | undefined = useMemo(() => (whole && focus ? localGraph(whole, focus, depth) : whole), [whole, focus, depth])
   const [picked, setPicked] = useState<GraphNode | null>(null)
+  const [colour, setColour] = useState<Colour>('plain')
+  const colourRef = useRef<Colour>('plain')
+  const redrawRef = useRef<() => void>(() => {})
+  const openRef = useRef<(n: GraphNode) => void>(() => {})
+  openRef.current = n => void navigate(n.kind === 'topic' ? { to: '/topics/$topicSlug', params: { topicSlug: n.slug } } : { to: '/books/$bookSlug', params: { bookSlug: n.slug } })
+  useEffect(() => { colourRef.current = colour; redrawRef.current() }, [colour])
   const canvas = useRef<HTMLCanvasElement>(null)
   const zoomBy = useRef<(factor: number) => void>(() => {})
 
@@ -33,7 +42,8 @@ export function Explore() {
     const el = canvas.current
     if (!el || !graph?.nodes.length) return
     const ctx = el.getContext('2d')!
-    const dots: Dot[] = graph.nodes.map(n => ({ ...n, r: radius(n) }))
+    const biggest = Math.max(1, ...graph.nodes.filter(n => n.kind === 'topic').map(n => n.size))
+    const dots: Dot[] = graph.nodes.map(n => ({ ...n, r: radius(n, biggest) }))
     const byId = new Map(dots.map(d => [d.id, d]))
     const lines: Line[] = graph.links.map(l => ({ source: byId.get(l.source)!, target: byId.get(l.target)! }))
     // Names are offered biggest topic first, then books: the order they appear in as you zoom.
@@ -85,13 +95,13 @@ export function Explore() {
         if (d.kind !== kind) continue
         ctx.beginPath()
         ctx.arc(d.x!, d.y!, d.r, 0, Math.PI * 2)
-        ctx.fillStyle = kind === 'topic' ? ink : d.status === 'tbr' ? paper : grey
+        ctx.fillStyle = kind === 'topic' ? ink : colourRef.current === 'status' ? token(STATUS_FILL[d.status ?? ''] ?? '--grey') : d.status === 'tbr' ? paper : grey
         ctx.fill()
         ctx.lineWidth = 1.5 / view.k
         ctx.strokeStyle = ink
         ctx.stroke()
         // The shelves' biro circle: being read.
-        if (d.status === 'reading') {
+        if (d.status === 'reading' && colourRef.current === 'plain') {
           ctx.beginPath()
           ctx.ellipse(d.x!, d.y!, d.r + 4, d.r + 3, -0.3, 0.2, Math.PI * 2.05)
           ctx.lineWidth = 2.25 / view.k
@@ -137,6 +147,7 @@ export function Explore() {
       }
     }
     const redraw = () => { if (!frame) frame = requestAnimationFrame(draw) }
+    redrawRef.current = redraw
 
     const sim = forceSimulation(dots)
       .force('link', forceLink(lines).distance(local ? 80 : 46).strength(0.4))
@@ -197,6 +208,7 @@ export function Explore() {
 
     const pointers = new Map<number, { x: number; y: number }>()
     let moved = 0
+    let lastTap: { id: string; at: number } | null = null
     let pinch = 0
     const down = (e: PointerEvent) => {
       el.setPointerCapture(e.pointerId)
@@ -228,6 +240,12 @@ export function Explore() {
     const up = (e: PointerEvent) => {
       if (pointers.size === 1 && moved < 8) {
         selected = hit(e.clientX, e.clientY)
+        // Twice in quick succession on the same dot opens it.
+        const now = performance.now()
+        if (selected && lastTap?.id === selected.id && now - lastTap.at < 450) {
+          openRef.current(selected)
+          lastTap = null
+        } else lastTap = selected ? { id: selected.id, at: now } : null
         setPicked(selected ? { id: selected.id, kind: selected.kind, label: selected.label, slug: selected.slug, size: selected.size } : null)
         redraw()
       }
@@ -277,7 +295,7 @@ export function Explore() {
             ? <><Link to="/explore">Whole library</Link> · <Link to="/topics">Topics</Link></>
             : <>Topics and the books under them. <Link to="/topics">All topics</Link></>}
         </p>
-        <p className="where explore-hint">Drag to move, pinch or scroll to zoom, tap a dot to see it.</p>
+        <p className="where explore-hint">Drag to move, pinch or scroll to zoom, tap a dot to see it, tap twice to open.</p>
       </div>
       {focused && (
         <div className="segments explore-depth" role="group" aria-label="How far out">
@@ -285,6 +303,12 @@ export function Explore() {
         </div>
       )}
 
+      <div className="segments explore-depth" role="group" aria-label="Colour books by">
+        <button type="button" aria-pressed={colour === 'plain'} onClick={() => setColour('plain')}>Plain</button>
+        <button type="button" aria-pressed={colour === 'status'} onClick={() => setColour('status')}>By status</button>
+      </div>
+
+      <div className="explore-body">
       <div className="explore-stage">
         {whole === undefined && <p role="status" className="explore-note">Laying out the library…</p>}
         {whole && !graph?.nodes.length && (
@@ -310,6 +334,7 @@ export function Explore() {
           </div>
         </div>
       )}
+      </div>
     </div>
   )
 }

@@ -329,6 +329,8 @@ p a { color: inherit; text-underline-offset: 3px; }
 .mini-pile::after { content: ''; display: block; height: 10px; margin-top: 2px; border-radius: 2px; background: var(--ink); }
 .mini-pile > li { display: flex; min-width: 0; }
 .mini-pile .spine { padding-inline: 22px; }
+.mini-pile .spine-label { flex-wrap: nowrap; }
+.mini-pile .spine:hover { translate: none; }
 
 .toast {
   position: fixed;
@@ -530,9 +532,9 @@ td a { display: inline-flex; align-items: center; min-height: 44px; color: inher
 /* The library card: a solid ink band over ruled cells that share their rules, labels in gothic, figures in serif. */
 .card { border: var(--line) solid var(--ink); border-radius: 3px; overflow: hidden; }
 .card-band { padding: 10px 14px 8px; background: var(--ink); color: var(--paper); font: 400 2rem/1 var(--head); letter-spacing: 0.03em; text-transform: uppercase; }
-.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); margin: 0 calc(var(--line) * -1) calc(var(--line) * -1) 0; }
-.card-cell { display: grid; align-content: start; gap: 6px; min-width: 0; padding: 10px 14px 12px; border-right: var(--line) solid var(--ink); border-bottom: var(--line) solid var(--ink); }
-.card-cell[data-wide] { grid-column: 1 / -1; }
+.card-grid { display: flex; flex-wrap: wrap; margin: 0 calc(var(--line) * -1) calc(var(--line) * -1) 0; }
+.card-cell { flex: 1 1 140px; display: grid; align-content: start; gap: 6px; min-width: 0; padding: 10px 14px 12px; border-right: var(--line) solid var(--ink); border-bottom: var(--line) solid var(--ink); }
+.card-cell[data-wide] { flex-basis: 100%; }
 .card-cell dt { font: 400 1rem/1 var(--head); letter-spacing: 0.04em; text-transform: uppercase; }
 .card-cell dd { margin: 0; font: 600 1.5rem/1.15 var(--book); font-variant-numeric: lining-nums; overflow-wrap: anywhere; }
 .card-cell[data-wide] dd { font-size: 1.125rem; font-weight: 400; }
@@ -570,7 +572,11 @@ td a { display: inline-flex; align-items: center; min-height: 44px; color: inher
 .thread { display: grid; gap: 18px; }
 .turn-buddy { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
 .turn-buddy .tw { white-space: pre-wrap; }
-.turn-mine { padding-left: 14px; border-left: 2px solid var(--biro); }
+.turn-mine { padding-left: 14px; border-left: 2px solid var(--biro); white-space: pre-wrap; }
+.turn-mine-wrap { display: grid; gap: 2px; justify-items: start; }
+.link-quiet { padding: 8px 0 8px 14px; border: 0; background: none; color: inherit; font: 400 1rem/1 var(--head); letter-spacing: 0.04em; text-transform: uppercase; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.link-quiet:disabled { text-decoration: none; opacity: 0.6; cursor: default; }
+.guide-sofar { white-space: pre-wrap; padding: 12px 14px; border: var(--line) solid var(--ink); border-radius: 3px; font: 400 1rem/1.5 var(--buddy); }
 .turn-reader { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 8px; padding-left: 4px; rotate: -0.8deg; }
 .citation {
   display: grid;
@@ -583,8 +589,9 @@ td a { display: inline-flex; align-items: center; min-height: 44px; color: inher
 }
 .citation .hand { font-size: 1.125rem; }
 
-.reply { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
-.reply input {
+.reply { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.reply .btn { justify-self: end; }
+.reply input, .reply textarea {
   min-width: 0;
   min-height: 48px;
   padding: 8px 12px;
@@ -594,7 +601,8 @@ td a { display: inline-flex; align-items: center; min-height: 44px; color: inher
   color: var(--biro);
   font: 400 1.25rem/1.2 var(--reader);
 }
-.reply input::placeholder { color: var(--ink); opacity: 0.7; font: 400 1.0625rem/1.2 var(--buddy); }
+.reply textarea { min-height: 9rem; resize: vertical; }
+.reply input::placeholder, .reply textarea::placeholder { color: var(--ink); opacity: 0.7; font: 400 1.0625rem/1.2 var(--buddy); }
 
 .text-link {
   justify-self: center;
@@ -1072,6 +1080,11 @@ button.back { justify-self: start; padding: 0; border: 0; background: none; curs
 .explore-zoom { position: absolute; right: 10px; bottom: 10px; display: grid; gap: 8px; }
 .explore-zoom .theme-toggle { background: var(--paper); }
 .explore-picked { position: relative; padding-right: 52px; }
+.explore-body { display: grid; gap: 16px; }
+.explore-picked { align-self: start; }
+@media (min-width: 760px) {
+  .explore-body:has(.explore-picked) { grid-template-columns: minmax(0, 1fr) 240px; align-items: start; }
+}
 .explore-close { position: absolute; top: 6px; right: 6px; display: grid; place-items: center; width: 44px; height: 44px; border: 0; background: none; color: inherit; cursor: pointer; }
 .drawer-sheet .sheet-body { position: relative; }
 .drawer-close { position: absolute; top: 14px; right: 14px; z-index: 1; }

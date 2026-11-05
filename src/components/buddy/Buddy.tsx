@@ -26,6 +26,17 @@ function Thread({ readId, title }: { readId: Id<'reads'>; title: string }) {
   const latest = turns.at(-1)?.text.length
   const lastBuddy = turns.findLast(t => t.role === 'buddy' && t.state === 'done')?.id
   const correct = useMutation(api.buddy.correct)
+  const saveExchange = useMutation(api.buddy.saveExchange)
+  const [saved, setSaved] = useState<Set<string>>(new Set())
+  const keep = async (turnId: Id<'buddyTurns'>) => {
+    setError(null)
+    try {
+      await saveExchange({ turnId })
+      setSaved(prev => new Set(prev).add(turnId))
+    } catch (e) {
+      setError(errorText(e, "That didn't save. Check your connection and try again."))
+    }
+  }
   const fix = async (turnId: Id<'buddyTurns'>, kind: 'notYet' | 'edition') => {
     setError(null)
     try {
@@ -96,7 +107,12 @@ function Thread({ readId, title }: { readId: Id<'reads'>; title: string }) {
       <div className="thread" aria-live="polite">
         {turns.map(turn => (
           turn.role === 'reader'
-            ? <p key={turn.id} className="hand turn-mine">{turn.text}</p>
+            ? (
+              <div key={turn.id} className="turn-mine-wrap">
+                <p className="hand turn-mine">{turn.text}</p>
+                <button type="button" className="link-quiet" disabled={saved.has(turn.id)} onClick={() => void keep(turn.id)}>{saved.has(turn.id) ? 'Saved as a note' : 'Save as a note'}</button>
+              </div>
+            )
             : (
               <div key={turn.id} className="turn-buddy">
                 {turn.state === 'failed'
@@ -119,7 +135,7 @@ function Thread({ readId, title }: { readId: Id<'reads'>; title: string }) {
         : (
           <form className="reply" onSubmit={e => { e.preventDefault(); void send() }}>
             <label className="sr-only" htmlFor="buddy-reply">Your answer</label>
-            <input id="buddy-reply" value={text} placeholder="What you think" autoComplete="off" onChange={e => setText(e.target.value)} />
+            <textarea id="buddy-reply" className="hand" rows={6} value={text} placeholder="What you think" onChange={e => setText(e.target.value)} />
             <button type="submit" className="btn btn-solid" disabled={!text.trim() || writing}>Send</button>
           </form>
         )}

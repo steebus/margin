@@ -1,4 +1,5 @@
 import { useMutation } from 'convex/react'
+import { useQuery } from 'convex-helpers/react/cache/hooks'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
@@ -23,6 +24,8 @@ export function GuideControls({ readId, guide }: { readId: Id<'reads'>; guide: G
   }
 
   const ready = guide?.state === 'ready'
+  const [open, setOpen] = useState(false)
+  const sofar = useQuery(api.buddy.guideSoFar, ready && open ? { readId } : 'skip')
   return (
     <div className="stack">
       <p className="where">
@@ -37,6 +40,10 @@ export function GuideControls({ readId, guide }: { readId: Id<'reads'>; guide: G
           {(!guide || ready) && <button type="button" className="btn" onClick={() => void ask('deep')}>{ready ? `Go deeper: ${GUIDE_LABEL.deep}` : GUIDE_LABEL.deep}</button>}
         </div>
       )}
+      {ready && (
+        <div className="btn-row"><button type="button" className="btn" aria-pressed={open} onClick={() => setOpen(o => !o)}>{open ? 'Hide the guide' : 'Read the guide so far'}</button></div>
+      )}
+      {ready && open && sofar && <div className="guide-sofar">{sofar}</div>}
       {error && <p role="alert">{error}</p>}
     </div>
   )

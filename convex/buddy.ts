@@ -9,6 +9,8 @@ import { topicKey } from './lib/topics'
 import { libraryTopics } from './topics'
 import { guideCost, guideText, guideUpTo, type Guide } from './lib/guide'
 import { depthOf, guideFor, stillWriting } from './guides'
+import { entryKey } from './lib/entryKey'
+import { enqueueEntry } from './lib/outbox'
 
 const MAX_LENGTH = 10_000
 
@@ -69,6 +71,47 @@ export const say = mutation({
     if (busy(await turnsOf(ctx, readId))) throw new ConvexError('Your buddy is still answering')
     await ctx.db.insert('buddyTurns', { userId, readId, role: 'reader', text: words, state: 'done', createdAt: Date.now() })
     await ask(ctx, userId, readId)
+  },
+})
+
+/**
+ * Keeps one question and the reader's answer to it as a note on the book, at the place that set the buddy asking:
+ * its milestone when it came from one, else where the reader is now. Saved only when the reader chooses to.
+ */
+export const saveExchange = mutation({
+  args: { turnId: v.id('buddyTurns') },
+  handler: async (ctx, { turnId }) => {
+    const answer = await ctx.db.get(turnId)
+    if (!answer || answer.role !== 'reader' || answer.state !== 'done') throw new ConvexError('There is nothing there to save')
+    const { userId, read } = await mine(ctx, answer.readId)
+    const turns = await turnsOf(ctx, read._id)
+    const at = turns.findIndex(t => t._id === turnId)
+    const question = turns.slice(0, at).findLast(t => t.role === 'buddy' && t.state === 'done')
+    if (!question) throw new ConvexError('There is no question to save with that')
+    const milestone = (await ctx.db.query('buddyQueue').withIndex('by_read', q => q.eq('readId', read._id)).collect()).find(n => n.text === question.text)
+    const here = read.progress.percent > 0 && read.progress.percent < 100 ? read.progress.percent : undefined
+    const percent = milestone?.percent ?? here
+    const pos = percent === undefined ? {} : { percent }
+    const originKey = entryKey(read.workId, 'note', `${question.text}\n${answer.text}`, pos)
+    const same = await ctx.db.query('entries').withIndex('by_user_origin_key', q => q.eq('userId', userId).eq('originKey', originKey)).first()
+    if (same) return { id: same._id, duplicate: true }
+    const id = await ctx.db.insert('entries', { userId, readId: read._id, kind: 'note', text: answer.text, question: question.text, pos, origin: 'manual', originKey, createdAt: Date.now() })
+    await enqueueEntry(ctx, userId, id, read._id)
+    return { id, duplicate: false }
+  },
+})
+
+/** The book's guide for its reader: cut at their place, as the buddy sees it, and nothing beyond. */
+export const guideSoFar = query({
+  args: { readId: v.id('reads') },
+  handler: async (ctx, { readId }) => {
+    const userId = await getAuthUserId(ctx)
+    const read = await ctx.db.get(readId)
+    if (!userId || read?.userId !== userId) return null
+    const guide = await guideFor(ctx, read.workId)
+    if (guide?.state !== 'ready') return null
+    const visibility = visibleTo(read)
+    return guideText(guideUpTo(guide.guide as Guide, { ...visibility, percent: Math.max(0, visibility.percent - (read.guideLag ?? 0)) }), visibility.finished)
   },
 })
 
