@@ -125,6 +125,18 @@ export default defineSchema({
     artChoice: v.optional(v.union(v.literal('drawing'), v.literal('cover'))),
     // How many percent the guide runs ahead of this reader's edition, from their "hasn't happened yet" (SPEC 3.3).
     guideLag: v.optional(v.number()),
+    // The reader's corrections to the book (Steve, 2026-11-06). Margin's own: they never go to Hardcover, and the
+    // hourly sync writes the work, not these, so they stay put. A missing field means "as Hardcover has it".
+    edits: v.optional(v.object({
+      title: v.optional(v.string()),
+      authors: v.optional(v.array(v.string())),
+      pages: v.optional(v.number()),
+      year: v.optional(v.number()),
+      genres: v.optional(v.array(v.string())),
+      // Topics added to this book by name, and topics taken off it by topicKey.
+      topicsAdded: v.optional(v.array(v.string())),
+      topicsRemoved: v.optional(v.array(v.string())),
+    })),
   })
     .index('by_user_status', ['userId', 'status'])
     .index('by_user_work', ['userId', 'workId'])

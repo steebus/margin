@@ -3,7 +3,7 @@ import type { Book } from './books'
 import { bestSources, byDays, byMonth, byRating, byYear, finishesOf, gaps, headline, tbrAge } from './stats'
 
 const day = (text: string) => Date.parse(text)
-const book = (over: Partial<Book>) => ({ title: 'A', author: 'Ann', status: 'read', format: 'print', pages: 100, rating: null, subjects: [], genres: [], readings: [], addedAt: null, recommendedBy: null, ...over }) as Book
+const book = (over: Partial<Book>) => ({ title: 'A', author: 'Ann', status: 'read', format: 'print', pages: 100, rating: null, subjects: [], genres: [], readings: [], addedAt: null, recommendedBy: null, authors: [over.author ?? 'Ann'], ...over }) as Book
 
 const twice = book({ pages: 300, readings: [{ startedAt: day('2020-01-01'), finishedAt: day('2020-01-05') }, { finishedAt: day('2023-03-01') }] })
 const open = book({ status: 'reading', readings: [{ startedAt: day('2024-01-01') }] })

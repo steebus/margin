@@ -16,6 +16,7 @@ import { Route as NotesRouteImport } from './routes/notes'
 import { Route as PileRouteImport } from './routes/pile'
 import { Route as ReviewRouteImport } from './routes/review'
 import { Route as StatsRouteImport } from './routes/stats'
+import { Route as AuthorsAuthorSlugRouteImport } from './routes/authors.$authorSlug'
 import { Route as CaptureIndexRouteImport } from './routes/capture.index'
 import { Route as CaptureAddRouteImport } from './routes/capture.add'
 import { Route as CaptureShareRouteImport } from './routes/capture.share'
@@ -69,6 +70,11 @@ const ReviewRoute = ReviewRouteImport.update({
 const StatsRoute = StatsRouteImport.update({
   id: '/stats',
   path: '/stats',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthorsAuthorSlugRoute = AuthorsAuthorSlugRouteImport.update({
+  id: '/authors/$authorSlug',
+  path: '/authors/$authorSlug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CaptureIndexRoute = CaptureIndexRouteImport.update({
@@ -178,6 +184,7 @@ export interface FileRoutesByFullPath {
   '/pile': typeof PileRoute
   '/review': typeof ReviewRoute
   '/stats': typeof StatsRoute
+  '/authors/$authorSlug': typeof AuthorsAuthorSlugRoute
   '/capture/add': typeof CaptureAddRoute
   '/capture/share': typeof CaptureShareRoute
   '/e/$entryId': typeof EEntryIdRoute
@@ -206,6 +213,7 @@ export interface FileRoutesByTo {
   '/pile': typeof PileRoute
   '/review': typeof ReviewRoute
   '/stats': typeof StatsRoute
+  '/authors/$authorSlug': typeof AuthorsAuthorSlugRoute
   '/capture/add': typeof CaptureAddRoute
   '/capture/share': typeof CaptureShareRoute
   '/e/$entryId': typeof EEntryIdRoute
@@ -235,6 +243,7 @@ export interface FileRoutesById {
   '/pile': typeof PileRoute
   '/review': typeof ReviewRoute
   '/stats': typeof StatsRoute
+  '/authors/$authorSlug': typeof AuthorsAuthorSlugRoute
   '/capture/add': typeof CaptureAddRoute
   '/capture/share': typeof CaptureShareRoute
   '/e/$entryId': typeof EEntryIdRoute
@@ -265,6 +274,7 @@ export interface FileRouteTypes {
     | '/pile'
     | '/review'
     | '/stats'
+    | '/authors/$authorSlug'
     | '/capture/add'
     | '/capture/share'
     | '/e/$entryId'
@@ -293,6 +303,7 @@ export interface FileRouteTypes {
     | '/pile'
     | '/review'
     | '/stats'
+    | '/authors/$authorSlug'
     | '/capture/add'
     | '/capture/share'
     | '/e/$entryId'
@@ -321,6 +332,7 @@ export interface FileRouteTypes {
     | '/pile'
     | '/review'
     | '/stats'
+    | '/authors/$authorSlug'
     | '/capture/add'
     | '/capture/share'
     | '/e/$entryId'
@@ -350,6 +362,7 @@ export interface RootRouteChildren {
   PileRoute: typeof PileRoute
   ReviewRoute: typeof ReviewRoute
   StatsRoute: typeof StatsRoute
+  AuthorsAuthorSlugRoute: typeof AuthorsAuthorSlugRoute
   CaptureAddRoute: typeof CaptureAddRoute
   CaptureShareRoute: typeof CaptureShareRoute
   EEntryIdRoute: typeof EEntryIdRoute
@@ -420,6 +433,13 @@ declare module '@tanstack/react-router' {
       path: '/stats'
       fullPath: '/stats'
       preLoaderRoute: typeof StatsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/authors/$authorSlug': {
+      id: '/authors/$authorSlug'
+      path: '/authors/$authorSlug'
+      fullPath: '/authors/$authorSlug'
+      preLoaderRoute: typeof AuthorsAuthorSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/capture/': {
@@ -566,6 +586,7 @@ const rootRouteChildren: RootRouteChildren = {
   PileRoute: PileRoute,
   ReviewRoute: ReviewRoute,
   StatsRoute: StatsRoute,
+  AuthorsAuthorSlugRoute: AuthorsAuthorSlugRoute,
   CaptureAddRoute: CaptureAddRoute,
   CaptureShareRoute: CaptureShareRoute,
   EEntryIdRoute: EEntryIdRoute,

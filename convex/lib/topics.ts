@@ -95,9 +95,12 @@ export type WorkIn = {
   coverUrl?: string
   artSmallUrl?: string
   tags: BookTag[]
+  // The reader's own corrections: topics put on this book by name, and topics taken off it by key.
+  added?: string[]
+  removed?: string[]
 }
 export type EntryIn = { id: string; readId: string; kind: string; text: string; tags: string[]; page?: number; createdAt: number }
-export type Reason = { kind: 'genre' | 'tag' | 'note' | 'mentions'; page?: number }
+export type Reason = { kind: 'genre' | 'tag' | 'note' | 'mentions' | 'yours'; page?: number }
 export type Topic = {
   key: string
   slug: string
@@ -123,7 +126,10 @@ export function buildTopics({ works, entries, hidden }: { works: WorkIn[]; entri
     }
     return topic
   }
+  const removed = new Map(works.map(w => [w.readId, new Set(w.removed ?? [])]))
   const addBook = (topic: NonNullable<ReturnType<typeof topicFor>>, readId: string, reason: Reason) => {
+    // Taken off this book by the reader: its notes can still be on the topic, the book isn't.
+    if (removed.get(readId)?.has(topic.key)) return
     const reasons = topic.byRead.get(readId) ?? []
     if (!reasons.some(r => r.kind === reason.kind)) reasons.push(reason)
     topic.byRead.set(readId, reasons)
@@ -138,7 +144,12 @@ export function buildTopics({ works, entries, hidden }: { works: WorkIn[]; entri
   const known = new Set([
     ...works.flatMap(w => w.tags.filter(t => isSubject(t.name) && (t.kind === 'genre' || (t.count ?? 0) >= 2)).map(t => topicKey(t.name))),
     ...entries.flatMap(e => e.tags.map(topicKey)),
+    ...works.flatMap(w => (w.added ?? []).map(topicKey)),
   ])
+  for (const work of works) for (const name of work.added ?? []) {
+    const topic = topicFor(name)
+    if (topic) addBook(topic, work.readId, { kind: 'yours' })
+  }
   for (const work of works) for (const tag of topicTags(work.tags, known)) {
     const topic = topicFor(tag.name)
     if (topic) addBook(topic, work.readId, { kind: tag.kind })

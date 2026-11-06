@@ -70,7 +70,7 @@ export function TopicPage() {
   const span = page.years && (page.years[0] === page.years[1] ? `${page.years[0]}` : `${page.years[0]}–${page.years[1]}`)
 
   return (
-    <div className="narrow stack topic-page">
+    <div className="stack topic-page">
       <Link to="/topics" className="where topic-up">Topics</Link>
       <h1 className="title-head" data-size={page.name.length > 16 ? 'long' : undefined}>{page.name}</h1>
       <p className="topic-meta">
@@ -85,38 +85,61 @@ export function TopicPage() {
       </div>
       {page.hidden && <p className="where">Hidden: it's out of Explore, the topics list and the buddy's view.</p>}
       {error && <p role="alert">{error}</p>}
-      {/* The timeline's first year carries the page's rule; the plain list needs its own. */}
-      {(all || page.items.length === 0) && <hr className="rule" />}
+      <hr className="rule" />
 
-      {all ? (
-        <ul className="tl-list">
-          {page.books.map(b => <li key={b.readId}><BookItem book={b} /></li>)}
-        </ul>
-      ) : (
-        <>
-          {page.items.length === 0 && <p>Nothing read or written on this yet. The books below are waiting.</p>}
-          <ol className="timeline">
-            {page.items.map((item, i) => {
-              const year = yearOf(item.at)
-              const prev = i > 0 ? yearOf(page.items[i - 1].at) : undefined
-              return (
-                <Fragment key={item.key}>
-                  {year !== prev && <li className="year tl-year" aria-hidden="true">{year ?? 'Undated'}</li>}
-                  <li className="tl-item" data-kind={item.kind}>
-                    {item.kind === 'book' ? <BookItem book={item.book} /> : <EntryItem item={item} />}
-                  </li>
-                </Fragment>
-              )
-            })}
-          </ol>
-          {page.tbr.length > 0 && (
+      <div className="topic-body">
+        <div className="topic-main">
+          {all ? (
+            <ul className="tl-list tl-grid">
+              {page.books.map(b => <li key={b.readId}><BookItem book={b} /></li>)}
+            </ul>
+          ) : (
+            <>
+              {page.items.length === 0 && <p>Nothing read or written on this yet. The books beside it are waiting.</p>}
+              <ol className="timeline">
+                {page.items.map((item, i) => {
+                  const year = yearOf(item.at)
+                  const prev = i > 0 ? yearOf(page.items[i - 1].at) : undefined
+                  return (
+                    <Fragment key={item.key}>
+                      {year !== prev && <li className="year tl-year" aria-hidden="true">{year ?? 'Undated'}</li>}
+                      <li className="tl-item" data-kind={item.kind}>
+                        {item.kind === 'book' ? <BookItem book={item.book} /> : <EntryItem item={item} />}
+                      </li>
+                    </Fragment>
+                  )
+                })}
+              </ol>
+            </>
+          )}
+        </div>
+        {/* Beside the timeline where there's room: what's waiting on the topic, and what was written around it. */}
+        <aside className="topic-side">
+          {!all && page.tbr.length > 0 && (
             <section className="stack" aria-labelledby="tbr-head">
-              <h2 id="tbr-head" className="head">On your TBR</h2>
+              <h2 id="tbr-head" className="year"><span>On your TBR · {page.tbr.length}</span></h2>
               <ul className="tl-list">{page.tbr.map(b => <li key={b.readId}><BookItem book={b} /></li>)}</ul>
             </section>
           )}
-        </>
-      )}
+          {page.around.length > 0 && (
+            <section className="stack" aria-labelledby="around-head">
+              <h2 id="around-head" className="year"><span>Around it · {page.aroundCount}</span></h2>
+              <p className="where">Written in its books, without naming it.{page.aroundCount > page.around.length && ` The latest ${page.around.length}.`}</p>
+              <ul className="tl-list around">
+                {page.around.map(e => (
+                  <li key={e.id}>
+                    <Link to="/e/$entryId" params={{ entryId: e.id }} className="tl-entry note-link">
+                      <span className="tl-did">{formatDate(e.at)}</span>
+                      {e.kind === 'excerpt' ? <span className="book-voice tl-quote"><span>{e.text}</span></span> : <span className="hand">{e.text}</span>}
+                      <span className="where">{e.where}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+        </aside>
+      </div>
     </div>
   )
 }

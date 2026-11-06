@@ -69,6 +69,21 @@ describe('mentions', () => {
 })
 
 describe('buildTopics', () => {
+  test("the reader's corrections: a topic added to a book joins it, one taken off leaves it but keeps the note", () => {
+    const topics = buildTopics({
+      works: [
+        work({ readId: 'a', tags: [{ name: 'Grief', kind: 'genre' }], removed: [topicKey('Grief')] }),
+        work({ readId: 'b', tags: [{ name: 'Grief', kind: 'genre' }], added: ['Lighthouses'] }),
+      ],
+      entries: [entry({ id: 'n1', readId: 'a', tags: ['Grief'] })],
+      hidden: new Set(),
+    })
+    const grief = topics.find(t => t.name === 'Grief')!
+    expect(grief.books.map(b => b.readId)).toEqual(['b'])
+    expect(grief.entries.map(e => e.id)).toEqual(['n1'])
+    expect(topics.find(t => t.name === 'Lighthouses')!.books).toEqual([{ readId: 'b', reasons: [{ kind: 'yours' }] }])
+  })
+
   test('merges spellings, adds note-tagged and mentioning books with reasons, skips reserved and hidden', () => {
     const topics = buildTopics({
       works: [

@@ -3,10 +3,10 @@ import { ConvexError, v } from 'convex/values'
 import type { Doc, Id } from './_generated/dataModel'
 import { internal } from './_generated/api'
 import { mutation, query, type MutationCtx } from './_generated/server'
-import { datesFrom, positionOf, progressAt, readingsAfter, readingsOf, toBook } from './lib/books'
+import { datesFrom, edited, positionOf, progressAt, readingsAfter, readingsOf, toBook } from './lib/books'
 import { askForReflection, waitingPrompt } from './lib/reflection'
 import { movedIn } from './lib/activity'
-import { genresOf } from './lib/genres'
+import { GENRES, genresOf } from './lib/genres'
 import { enqueueRead } from './lib/outbox'
 import { checkMilestones, waitingNote } from './milestones'
 import { depthOf, guideFor } from './guides'
@@ -68,14 +68,16 @@ export const activity = query({
     for (const { read, logs: mine } of logs) {
       const moved = movedIn(mine, since, Date.now(), read.startedAt ?? null)
       if (!moved) continue
-      const work = await ctx.db.get(read.workId)
+      const found = await ctx.db.get(read.workId)
+      const work = found && edited(found, read)
       if (read.format === 'audio') audioSeconds += moved * (work?.audioSeconds ?? 0)
       else pages += moved * (work?.pages ?? 0)
     }
     const tbr = await ctx.db.query('reads').withIndex('by_user_status', q => q.eq('userId', userId).eq('status', 'tbr')).collect()
     const added = await Promise.all(tbr.filter(r => (r.addedAt ?? 0) >= since).map(async r => {
-      const work = await ctx.db.get(r.workId)
-      return work && { slug: work.slug, title: work.title, author: work.authors[0] ?? 'Unknown author', pages: work.pages ?? null, subjects: work.subjects, genres: genresOf(work.tags, work.subjects), addedAt: r.addedAt! }
+      const found = await ctx.db.get(r.workId)
+      const work = found && edited(found, r)
+      return work && { slug: work.slug, title: work.title, author: work.authors[0] ?? 'Unknown author', pages: work.pages ?? null, subjects: work.subjects, genres: r.edits?.genres ?? genresOf(work.tags, work.subjects), addedAt: r.addedAt! }
     }))
     const notes = await ctx.db.query('entries').withIndex('by_user', q => q.eq('userId', userId).gte('createdAt', since)).collect()
     return {
@@ -107,6 +109,9 @@ export const bookBySlug = query({
     const guide = await guideFor(ctx, work._id)
     return {
       book: toBook(read, work),
+      // As Hardcover has it, so the edit page can show what a correction replaces and put it back.
+      edits: read.edits ?? null,
+      original: { title: work.title, authors: work.authors, pages: work.pages ?? null, year: work.year ?? null, genres: genresOf(work.tags, work.subjects) },
       cover: {
         choice: read.artChoice ?? 'drawing',
         hasDrawing: !!work.artSmallUrl,
@@ -218,7 +223,8 @@ export const logProgress = mutation({
   args: { readId: v.id('reads'), percent: v.optional(v.number()), page: v.optional(v.number()), seconds: v.optional(v.number()) },
   handler: async (ctx, { readId, percent, page, seconds }) => {
     const { userId, read } = await mine(ctx, readId)
-    const work = await ctx.db.get(read.workId)
+    const found = await ctx.db.get(read.workId)
+    const work = found && edited(found, read)
     const progress = progressAt({ percent, page, seconds }, work?.pages, work?.audioSeconds)
     if (!progress) throw new ConvexError('That place does not fit this book')
     await ctx.db.patch(readId, { progress })
@@ -314,5 +320,54 @@ export const setRating = mutation({
     if (rating !== null && !(rating >= 0.5 && rating <= 5 && rating * 2 === Math.round(rating * 2))) throw new ConvexError('A rating is from half a star to five, in half stars')
     await ctx.db.patch(readId, { rating: rating ?? undefined })
     await enqueueRead(ctx, userId, readId)
+  },
+})
+
+const clean = (s: string) => s.trim().replace(/\s+/g, ' ')
+
+/**
+ * The reader's corrections to a book: title, authors, pages, year, genres and topics (Steve, 2026-11-06). Kept on the
+ * read, never sent to Hardcover. A field left out, or set back to what Hardcover has, goes back to following Hardcover.
+ */
+export const editBook = mutation({
+  args: {
+    readId: v.id('reads'),
+    title: v.optional(v.string()),
+    authors: v.optional(v.array(v.string())),
+    pages: v.optional(v.number()),
+    year: v.optional(v.number()),
+    genres: v.optional(v.array(v.string())),
+    topicsAdded: v.optional(v.array(v.string())),
+    topicsRemoved: v.optional(v.array(v.string())),
+  },
+  handler: async (ctx, { readId, ...change }) => {
+    const { read } = await mine(ctx, readId)
+    const work = await ctx.db.get(read.workId)
+    if (!work) throw new ConvexError('That book is not on your shelves')
+    const title = change.title === undefined ? undefined : clean(change.title)
+    if (title === '') throw new ConvexError('A book needs a title')
+    const authors = change.authors?.map(clean).filter(Boolean)
+    if (authors && !authors.length) throw new ConvexError('A book needs an author')
+    const whole = (n: number | undefined, what: string, max: number) => {
+      if (n !== undefined && !(Number.isInteger(n) && n > 0 && n <= max)) throw new ConvexError(`That isn't a ${what}`)
+      return n
+    }
+    const pages = whole(change.pages, 'page count', 20000)
+    const year = whole(change.year, 'year', new Date().getFullYear() + 5)
+    const genres = change.genres && [...new Set(change.genres)]
+    if (genres?.some(g => !(g in GENRES))) throw new ConvexError("That genre isn't one of Margin's")
+    const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b)
+    const edits = {
+      title: title === work.title ? undefined : title,
+      authors: authors && !same(authors, work.authors) ? authors : undefined,
+      pages: pages === work.pages ? undefined : pages,
+      year: year === work.year ? undefined : year,
+      genres: genres && !same(genres, genresOf(work.tags, work.subjects)) ? genres : undefined,
+      topicsAdded: change.topicsAdded?.map(clean).filter(Boolean),
+      topicsRemoved: change.topicsRemoved,
+    }
+    // No genres is a choice; no topics added or removed is just no edit.
+    const kept = Object.fromEntries(Object.entries(edits).filter(([key, value]) => value !== undefined && (key === 'genres' || !Array.isArray(value) || value.length > 0)))
+    await ctx.db.patch(readId, { edits: Object.keys(kept).length ? kept : undefined })
   },
 })

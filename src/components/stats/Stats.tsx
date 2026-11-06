@@ -4,14 +4,19 @@ import { useState } from 'react'
 import { sortBooks } from '../../lib/shelf'
 import { Catalog } from '../shelf/BookList'
 import { useBooks } from '../../lib/offline'
+import { authorSlug } from '../../lib/authors'
 import { bestSources, byAuthor, byAuthorBipoc, byAuthorCountry, byAuthorGender, byAuthorLgbtq, byDays, byFormat, byGenre, byMonth, byRating, byYear, finishesOf, gaps, headline, tbrAge, type Row } from '../../lib/stats'
 import type { Book } from '../../lib/books'
 
 /** The books behind a mark. */
-function Behind({ row, onClose }: { row: Row; onClose: () => void }) {
+function Behind({ row, onClose, author }: { row: Row; onClose: () => void; author?: boolean }) {
   return (
     <div className="chart-books">
-      <p><strong>{row.label}:</strong> {row.books.length} {row.books.length === 1 ? 'book' : 'books'} <button type="button" className="text-link" onClick={onClose}>Close</button></p>
+      <p>
+        <strong>{row.label}:</strong> {row.books.length} {row.books.length === 1 ? 'book' : 'books'}{' '}
+        {author && <><Link to="/authors/$authorSlug" params={{ authorSlug: authorSlug(row.label) }}>See all their books</Link>{' · '}</>}
+        <button type="button" className="text-link" onClick={onClose}>Close</button>
+      </p>
       <Catalog books={sortBooks(row.books)} size="small" />
     </div>
   )
@@ -52,7 +57,7 @@ function Columns({ title, rows, unit }: { title: string; rows: Row[]; unit: stri
 }
 
 /** Longer labels read best across, and every bar carries its own number. */
-function Bars({ title, rows, note }: { title: string; rows: Row[]; note?: string }) {
+function Bars({ title, rows, note, author }: { title: string; rows: Row[]; note?: string; author?: boolean }) {
   const [open, setOpen] = useState<string | null>(null)
   const max = Math.max(1, ...rows.map(r => r.value))
   const opened = rows.find(r => r.label === open)
@@ -80,7 +85,7 @@ function Bars({ title, rows, note }: { title: string; rows: Row[]; note?: string
           </button>
         ))}
       </div>
-      {opened && <Behind row={opened} onClose={() => setOpen(null)} />}
+      {opened && <Behind row={opened} author={author} onClose={() => setOpen(null)} />}
     </figure>
   )
 }
@@ -156,7 +161,7 @@ export function Stats() {
       <Bars title="Ratings" rows={byRating(finished)} />
       <Bars title="Time to finish" rows={byDays(finishes)} note={`Of the ${finishes.filter(f => f.days !== null).length} with both dates.`} />
       <Bars title="Genres" rows={byGenre(finishes)} />
-      <Bars title="Most-read authors" rows={byAuthor(finishes)} />
+      <Bars title="Most-read authors" rows={byAuthor(finishes)} author />
       <Bars title="Authors' gender" rows={byAuthorGender(finishes)} note="The first author of each book, as Hardcover records them." />
       <Bars title="BIPOC authors" rows={byAuthorBipoc(finishes)} note="As Hardcover records them. Most authors are not recorded either way yet." />
       <Bars title="LGBTQ authors" rows={byAuthorLgbtq(finishes)} note="As Hardcover records them. Most authors are not recorded either way yet." />

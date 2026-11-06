@@ -95,7 +95,7 @@ const yesNo = (v: boolean | null) => (v === null ? 'Not known' : v ? 'Yes' : 'No
 export const byAuthorBipoc = (finishes: Finish[]) => counted(finishes, f => [yesNo(f.book.authorBipoc)], 3)
 export const byAuthorLgbtq = (finishes: Finish[]) => counted(finishes, f => [yesNo(f.book.authorLgbtq)], 3)
 export const byAuthorCountry = (finishes: Finish[], top = 8) => counted(finishes, f => [f.book.authorCountry ?? 'Not known'], top)
-export const byAuthor = (finishes: Finish[], top = 8) => counted(finishes, f => [f.book.author], top).filter(r => r.value > 1)
+export const byAuthor = (finishes: Finish[], top = 8) => counted(finishes, f => f.book.authors, top).filter(r => r.value > 1)
 
 /** Whose recommendations land: anyone with two or more rated books, best first. */
 export function bestSources(books: Book[]): Row[] {

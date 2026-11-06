@@ -6,13 +6,13 @@ import { replay } from './outbox'
 
 // Versioned: an answer saved by an older build can lack fields this one reads, so a new shape gets a new key.
 const KEYS = {
-  books: 'margin.cache.books.2',
+  books: 'margin.cache.books.3',
   entries: 'margin.cache.entries.2',
   activity: 'margin.cache.activity.2',
   waiting: 'margin.cache.waiting.2',
   graph: 'margin.cache.graph.2',
 }
-try { for (const old of ['margin.cache.books', 'margin.cache.entries']) localStorage.removeItem(old) } catch { /* nothing to clear */ }
+try { for (const old of ['margin.cache.books', 'margin.cache.entries', 'margin.cache.books.2']) localStorage.removeItem(old) } catch { /* nothing to clear */ }
 
 // Parsed once per load: a 600-book library is worth not re-reading on every screen.
 const memory = new Map<string, unknown>()

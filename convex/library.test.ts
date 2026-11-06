@@ -264,3 +264,25 @@ test('an import can mark a book read, or add one, without making up a finish dat
   const book = (await as.query(api.library.myBooks, {})).find(b => b.readId === added.readId)!
   expect(book).toMatchObject({ status: 'read', format: 'audio', finishedAt: null, readings: [] })
 })
+
+test("the reader's corrections show everywhere, survive a sync, never queue for Hardcover, and go back when matched", async () => {
+  const t = setup()
+  const { userId, as } = await reader(t)
+  await t.mutation(internal.hardcover.saveBooks, { userId, items: [item(1)] })
+  const [{ readId }] = await as.query(api.library.myBooks, {})
+  const queued = async () => (await t.run(ctx => ctx.db.query('hardcoverOutbox').collect())).length
+  const before = await queued()
+
+  await as.mutation(api.library.editBook, { readId, title: ' Book  One ', authors: ['A. Writer', 'B. Writer'], pages: 400, genres: ['Fantasy'] })
+  await t.mutation(internal.hardcover.saveBooks, { userId, items: [item(1)] })
+  const [book] = await as.query(api.library.myBooks, {})
+  expect([book.title, book.authors, book.pages, book.genres]).toEqual(['Book One', ['A. Writer', 'B. Writer'], 400, ['Fantasy']])
+  await as.mutation(api.library.logProgress, { readId, page: 200 })
+  expect((await as.query(api.library.myBooks, {}))[0].percent).toBe(50)
+  expect(await queued()).toBe(before + 1) // the progress, not the corrections
+
+  await expect(as.mutation(api.library.editBook, { readId, genres: ['Spoons'] })).rejects.toThrow()
+  await expect(as.mutation(api.library.editBook, { readId, title: '  ' })).rejects.toThrow()
+  await as.mutation(api.library.editBook, { readId, title: 'Book 1', authors: ['An Author'], pages: 200 })
+  expect(await t.run(async ctx => (await ctx.db.get(readId))?.edits)).toBeFalsy()
+})

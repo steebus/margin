@@ -1,11 +1,12 @@
 import { Link, useNavigate, useParams, useRouter } from '@tanstack/react-router'
 import { useMutation } from 'convex/react'
 import { useQuery } from 'convex-helpers/react/cache/hooks'
-import { ArrowLeft, Waypoints } from 'lucide-react'
+import { ArrowLeft, PencilLine, Waypoints } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { Fragment, useEffect, useState, type ReactNode } from 'react'
 import { slugify } from '../../../convex/lib/hardcover'
 import { api } from '../../../convex/_generated/api'
+import { authorSlug } from '../../lib/authors'
 import { formatDate, type Book, type Status } from '../../lib/books'
 import { formatClock, pagesPerDay } from '../../lib/progress'
 import { daysToRead } from '../../lib/shelf'
@@ -167,7 +168,9 @@ export function BookPage() {
         </div>
         <div className="book-name">
           <BookTitle title={book.title} />
-          <p className="book-author">{book.author}</p>
+          <p className="book-author">
+            {book.authors.map((a, i) => <Fragment key={a}>{i > 0 && ', '}<Link to="/authors/$authorSlug" params={{ authorSlug: authorSlug(a) }}>{a}</Link></Fragment>)}
+          </p>
         </div>
       </header>
       <hr className="rule" />
@@ -235,6 +238,9 @@ export function BookPage() {
               </div>
             ))}
           </dl>
+          <div className="btn-row card-edit">
+            <Link to="/books/$bookSlug/edit" params={{ bookSlug: book.slug }} className="btn"><PencilLine aria-hidden="true" strokeWidth={2.25} />Correct the details</Link>
+          </div>
         </section>
 
         <ReadDates book={book} />

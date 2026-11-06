@@ -11,14 +11,14 @@ export function TopicList() {
   const shown = (topics ?? []).filter(t => t.name.toLowerCase().includes(words.trim().toLowerCase()))
 
   return (
-    <div className="narrow stack">
+    <div className="stack topic-list">
       <h1 className="title-head">Topics</h1>
       <div className="tools-top">
         <label className="tools-search">
           <span className="sr-only">Find a topic</span>
           <input type="search" value={words} placeholder="Find a topic" onChange={e => setWords(e.target.value)} />
         </label>
-        <Link to="/explore" className="btn"><Waypoints aria-hidden="true" strokeWidth={2.25} />Explore</Link>
+        <Link to="/explore" className="btn btn-solid"><Waypoints aria-hidden="true" strokeWidth={2.25} />Explore</Link>
       </div>
       <hr className="rule" />
       {topics === undefined && <p role="status">Gathering topics…</p>}

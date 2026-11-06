@@ -24,14 +24,23 @@ export function datesFrom(readings: Reading[], status: Doc<'reads'>['status']) {
   return { startedAt: latest?.startedAt, finishedAt: status === 'read' ? latest?.finishedAt : undefined }
 }
 
+/** The work as this reader has corrected it. Everything that shows or measures a book reads it through here. */
+export function edited(work: Doc<'works'>, read: Pick<Doc<'reads'>, 'edits'>): Doc<'works'> {
+  const e = read.edits
+  if (!e) return work
+  return { ...work, title: e.title ?? work.title, authors: e.authors ?? work.authors, pages: e.pages ?? work.pages, year: e.year ?? work.year }
+}
+
 /** A book as the app shows it: one person's read of a work, flattened. */
-export function toBook(read: Doc<'reads'>, work: Doc<'works'>) {
+export function toBook(read: Doc<'reads'>, original: Doc<'works'>) {
+  const work = edited(original, read)
   const { percent } = read.progress
   return {
     readId: read._id,
     slug: work.slug,
     title: work.title,
     author: work.authors[0] ?? 'Unknown author',
+    authors: work.authors.length ? work.authors : ['Unknown author'],
     status: read.status,
     format: read.format,
     percent,
@@ -41,7 +50,7 @@ export function toBook(read: Doc<'reads'>, work: Doc<'works'>) {
     progressUnit: read.progressUnit ?? null,
     published: work.year ?? null,
     subjects: work.subjects,
-    genres: genresOf(work.tags, work.subjects),
+    genres: read.edits?.genres ?? genresOf(work.tags, work.subjects),
     isbn: work.isbns[0] ?? null,
     readings: readingsOf(read),
     shelfIds: read.shelfIds,

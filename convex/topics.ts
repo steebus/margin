@@ -2,7 +2,7 @@ import { getAuthUserId } from '@convex-dev/auth/server'
 import { ConvexError, v } from 'convex/values'
 import type { Doc, Id } from './_generated/dataModel'
 import { mutation, query, type QueryCtx } from './_generated/server'
-import { positionOf } from './lib/books'
+import { edited, positionOf } from './lib/books'
 import { genresOf } from './lib/genres'
 import { slugify } from './lib/hardcover'
 import { buildTopics, isReserved, RESERVED, topicKey, type Reason, type Topic } from './lib/topics'
@@ -27,8 +27,9 @@ export async function libraryTopics(ctx: QueryCtx, userId: Id<'users'>, { withHi
   const books = new Map<string, Book>()
   const works = []
   for (const read of reads) {
-    const work = await ctx.db.get(read.workId)
-    if (!work) continue
+    const found = await ctx.db.get(read.workId)
+    if (!found) continue
+    const work = edited(found, read)
     books.set(read._id, {
       readId: read._id,
       slug: work.slug,
@@ -38,9 +39,12 @@ export async function libraryTopics(ctx: QueryCtx, userId: Id<'users'>, { withHi
       coverUrl: work.coverUrl ?? null,
       art: read.artChoice !== 'cover' && work.artSmallUrl && work.artLargeUrl ? { small: work.artSmallUrl, large: work.artLargeUrl } : null,
       at: read.finishedAt ?? read.startedAt ?? null,
-      genres: genresOf(work.tags, work.subjects),
+      genres: read.edits?.genres ?? genresOf(work.tags, work.subjects),
     })
-    works.push({ readId: read._id as string, slug: work.slug, title: work.title, authors: work.authors, status: read.status, tags: work.tags ?? [] })
+    works.push({
+      readId: read._id as string, slug: work.slug, title: work.title, authors: work.authors, status: read.status, tags: work.tags ?? [],
+      added: read.edits?.topicsAdded, removed: read.edits?.topicsRemoved,
+    })
   }
   const entries = (await ctx.db.query('entries').withIndex('by_user', q => q.eq('userId', userId)).collect())
     .filter(e => e.kind !== 'review' && books.has(e.readId))
@@ -71,9 +75,11 @@ export const list = query({
   },
 })
 
+const AROUND = 30
 const READ = new Set(['read', 'reading', 'paused', 'dnf'])
 const reasonText = (r: Reason) =>
-  r.kind === 'genre' ? 'genre'
+  r.kind === 'yours' ? 'you added it'
+  : r.kind === 'genre' ? 'genre'
   : r.kind === 'tag' ? 'tagged on Hardcover'
   : r.kind === 'note' ? (r.page ? `your note, p. ${r.page}` : 'your note')
   : r.page ? `your note mentions it, p. ${r.page}` : 'your note mentions it'
@@ -103,6 +109,14 @@ export const page = query({
         }
       }),
     ].sort((a, b) => (b.at ?? -Infinity) - (a.at ?? -Infinity))
+    // Notes around the topic: what was written in its books without naming it, newest first.
+    const named = new Set(topic.entries.map(e => e.id))
+    const under = new Set(topic.books.map(b => b.readId))
+    const unnamed = [...entries.values()].filter(e => under.has(e.readId) && !named.has(e._id)).sort((a, b) => b.createdAt - a.createdAt)
+    const around = unnamed.slice(0, AROUND).map(e => {
+      const book = books.get(e.readId)!
+      return { id: e._id, kind: e.kind, text: e.text, at: e.createdAt, slug: book.slug, where: [book.title, positionOf(e.pos)].filter(Boolean).join(', ') }
+    })
     const dated = items.flatMap(i => (i.at ? [new Date(i.at).getFullYear()] : []))
     return {
       name: topic.name,
@@ -114,6 +128,8 @@ export const page = query({
       books: [...cards].sort((a, b) => a.title.localeCompare(b.title)),
       years: dated.length ? [Math.min(...dated), Math.max(...dated)] as const : null,
       notes: topic.entries.length,
+      around,
+      aroundCount: unnamed.length,
     }
   },
 })
@@ -125,7 +141,7 @@ export const forBook = query({
     const userId = await getAuthUserId(ctx)
     if (!userId) return []
     const { topics } = await libraryTopics(ctx, userId)
-    return topics.filter(t => t.books.some(b => b.readId === readId)).map(t => ({ slug: t.slug, name: t.name }))
+    return topics.filter(t => t.books.some(b => b.readId === readId)).map(t => ({ slug: t.slug, name: t.name, key: t.key }))
   },
 })
 

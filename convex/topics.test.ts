@@ -35,7 +35,7 @@ test('a topic page is a timeline of its books and the notes that mention it, new
   const red = page!.items.find(i => i.kind === 'book' && i.book.title === 'Red Rising')
   expect(red?.kind === 'book' && red.book.why).toBe('your note mentions it, p. 212')
   expect(page?.tbr.map(b => b.title)).toEqual(['Women & Power'])
-  expect(await as.query(api.topics.forBook, { readId: readOf('Red Rising') })).toContainEqual({ slug: 'feminism', name: 'Feminism' })
+  expect(await as.query(api.topics.forBook, { readId: readOf('Red Rising') })).toContainEqual({ slug: 'feminism', name: 'Feminism', key: 'feminism' })
 })
 
 test('tagging a note puts its book on the topic; reserved labels never become topics', async () => {

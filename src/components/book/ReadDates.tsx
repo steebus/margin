@@ -1,3 +1,4 @@
+import { Link } from '@tanstack/react-router'
 import { useMutation } from 'convex/react'
 import { Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
@@ -48,7 +49,7 @@ export function ReadDates({ book }: { book: Book }) {
       <section className="stack" aria-labelledby="reads-heading">
         <h2 id="reads-heading" className="head">Reads</h2>
         {book.readings.length > 0 ? (
-          <ol className="reads">{book.readings.map((r, i) => <li key={r.hardcoverId ?? i}>{span(r)}</li>)}</ol>
+          <ol className="reads">{book.readings.map((r, i) => <li key={r.hardcoverId ?? i}><Link to="/books/$bookSlug/reads/$n" params={{ bookSlug: book.slug, n: String(i + 1) }}>{span(r)}</Link></li>)}</ol>
         ) : <p>No reads recorded yet.</p>}
         <div className="btn-row"><button type="button" className="btn" onClick={start}>Edit dates</button></div>
       </section>
