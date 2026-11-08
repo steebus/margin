@@ -286,3 +286,28 @@ test("the reader's corrections show everywhere, survive a sync, never queue for 
   await as.mutation(api.library.editBook, { readId, title: 'Book 1', authors: ['An Author'], pages: 200 })
   expect(await t.run(async ctx => (await ctx.db.get(readId))?.edits)).toBeFalsy()
 })
+
+test('a review keeps its words and stars, is found again by a sync, and waits for the book to be finished', async () => {
+  const t = setup()
+  const { userId, as } = await reader(t)
+  await t.mutation(internal.hardcover.saveBooks, { userId, items: [item(1, { status: 'reading' }), item(2, { status: 'read' })] })
+  const books = await as.query(api.library.myBooks, {})
+  const reading = books.find(b => b.slug === 'book-1')!
+  const finished = books.find(b => b.slug === 'book-2')!
+
+  await expect(as.mutation(api.library.saveReview, { readId: reading.readId, text: 'Too soon', rating: 4 })).rejects.toThrow('Finish the book')
+  await expect(as.mutation(api.library.saveReview, { readId: finished.readId, text: 'x', rating: 4.2 })).rejects.toThrow('half star')
+
+  await as.mutation(api.library.saveReview, { readId: finished.readId, text: '  Loved it.  ', rating: 4.5 })
+  await as.mutation(api.library.saveReview, { readId: finished.readId, text: 'Loved it, twice.', rating: 5 })
+  let found = await as.query(api.library.bookBySlug, { slug: 'book-2' })
+  expect(found?.entries.filter(e => e.kind === 'review').map(e => e.text)).toEqual(['Loved it, twice.'])
+  expect(found?.book.rating).toBe(5)
+  expect((await t.run(ctx => ctx.db.query('hardcoverOutbox').collect())).filter(r => r.kind === 'read')).toHaveLength(1)
+  expect((await t.query(internal.hardcover.readState, { readId: finished.readId }))?.review).toBe('Loved it, twice.')
+
+  // Hardcover sending the review back updates this one rather than adding a second.
+  await t.mutation(internal.hardcover.saveBooks, { userId, items: [item(2, { status: 'read', review: { text: 'Edited on Hardcover' } })], update: true })
+  found = await as.query(api.library.bookBySlug, { slug: 'book-2' })
+  expect(found?.entries.filter(e => e.kind === 'review')).toHaveLength(1)
+})

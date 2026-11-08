@@ -229,6 +229,9 @@ block one.
 - **Finishing a book** from either side asks one reflection question, written by the small text model from the book and
   the reader's notes, once per book. The answer is a `reflection` entry that keeps its question. On Hardcover it's a
   private note, without the question. Imports never ask.
+- **Reviewing a finished book** has its own page, `/books/:bookSlug/review`, opened on finishing from the book page and
+  reachable from any finished book. It holds the rating and the review beside the book's notes and buddy talk. Both go to
+  Hardcover with the book's next push (`rating`, `review_raw`), and a review edited on Hardcover still comes back.
 - **Progress** is logged by page, by hours and minutes, or by percent, remembered per book. The exact place is what
   goes to Hardcover. Logging the last page marks the book finished.
 
@@ -486,7 +489,8 @@ shelves, tags, integrations{provider, secretEnc, cursor, lastSyncAt}, importJobs
   controls.
 - **Performance.** First load on mid-range Android under 2.5s LCP;
   the shelf view handles a 2,000-book library (the browser skips offscreen cells with `content-visibility`; real virtualising if that ever falls short).
-- **Export:** from Settings, full JSON, plus one Markdown file with a section per book.### 3.6 Topics and the graph (rebuilt 2026-11-04, docs/superpowers/specs/2026-11-04-topics-design.md)
+- **Export:** from Settings, full JSON, plus one Markdown file with a section per book.
+### 3.6 Topics and the graph (rebuilt 2026-11-04, docs/superpowers/specs/2026-11-04-topics-design.md)
 - **Topics come from Hardcover and from note tags**, not a model: every genre on a book, readers' tags used by two
   readers or already a topic (8 a book at most), and any note tag that isn't a reserved label (Theme, Chapter summary,
   why choose). A note that mentions a topic by name joins it too. Spellings that differ only in case or punctuation are

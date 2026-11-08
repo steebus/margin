@@ -323,6 +323,31 @@ export const setRating = mutation({
   },
 })
 
+/**
+ * The review written on finishing a book: its words and its stars together. The words are the one `review` entry a read
+ * has, kept apart from the notes. Both go to Hardcover with the book's next push.
+ */
+export const saveReview = mutation({
+  args: { readId: v.id('reads'), text: v.string(), rating: v.union(v.number(), v.null()) },
+  handler: async (ctx, { readId, text, rating }) => {
+    const userId = await getAuthUserId(ctx)
+    if (!userId) throw new ConvexError('Sign in to change this')
+    const read = await ctx.db.get(readId)
+    if (!read || read.userId !== userId) throw new ConvexError('That book is not on your shelves')
+    if (read.status !== 'read') throw new ConvexError('Finish the book to review it')
+    if (rating !== null && !(rating >= 0.5 && rating <= 5 && rating * 2 === Math.round(rating * 2))) throw new ConvexError('A rating is from half a star to five, in half stars')
+    const words = text.trim()
+    if (words.length > 20000) throw new ConvexError('That is too long for a review')
+    const entries = await ctx.db.query('entries').withIndex('by_read', q => q.eq('readId', readId)).collect()
+    const review = entries.find(e => e.kind === 'review')
+    if (review && words) await ctx.db.patch(review._id, { text: words })
+    else if (review) await ctx.db.delete(review._id)
+    else if (words) await ctx.db.insert('entries', { userId, readId, kind: 'review', text: words, pos: {}, origin: 'manual', originKey: `margin-review:${readId}`, createdAt: Date.now() })
+    await ctx.db.patch(readId, { rating: rating ?? undefined })
+    await enqueueRead(ctx, userId, readId)
+  },
+})
+
 const clean = (s: string) => s.trim().replace(/\s+/g, ' ')
 
 /**

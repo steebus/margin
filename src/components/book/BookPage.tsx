@@ -164,6 +164,7 @@ export function BookPage() {
           {book.status === 'read' && book.rating !== null && (
             <p className="book-rating"><span className="pct pct-large">{book.rating}</span> <span className="where">of 5</span></p>
           )}
+          {book.status === 'read' && <p><Link to="/books/$bookSlug/review" params={{ bookSlug: book.slug }}>{entries.some(e => e.kind === 'review') ? 'Your review' : 'Write a review'}</Link></p>}
           {book.status === 'read' && book.finishedAt && <p className="where">Finished {formatDate(book.finishedAt)}</p>}
         </div>
         <div className="book-name">
@@ -217,7 +218,7 @@ export function BookPage() {
                 const status = e.target.value as Status
                 // Finishing is the one change worth feeling: two thunks, as the Read stamp lands.
                 if (status === 'read') navigator.vibrate?.([15, 70, 30])
-                void setStatus({ readId: book.readId, status })
+                void setStatus({ readId: book.readId, status }).then(() => { if (status === 'read') void navigate({ to: '/books/$bookSlug/review', params: { bookSlug: book.slug } }) })
               }}>
                 {(Object.keys(STATUS) as Status[]).map(s => <option key={s} value={s}>{STATUS[s]}</option>)}
               </select>

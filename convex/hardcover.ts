@@ -176,7 +176,9 @@ export const saveBooks = internalMutation({
 
       if (read.review && readId) {
         const originKey = `hardcover-review:${read.hardcoverUserBookId}`
+        // A review written in Margin has no Hardcover id yet, so it is found by its read and not sent back twice.
         const review = await ctx.db.query('entries').withIndex('by_user_origin_key', q => q.eq('userId', userId).eq('originKey', originKey)).first()
+          ?? (await ctx.db.query('entries').withIndex('by_read', q => q.eq('readId', readId!)).collect()).find(e => e.kind === 'review')
         if (review) {
           if (review.text !== read.review.text) await ctx.db.patch(review._id, { text: read.review.text })
         } else {
@@ -454,7 +456,12 @@ export const claim = internalMutation({
 
 export const readState = internalQuery({
   args: { readId: v.id('reads') },
-  handler: async (ctx, { readId }) => ctx.db.get(readId),
+  handler: async (ctx, { readId }) => {
+    const read = await ctx.db.get(readId)
+    if (!read) return null
+    const review = (await ctx.db.query('entries').withIndex('by_read', q => q.eq('readId', readId)).collect()).find(e => e.kind === 'review')
+    return { ...read, review: review?.text }
+  },
 })
 
 export const bookState = internalQuery({
@@ -563,7 +570,7 @@ export const flush = internalAction({
             await pace()
             const book = await gql<{ update_user_book: { error?: string } }>(
               'mutation($id: Int!, $object: UserBookUpdateInput!) { update_user_book(id: $id, object: $object) { id error } }',
-              { id: read.hardcoverUserBookId, object: { status_id: statusId(read.status), rating: read.rating ?? null } },
+              { id: read.hardcoverUserBookId, object: { status_id: statusId(read.status), rating: read.rating ?? null, ...(read.review ? { review_raw: read.review } : {}) } },
             )
             check(book.update_user_book, 'the book')
 
