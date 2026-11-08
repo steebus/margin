@@ -6,6 +6,7 @@ import { useActivity, useBooks, useEntries, useWaiting } from '../../lib/offline
 import { toastDue } from '../../lib/drawer-rules'
 import { Reflection } from '../book/Reflection'
 import { Card } from '../shelf/ReadingStrip'
+import { CountUp } from './CountUp'
 import { ProgressChart } from './ProgressChart'
 import { RecentPile } from './RecentPile'
 import { progressSteps, windowStart } from '../../../convex/lib/activity'
@@ -89,7 +90,7 @@ export function Desk() {
               <div className="desk-book-chart">
                 <p className="desk-book-head">
                   <span className="selected-title">{book.title}</span>
-                  <span className="where">{steps.gained > 0 ? `+${steps.gained}% in two weeks` : logged ? `Logged at ${book.percent}%, no further in two weeks` : 'No progress logged in two weeks'}</span>
+                  <span className="where">{steps.gained > 0 ? <>+<CountUp value={steps.gained} format={n => String(n)} />% in two weeks</> : logged ? `Logged at ${book.percent}%, no further in two weeks` : 'No progress logged in two weeks'}</span>
                 </p>
                 {activity !== undefined && <ProgressChart points={steps.points} opened={steps.opened} since={since} now={now} title={book.title} />}
               </div>
@@ -107,8 +108,8 @@ export function Desk() {
         {prompt && <Reflection key={prompt.id} prompt={prompt} />}
         <h2 id="window-heading" className="head">The last two weeks</h2>
         <dl className="tiles desk-tiles">
-          <div><dt>Pages read</dt><dd>{activity ? activity.pages.toLocaleString('en-GB') : '…'}</dd></div>
-          <div><dt>Listened</dt><dd>{activity ? formatClock(activity.audioSeconds) : '…'}</dd></div>
+          <div><dt>Pages read</dt><dd>{activity ? <CountUp value={activity.pages} /> : '…'}</dd></div>
+          <div><dt>Listened</dt><dd>{activity ? <CountUp value={activity.audioSeconds} format={formatClock} /> : '…'}</dd></div>
           <div><dt>Books finished</dt><dd>{activity?.finished ?? '…'}</dd></div>
           <div><dt>Notes written</dt><dd>{activity?.notes ?? '…'}</dd></div>
         </dl>

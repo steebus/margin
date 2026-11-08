@@ -2,7 +2,7 @@ import { useMutation } from 'convex/react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Book } from '../../lib/books'
-import { movedTo, sendQuietly } from '../../lib/quiet'
+import { movedTo, sendQuietly, withLogged } from '../../lib/quiet'
 import { formatClock, toClock, unitFor, unitsFor, type Unit } from '../../lib/progress'
 
 const LABEL: Record<Unit, string> = { page: 'Page', time: 'Time', percent: '%' }
@@ -13,6 +13,15 @@ export function ProgressForm({ book, onSaved }: { book: Book; onSaved?: (label: 
   const logProgress = useMutation(api.library.logProgress).withOptimisticUpdate((store, args) => {
     const books = store.getQuery(api.library.myBooks, {})
     if (books) store.setQuery(api.library.myBooks, {}, books.map(b => (b.readId === args.readId ? movedTo(b, args) : b)))
+    // The Desk's chart and tiles, whichever window it asked for.
+    const now = Date.now()
+    const moved = books?.find(b => b.readId === args.readId)
+    if (moved) {
+      const placed = movedTo(moved, args)
+      for (const { args: asked, value } of store.getAllQueries(api.library.activity)) {
+        if (value) store.setQuery(api.library.activity, asked, withLogged(value, moved, placed.percent, asked.since, now))
+      }
+    }
     const found = store.getQuery(api.library.bookBySlug, { slug: book.slug })
     if (found) store.setQuery(api.library.bookBySlug, { slug: book.slug }, { ...found, book: movedTo(found.book, args) })
   })

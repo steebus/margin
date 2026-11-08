@@ -1,3 +1,4 @@
+import { motion, useReducedMotion } from 'motion/react'
 import { useEffect, useId, useRef, useState } from 'react'
 import type { Logged } from '../../../convex/lib/activity'
 
@@ -24,6 +25,11 @@ function useWidth() {
  */
 export function ProgressChart({ points, opened, since, now, title }: { points: Logged[]; opened: boolean; since: number; now: number; title: string }) {
   const [ref, width] = useWidth()
+  const calm = useReducedMotion()
+  // A new log redraws the line and drops its mark in; the first paint stays still.
+  const seen = useRef(points.length)
+  const added = points.length > seen.current
+  useEffect(() => { seen.current = points.length }, [points.length])
   const etch = `etch-${useId().replace(/:/g, '')}`
   const H = 132, pl = 4, pr = 44, pt = 16, pb = 24
   const W = Math.max(width, 160)
@@ -49,11 +55,13 @@ export function ProgressChart({ points, opened, since, now, title }: { points: L
           </defs>
           <path d={ground} fill={`url(#${etch})`} />
           <line className="act-base" x1={pl} x2={W - pr} y1={H - pb} y2={H - pb} />
-          <path className="act-line" d={d} />
+          <motion.path key={added ? points.length : 'still'} className="act-line" d={d} initial={added && !calm ? { pathLength: 0 } : false} animate={{ pathLength: 1 }} transition={{ duration: 0.8, ease: 'easeOut' }} />
           {(opened ? points.slice(1) : points).map(p => (
-            <circle key={p.at} className="act-mark" cx={x(p.at)} cy={y(p.percent)} r={4}>
+            <motion.circle key={p.at} className="act-mark" cx={x(p.at)} cy={y(p.percent)} r={4}
+              initial={added && !calm && p === end ? { scale: 0 } : false} animate={{ scale: 1 }}
+              transition={{ type: 'spring', stiffness: 420, damping: 14, delay: 0.55 }} style={{ transformBox: 'fill-box', transformOrigin: 'center' }}>
               <title>{`${fmt(p.at)}: ${p.percent}%`}</title>
-            </circle>
+            </motion.circle>
           ))}
           {points[0].percent !== end.percent && <text className="act-label act-quiet" x={x(points[0].at)} y={y(points[0].percent) - 8}>{points[0].percent}%</text>}
           <text className="act-label" x={W - pr + 6} y={y(end.percent) + 5}>{end.percent}%</text>
