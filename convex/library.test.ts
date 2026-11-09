@@ -161,6 +161,8 @@ test('starting a finished book again is a re-read, and finishing closes it', asy
   let [book] = await as.query(api.library.myBooks, {})
   expect(book.readings).toHaveLength(2)
   expect(book.finishedAt).toBeNull()
+  // A re-read starts at the beginning, not on the last page.
+  expect(book).toMatchObject({ status: 'reading', percent: 0 })
   await as.mutation(api.library.setStatus, { readId, status: 'read' })
   ;[book] = await as.query(api.library.myBooks, {})
   expect(book.readings).toHaveLength(2)

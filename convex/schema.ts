@@ -119,6 +119,8 @@ export default defineSchema({
     tagIds: v.array(v.id('tags')),
     shelfIds: v.array(v.id('shelves')),
     hardcoverUserBookId: v.optional(v.number()),
+    // The Hardcover edition this read is of, so a change of edition there is seen and the place in the book kept.
+    hardcoverEditionId: v.optional(v.number()),
     // The book's id on Kobo (the UUID in its readnow.kobo.com link), so its notes can be pulled.
     koboId: v.optional(v.string()),
     // Whether this reader wants the drawing or the cross-hatch of the real cover. The drawing unless they say.

@@ -208,12 +208,15 @@ type Status = Doc<'reads'>['status']
 
 /** The dates, the reads and the reflection question all follow from a change of status, however it was made. */
 async function changeStatus(ctx: MutationCtx, userId: Id<'users'>, read: Doc<'reads'>, status: Status) {
-  const readings = readingsAfter(readingsOf(read), status, Date.now())
+  const before = readingsOf(read)
+  const readings = readingsAfter(before, status, Date.now())
+  // Starting a finished book again is a re-read, and a re-read starts at the beginning, not on the last page.
+  const rereading = status === 'reading' && (read.status === 'read' || !!before.at(-1)?.finishedAt)
   await ctx.db.patch(read._id, {
     status,
     readings,
     ...datesFrom(readings, status),
-    ...(status === 'read' ? { progress: { ...read.progress, percent: 100 } } : {}),
+    ...(status === 'read' ? { progress: { ...read.progress, percent: 100 } } : rereading ? { progress: { percent: 0 } } : {}),
   })
   if (status === 'read') await askForReflection(ctx, userId, read._id)
 }

@@ -54,12 +54,14 @@ test('only finished books get a finish date, and it falls back to the read recor
   expect(mapUserBook({ ...base, status_id: 2, ...finished })!.read.finishedAt).toBeUndefined()
 })
 
-test('audio and ebook formats are recognised, with print as the default', () => {
+test('audio, ebook and physical formats are recognised, and an edition with none says nothing', () => {
   const format = (id: number | null) => mapUserBook({ ...base, edition: { reading_format_id: id } })!.read.format
   expect(format(2)).toBe('audio')
   expect(format(4)).toBe('ebook')
   expect(format(1)).toBe('print')
-  expect(format(null)).toBe('print')
+  expect(format(3)).toBe('print')
+  // No format leaves Margin's alone; a new book is saved as print (hardcoverSync.test.ts).
+  expect(format(null)).toBeUndefined()
 })
 
 test('thin records still produce something usable', () => {

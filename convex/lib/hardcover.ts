@@ -3,7 +3,7 @@ import { bookTags, type CachedTags } from './topics'
 export const LIBRARY_QUERY = `query Library($limit: Int!, $offset: Int!) {
   me { user_books(limit: $limit, offset: $offset, order_by: {id: asc}) {
     id status_id rating first_started_reading_date last_read_date date_added recommended_by owned review_raw reviewed_at
-    edition { isbn_13 isbn_10 pages audio_seconds reading_format_id }
+    edition { id isbn_13 isbn_10 pages audio_seconds reading_format_id }
     book { id title pages audio_seconds release_year cached_contributors cached_image cached_tags contributions(limit: 1) { author { gender_id location is_bipoc is_lgbtq } } }
     user_book_reads(order_by: {id: desc}) { id progress progress_pages progress_seconds started_at finished_at }
   } }
@@ -20,7 +20,7 @@ export type HardcoverUserBook = {
   owned?: boolean | null
   review_raw?: string | null
   reviewed_at?: string | null
-  edition?: { isbn_13?: string | null; isbn_10?: string | null; pages?: number | null; audio_seconds?: number | null; reading_format_id?: number | null } | null
+  edition?: { id?: number | null; isbn_13?: string | null; isbn_10?: string | null; pages?: number | null; audio_seconds?: number | null; reading_format_id?: number | null } | null
   book?: {
     id: number
     title?: string | null
@@ -36,7 +36,8 @@ export type HardcoverUserBook = {
 }
 
 const STATUS = { 1: 'tbr', 2: 'reading', 3: 'read', 4: 'paused', 5: 'dnf' } as const
-const FORMAT = { 2: 'audio', 4: 'ebook' } as const
+// Hardcover's reading formats: 1 physical, 2 audio, 3 both, 4 ebook.
+const FORMAT = { 1: 'print', 2: 'audio', 3: 'print', 4: 'ebook' } as const
 
 /** A work's address: readable, and unique because of Hardcover's id. It never changes once minted. */
 export const slugFor = (title: string, authors: string[], id: number) =>
@@ -132,7 +133,9 @@ export function mapUserBook(ub: HardcoverUserBook) {
       progressKnown: status === 'read' || status === 'tbr' || latest?.progress != null,
       page: latest?.progress_pages ?? undefined,
       seconds: latest?.progress_seconds ?? undefined,
-      format: FORMAT[ub.edition?.reading_format_id as keyof typeof FORMAT] ?? ('print' as const),
+      // Only when the edition says, so a book with no edition never loses the format Margin was told.
+      format: FORMAT[ub.edition?.reading_format_id as keyof typeof FORMAT] as (typeof FORMAT)[keyof typeof FORMAT] | undefined,
+      editionId: ub.edition?.id ?? undefined,
       owned: ub.owned ?? false,
       rating: ub.rating ?? undefined,
       recommendedBy: ub.recommended_by?.trim() || undefined,

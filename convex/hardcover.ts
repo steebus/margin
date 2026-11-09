@@ -89,7 +89,8 @@ const bookItem = v.object({
     page: v.optional(v.number()),
     seconds: v.optional(v.number()),
     readings: v.optional(v.array(v.object({ hardcoverId: v.optional(v.number()), startedAt: v.optional(v.number()), finishedAt: v.optional(v.number()) }))),
-    format,
+    format: v.optional(format),
+    editionId: v.optional(v.number()),
     owned: v.boolean(),
     rating: v.optional(v.number()),
     recommendedBy: v.optional(v.string()),
@@ -130,7 +131,12 @@ export const saveBooks = internalMutation({
         existing++
         const waiting = await ctx.db.query('hardcoverOutbox').withIndex('by_read', q => q.eq('readId', mine._id)).first()
         if (update && !waiting) {
-          const percent = read.progressKnown !== false && progressChanged(mine.progress.percent, read.percent) ? read.percent : mine.progress.percent
+          // A new edition keeps the reader's place in the story, but a page or a time from the old one means nothing in
+          // the new one, and Hardcover's percent is that old place measured against the new length. Margin's percent
+          // stands, the page or time is worked out again from it, and the place goes back to Hardcover in the new units.
+          const newEdition = read.editionId !== undefined && mine.hardcoverEditionId !== undefined && read.editionId !== mine.hardcoverEditionId
+          // Read and TBR are 100 and 0 in any edition, so those still come in.
+          const percent = (!newEdition || read.status === 'read' || read.status === 'tbr') && read.progressKnown !== false && progressChanged(mine.progress.percent, read.percent) ? read.percent : mine.progress.percent
           const patch = {
             status: read.status,
             rating: read.rating,
@@ -138,10 +144,13 @@ export const saveBooks = internalMutation({
             startedAt: read.readings ? read.startedAt : read.startedAt ?? mine.startedAt,
             finishedAt: read.status !== 'read' ? undefined : read.readings ? read.finishedAt : read.finishedAt ?? mine.finishedAt,
             ...(read.readings ? { readings: read.readings } : {}),
-            progress: percent === mine.progress.percent ? mine.progress : { percent, page: read.page, seconds: read.seconds },
+            progress: newEdition ? { percent } : percent === mine.progress.percent ? mine.progress : { percent, page: read.page, seconds: read.seconds },
             hardcoverUserBookId: read.hardcoverUserBookId,
+            ...(read.format ? { format: read.format } : {}),
+            ...(read.editionId !== undefined ? { hardcoverEditionId: read.editionId } : {}),
           }
           if (changes(mine, patch)) await ctx.db.patch(mine._id, patch)
+          if (newEdition && mine.status !== 'tbr') await enqueueRead(ctx, userId, mine._id)
           if (percent !== mine.progress.percent) {
             await ctx.db.insert('progressLog', { userId, readId: mine._id, at: Date.now(), percent, page: read.page, origin: 'hardcover' })
             await checkMilestones(ctx, mine, mine.progress.percent, percent)
@@ -161,7 +170,8 @@ export const saveBooks = internalMutation({
           finishedAt: read.finishedAt,
           progress: { percent: read.percent, page: read.page, seconds: read.seconds },
           readings: read.readings,
-          format: read.format,
+          format: read.format ?? 'print',
+          hardcoverEditionId: read.editionId,
           ownership: read.owned ? 'owned' : undefined,
           rating: read.rating,
           source: read.recommendedBy ? { kind: 'person', who: read.recommendedBy } : undefined,

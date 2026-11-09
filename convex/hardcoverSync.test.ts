@@ -510,3 +510,39 @@ test('deleting a book removes everything of it here, then the book and its journ
   expect(writes(calls).map(c => [c.query.match(/delete_\w+/)?.[0], c.variables.id])).toEqual([['delete_reading_journals_for_book', 1], ['delete_user_book', 10]])
   expect(await outbox()).toEqual([])
 })
+
+const editionItem = (read: { percent: number; page?: number; editionId?: number; format?: 'print' | 'ebook' | 'audio' }, work: { pages?: number; audioSeconds?: number } = {}) => ({
+  work: { hardcoverId: 1, slug: 'book-1', title: 'Book One', authors: ['An Author'], isbns: [], subjects: [], pages: 200, ...work },
+  read: { hardcoverUserBookId: 10, status: 'reading' as const, owned: false, progressKnown: true, ...read },
+})
+
+test('a new edition on Hardcover keeps the place in the book, takes its format, and sends the place back in its units', async () => {
+  const calls = fakeHardcover({ remote: { edition: { audio_seconds: 36_000 }, book: { pages: 200 }, user_book_reads: [{ id: 55 }] } })
+  const { t, as, userId, outbox, clearScheduled } = await setup()
+  await t.mutation(internal.hardcover.saveBooks, { userId, update: true, items: [editionItem({ editionId: 1, format: 'print', percent: 40, page: 80 })] })
+  expect((await as.query(api.library.myBooks, {}))[0]).toMatchObject({ percent: 40, page: 80, format: 'print' })
+
+  // Hardcover measures the old page 80 against the audiobook's length, and calls it 3%.
+  await t.mutation(internal.hardcover.saveBooks, {
+    userId, update: true,
+    items: [editionItem({ editionId: 2, format: 'audio', percent: 3, page: 80 }, { pages: undefined, audioSeconds: 36_000 })],
+  })
+  const [book] = await as.query(api.library.myBooks, {})
+  expect(book).toMatchObject({ percent: 40, format: 'audio', seconds: 14_400 })
+  expect(await outbox()).toHaveLength(1)
+
+  await clearScheduled()
+  await flushTimers(t.action(internal.hardcover.flush, {}))
+  expect(writes(calls).find(c => c.query.includes('update_user_book_read'))?.variables.object).toMatchObject({ progress_seconds: 14_400 })
+  expect(await outbox()).toEqual([])
+})
+
+test('a book whose edition gives no format keeps the one Margin has', async () => {
+  fakeHardcover()
+  const { t, as, userId, readId } = await setup()
+  await t.run(ctx => ctx.db.patch(readId, { format: 'audio' }))
+  await t.mutation(internal.hardcover.saveBooks, { userId, update: true, items: [editionItem({ percent: 10 })] })
+  expect((await as.query(api.library.myBooks, {}))[0].format).toBe('audio')
+  await t.mutation(internal.hardcover.saveBooks, { userId, update: true, items: [editionItem({ percent: 10, format: 'ebook' })] })
+  expect((await as.query(api.library.myBooks, {}))[0].format).toBe('ebook')
+})
