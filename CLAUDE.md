@@ -1,6 +1,7 @@
 # Margin
 
-Read `docs/SPEC.md`, `docs/PLAN.md`, `docs/DESIGN-DIRECTION.md` and `PRODUCT.md`.
+Read `docs/SPEC.md`, `docs/PLAN.md`, `docs/DESIGN-DIRECTION.md` and `PRODUCT.md`. The standing backlog, and the rules
+for an unattended run, are in `docs/IMPROVEMENT-LOOP.md`.
 
 - Check work with `npm run build`, `npm run lint` and `npm test`.
 - `src/routeTree.gen.ts` is generated from `src/routes/`. Don't edit it by hand.
