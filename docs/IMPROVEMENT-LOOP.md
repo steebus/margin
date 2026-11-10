@@ -187,7 +187,6 @@ line numbers moving.
 
 | Id | Item | Evidence | Sure? | Size | Class | Status |
 |---|---|---|---|---|---|---|
-| B2 | **No error or not-found screens.** No route has an `errorComponent` or `notFoundComponent`, so a thrown render error is a blank page and a bad address shows the router's default. Add one of each in the catalog's voice, with a way back to the Desk. | no matches for either in `src/` | Sure | S | C | ready |
 | B6 | **Two routes are still placeholders:** `/books/:slug/guide`, `/imports/:jobId`, `/settings/integrations/:provider`. Build, redirect or remove each, and make SPEC §4.1 match. **`/guide` removed 2026-11-10 (Steve).** | `src/routes/*` importing `Placeholder` | Sure | S each | C | two left, ready |
 
 ### O: optimisation
@@ -289,6 +288,13 @@ Answer in this file, dated, and the items unblock.
 ## 6. Run log
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
+
+- **2026-11-10, run 17 (unattended; a normal pick).** Ground: `main` at `78adf45`, CI green (Vercel not checked, Q13).
+  Re-checked B2 against the code: real (no `errorComponent` or `notFoundComponent` anywhere). Did it (class C), see §7.
+  Verified: lint, 288 tests, build and budget green (main chunk 618.8 kB, from 617.9), no fixture code in `dist/`; read in fixture mode on phone (light, dark) and desktop (light, dark): the
+  not-found page at a bad address, and the error page by forcing a throw in a route (reverted, not committed);
+  nothing wider than its screen, no page errors. Not checked: on a phone, a real chunk-load or Convex failure,
+  or what "Try again" does after a data error (it re-renders the route). Remaining safe supply: O1, U1, O3, U10, D12.
 
 - **2026-11-10, run 16 (unattended; a delight run).** Ground: `main` at `7932922`, CI green (Vercel not checked, Q13).
   Did D11 (class C), see §7. Verified: lint clean, 288 tests (3 new), build and budget green (main chunk 617.9 kB,
@@ -426,6 +432,8 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
 ## 7. Done and dropped
 
 Move items here with the date and the commit or the reason. Keep the id so old log entries still make sense.
+
+- **B2** Error and not-found screens. Done 2026-11-10 (run 17, class C): `src/components/placeholder/Lost.tsx`, set as the router's `defaultNotFoundComponent` ("Nothing filed here", back to the Desk) and `defaultErrorComponent` ("That page slipped", Try again and Back to the Desk), both inside the shell so the tab bar stays. A route's own `NotFoundBook` is unchanged.
 
 - **D11** Handwriting reveal. Done 2026-11-10 (run 16, class C): a note that lands on a book's page while it's open (an
   entry not in the list when it first showed, `landedSince` in `src/lib/newEntries.ts`) is written out left to right

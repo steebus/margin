@@ -7,6 +7,7 @@ import './styles/app.css'
 
 import { ConvexAuthProvider } from '@convex-dev/auth/react'
 import { createRouter, RouterProvider } from '@tanstack/react-router'
+import { ErrorPage, NotFoundPage } from './components/placeholder/Lost'
 import { ConvexReactClient } from 'convex/react'
 import { ConvexQueryCacheProvider } from 'convex-helpers/react/cache/provider'
 import { MotionConfig } from 'motion/react'
@@ -31,7 +32,12 @@ function Backend({ children }: { children: ReactNode }) {
 }
 
 const convex = FixtureBackend ? null : new ConvexReactClient(import.meta.env.VITE_CONVEX_URL as string)
-const router = createRouter({ routeTree, defaultViewTransition: true })
+const router = createRouter({
+  routeTree,
+  defaultViewTransition: true,
+  defaultNotFoundComponent: NotFoundPage,
+  defaultErrorComponent: ErrorPage,
+})
 
 declare module '@tanstack/react-router' {
   interface Register {
