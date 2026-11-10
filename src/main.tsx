@@ -1,5 +1,5 @@
 import '@fontsource/league-gothic/latin-400.css'
-import '@fontsource-variable/source-serif-4/index.css'
+import './styles/fonts.css'
 import '@fontsource/courier-prime/latin-400.css'
 import '@fontsource/kalam/latin-400.css'
 import './styles/tokens.css'

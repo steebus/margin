@@ -171,7 +171,6 @@ line numbers moving.
 | O1 | **The Desk downloads every note ever written** to show one toast and decide an empty state. `allEntries` returns the full text of every entry, and re-sends all of it whenever any entry changes. Give the Desk a small query (latest entry, a count, one random pick) and keep `allEntries` for Notes, the Drawer and the Pile. | `Desk.tsx` uses `useEntries`; `convex/library.ts` `allEntries` | Sure | M | B | ready |
 | O2 | **The offline copy is kept in localStorage,** which holds about 5 MB and is written synchronously on every live update. A few thousand highlights will pass that, and the write fails silently, so offline reading quietly stops working. Measure the real sizes first; if they're near, move the copies to IndexedDB. | `remember` in `src/lib/offline.ts` swallows the quota error | A risk, unmeasured | M | B | ready (measure first; needs Steve's numbers or E1) |
 | O3 | **Main chunk is 620 kB (194 kB gzip).** By source share it's roughly react-dom 30%, Motion 26%, zod 18%, convex 9%, Margin's own code 9% (rough: measured on source, not output). Candidates: Motion's `LazyMotion` with the `m` components; zod only where a route validates search params, or `zod/mini`; check the Desk's route isn't dragging other screens in. Measure each change against E4's baseline. | build output; source-map estimate 2026-11-10 | Sure of the size; gains unmeasured | M | A | ready |
-| O4 | **Fonts.** Five display faces for the Pile's spines are imported by the Desk's `RecentPile` too, and Source Serif ships Cyrillic, Greek and Vietnamese subsets into the precache (about 90 kB) for an English library. Import only the Latin subsets; keep the Pile faces out of first paint. | `RecentPile.tsx`, `Pile.tsx`, `main.tsx`; `dist/assets/*.woff2` | Sure | S | A | ready |
 | O5 | **`myBooks` re-sends the whole library on any change to any read.** Fine at 600 books; watch it. If Shelves ever janks on a sync, split the hot fields (progress, status) from the cold ones. Measure before touching. | `convex/library.ts` `myBooks` | A watch item | L | B | ready (measure only) |
 | O6 | **Lighthouse pass** (PLAN Phase 7.3: 90+ for accessibility and performance on mobile; SPEC §6: LCP under 2.5 s on mid-range Android). Never run. Needs E1 to get past sign-in. | `PLAN.md` Phase 7 | n/a | M | A | ready |
 | O7 | **Tests run one worker per file.** Vitest reports about 1.75 s to save with `isolate: false`. Try it; keep it only if nothing leaks between files. | `npm test` output | Sure | S | A | ready |
@@ -266,6 +265,15 @@ Answer in this file, dated, and the items unblock.
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
 
+- **2026-11-10, run 11 (unattended; a normal pick).** Ground: `main` at `5666a35`, CI green (Vercel not checked, Q13).
+  Re-checked O4 against the code: half stale. The Pile faces are already Latin-only imports, and the Desk's
+  `RecentPile` really does draw spines with them, so keeping them out of first paint would change what the Desk
+  shows: dropped. The Source Serif half was real: done (class A), see §7. Verified: lint clean, 278 tests, build and
+  budget green (main chunk 617.9 kB, was 620.6), two Source Serif woff2 files in `dist/assets` instead of six, no
+  fixture code in `dist/`. Not checked: a screenshot (same Latin files, same face), or text in Cyrillic, Greek or
+  Vietnamese, which now falls back to Georgia. No theme-U browser pass again; run 12 is a delight run and should
+  start by reading four unread fixture screens. Vitest still says `isolate: false` saves ~2.1 s (O7).
+
 - **2026-11-10, after run 10 (with Steve).** Answers recorded in §5: hourly stays, CI alone checks the deploy, the
   guide route is gone (file, route tree and SPEC §4.1 line), drawings dim and never invert (SPEC §3.11). Build green
   (`npm run build`); lint and tests also green.
@@ -356,6 +364,10 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
 ## 7. Done and dropped
 
 Move items here with the date and the commit or the reason. Keep the id so old log entries still make sense.
+
+- **O4** Fonts. Done 2026-11-10 (run 11, class A): `src/styles/fonts.css` declares Source Serif 4's Latin and Latin
+  Extended faces only (same files and ranges as the package), replacing its `index.css`; Cyrillic, Greek and
+  Vietnamese (~90 kB of precache) are gone. The Pile-faces half is dropped: already Latin-only, and the Desk uses them.
 
 - **B8** `sendOrKeep` late path could double a progress log. Done 2026-11-10 (run 9, class B): the kept copy is marked
   in flight until the original settles, so a replay skips it; if the original lands the copy is removed, if it fails
