@@ -33,7 +33,8 @@ Each run does one cycle, then stops. A run is small on purpose: one item, or two
 
 If nothing is `ready` and safe, the run only assesses, updates the plan, and says what it needs from Steve.
 
-**Schedule (Steve, 2026-11-10):** one agent every four hours, never two at once.
+**Schedule (Steve, 2026-11-10):** one agent every four hours, never two at once. *Run 10 found the job firing
+hourly (commits at :37 every hour from 09:37 to 15:37), not four-hourly: see Q12.*
 
 **Suggested instruction for the scheduled job:** "Read `docs/IMPROVEMENT-LOOP.md` in `steebus/margin` and do one
 run exactly as §1 describes, inside §2's limits. Finish by telling me what changed, what you verified and how,
@@ -254,6 +255,11 @@ Answer in this file, dated, and the items unblock.
 - Five tabs is right; the docs were brought into line (U8).
 
 **Open:**
+- **Q12.** (§1) The scheduled job fires every hour, not every four. Is hourly what you want? If not, the schedule
+  needs changing where the job is configured; a run can't change it.
+- **Q13.** (§1 step 2) Every run since run 2 says "Vercel not checked": the Vercel connector answers 403 for your
+  team (`steves-projects-d84d5e39`) until someone approves its access (`authorize_team_access`). Approve it once,
+  or tell me CI alone is enough for the deploy check.
 - **Q6.** (B6) The guide page: build it (the guide so far, cut at your place), or remove the route?
 - **Q10.** (U9) Should a drawing invert at night, as SPEC §3.11 says?
 - **Q11.** (E5, H10) Could you capture a few read-only Hardcover replies, and tag one real note there, so the
@@ -262,6 +268,18 @@ Answer in this file, dated, and the items unblock.
 ## 6. Run log
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
+
+- **2026-11-10, run 10 (unattended; the review of the loop, §8).** Ground: `main` at `c9ba531`, CI green; Vercel
+  unreachable (403, see Q13). Docs only (class A), so lint, tests and build were not rerun. Findings:
+  (1) the job runs hourly, not four-hourly (Q12): nine runs in seven hours, so the "one commit a day of class D"
+  and "every fourth run" counts pass quickly; (2) there are no pull requests, so §8's "share merged unchanged"
+  can't be measured; every run's commit is on `main` and none has been reverted or edited by hand since (git log),
+  so the proxy used now is reverts and hand-edits of loop commits; (3) the scoring picks small safe items and the
+  theme-U assessment has slipped five runs running because it needs a browser pass: from now on the assessment
+  step is **run `fixture-shots.mjs` and read at least four screens not yet read**, and runs 2 to 9 only ever
+  read four; (4) every `ready` item left in H is class D (one per day, never two in a row) or C, so after B8 the
+  safe supply is O1, O4, O7, B7 and U1: pick from those until Steve answers Q6/Q10/Q11. Changed: schedule note,
+  Q12, Q13. Not changed: §2's limits, the scoring. Next run (11th) is a normal pick; the 12th is a delight run.
 
 - **2026-11-10, run 9 (unattended).** Ground: `main` at `01bdef6`, CI green (Vercel not checked: no deploy status
   reachable from here). Re-checked B8 against the code: real. Did it (class B), see §7. Verified: the two tests that
@@ -380,6 +398,6 @@ The plan is part of the work, and a run may improve it as well as follow it.
   ones. If this file passes about 400 lines, the next run's job is pruning it.
 - **Learned rules go in `CLAUDE.md`,** not here, when they'd save any future session a mistake (a gotcha in the
   build, a thing that looks broken and isn't).
-- **Every tenth run is a review of the loop itself:** what share of pull requests Steve merged unchanged, which
-  kind were rejected and why, whether the scoring is picking what he'd pick. Change §1 to §3 to fit, and say
+- **Every tenth run is a review of the loop itself:** what share of runs' commits Steve left alone (there are no
+  pull requests: count reverts and hand-edits of loop commits), which kind were undone and why, whether the scoring is picking what he'd pick. Change §1 to §3 to fit, and say
   what changed in the log.
