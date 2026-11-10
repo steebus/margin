@@ -208,7 +208,6 @@ Every item here is class C unless it's a plain bug. Look at each in fixture mode
 |---|---|---|---|---|
 | ~~U9~~ | **Closed 2026-11-10 (Steve: dim, don't invert; SPEC §3.11 corrected).** ~~Drawings in the dark theme.~~ In fixture mode a book with a drawing shows as a pale panel with black ink on Shelves at night, where SPEC §3.11 says `invert` plus `screen`. It may be the stand-in art (an SVG, not a WebP), a decision since the spec, or a bug. Check with Steve's eyes on a real drawing before touching it. | `fixture-shots/shelves.phone.dark.png` | S | closed |
 | U10 | **Disabled "Save excerpt" is grey on grey** on Capture (light theme), low contrast against the page; check it reaches AA or reads as disabled without losing the label. Part of U1's contrast pass. | `capture.phone.light.png` | S | ready |
-| U11 | **Review's Hardcover matches:** the radio dots differ in size and the selected row's text is indented differently from the others, so the list looks uneven. | `review.phone.dark.png` | S | ready |
 | U1 | **An accessibility sweep, one surface per run:** focus order and visible focus, names on icon buttons, contrast in both themes (WCAG AA is a brand commitment), 48dp targets, nothing hover-only, toasts announced once. Start with the Desk and the book page. | `PRODUCT.md` Accessibility; never audited | M each | ready |
 | ~~U2~~ | **Dropped 2026-11-10 (Steve doesn't want motion reduced).** ~~A reduced-motion sweep.~~ Nine places mention reduced motion; `PLAN.md` wants a designed path for every animation. List every animation, tick the ones with a designed still version, fix the rest. | `grep prefers-reduced-motion` | M | ready |
 | U3 | **Loading and empty states.** Several screens show a bare "Opening…" line. DESIGN-DIRECTION asks for "something small and alive". Design one empty state and one loading state and use them everywhere. | `Desk.tsx`, `__root.tsx` | M | ready |
@@ -291,6 +290,12 @@ Answer in this file, dated, and the items unblock.
 ## 6. Run log
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
+
+- **2026-11-10, run 15 (unattended; a normal pick).** Ground: `main` at `abe50bf`, CI green (Vercel not checked, Q13).
+  Assessed Capture, Review, Explore and Stats by reading fixture shots (phone and desktop, light and dark; 16 shots,
+  nothing wider than its screen, no errors); U10 and U11 re-confirmed, nothing new. Did U11 (class C), see §7: a
+  one-line CSS fix, read before and after on Review (phone dark, desktop light). Not checked: the other three radio
+  lists (same class, same fix) by eye, or on a phone. Remaining safe supply: O1, U1, O3, U10. Run 16 is a delight run.
 
 - **2026-11-11 (with Steve).** Did E5 (class A), see §7 and §1b: recorded real read-only Hardcover replies with
   `scripts/hardcover-record.mjs`, scrubbed, into `fixtures/hardcover/`, with a test. Q11 answered. Verified: lint,
@@ -415,6 +420,8 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
 ## 7. Done and dropped
 
 Move items here with the date and the commit or the reason. Keep the id so old log entries still make sense.
+
+- **U11** Uneven radio dots. Done 2026-11-10 (run 15, class C): `.check input` in `app.css` is `flex: none`, so a wrapped label no longer squeezes its radio or checkbox. Fixes Review's matches and the same list on Share, Add a book and the Kobo import.
 
 - **E5** Recorded Hardcover fixtures. Done 2026-11-11 (with Steve, class A): `fixtures/hardcover/*.json` from
   `scripts/hardcover-record.mjs`, tested by `convex/lib/hardcoverRecorded.test.ts`. How to use and re-record: §1b.
