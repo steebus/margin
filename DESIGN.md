@@ -196,7 +196,7 @@ The build also uses biro for the focus outline, text selection and caret. Those 
 
 ## Layout
 
-The page is one column at a 16px margin, up to 1240px wide, with focused pages (book, buddy, drawer) capped at 720px. Mobile keeps a fixed four-cell tab bar at the thumb. At 900px the tab bar moves to the top, the page margin grows to 32px, and the Desk splits 7fr to 5fr with the buddy's note in the right column.
+The page is one column at a 16px margin, up to 1240px wide, with focused pages (book, buddy, drawer) capped at 720px. Mobile keeps a fixed five-cell tab bar at the thumb. At 900px the tab bar moves to the top, the page margin grows to 32px, and the Desk splits 7fr to 5fr with the buddy's note in the right column.
 
 Spacing is tight and observed rather than tokenised in CSS: 4px within a group, 6px inside catalog cells, 10px between controls, 14px inside boxes, 16px between page blocks. Adjacent cells share one rule, using negative margins in the catalog and a left or top border in grouped controls.
 

@@ -96,7 +96,7 @@ itself.
      hold 60fps on a throttled CPU; render lines to canvas if the trace says otherwise.
 6. **Routes.**
    - The full route tree from SPEC §4.1 as placeholder sheets
-   - The bottom tab bar (Desk · Shelves · Capture · Explore)
+   - The bottom tab bar (Desk · Shelves · Notes · Explore · Capture; five since Notes took a tab)
    - Sheets as routes, closed with Back
    - View Transitions between routes, plus one shared-element demo (card →
      page)

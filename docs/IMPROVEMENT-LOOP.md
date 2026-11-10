@@ -194,7 +194,7 @@ Every item here is class C unless it's a plain bug. Look at each in fixture mode
 | U5 | **The Pile, as Steve left it:** thinner books; on a phone, unfurl summaries only in the middle; "not loving the book style". | `PLAN.md` Held for after the build | M | needs Steve (what style instead?) |
 | U6 | **Grouping note, quote and progress** as one action, since they're similar. | `PLAN.md` Held for after the build | M | needs Steve |
 | U7 | **Offline is invisible.** Nothing says "you're offline: showing your last visit" or "2 notes waiting to send". A small, quiet line when either is true. | `useOnline`, `deviceStore.all` exist; nothing renders them | S | ready |
-| U8 | **Five tabs where the design says four.** The bar is Desk, Shelves, Notes, Explore, Capture; DESIGN-DIRECTION and PLAN say Desk, Shelves, Capture, Explore. Either the doc or the bar is out of date. | `__root.tsx` `tabs` | S | needs Steve (which is right?) |
+| U8 | **Five tabs where the design said four.** Steve, 2026-11-10: five is right (Desk, Shelves, Notes, Explore, Capture). The brief, plan, spec and DESIGN.md now say so. | `__root.tsx` `tabs` | S | **done 2026-11-10** |
 
 ### D: surprise and delight
 
@@ -232,10 +232,10 @@ Answer in this file, dated, and the items unblock.
 - No one big annoyance right now, so §3's scoring decides.
 - Any field Hardcover supports goes back to it when changed in Margin (H9).
 - Books Hardcover lacks aren't needed (H14 dropped).
+- Five tabs is right; the docs were brought into line (U8).
 
 **Open:**
 - **Q6.** (B6) The guide page: build it (the guide so far, cut at your place), or remove the route?
-- **Q9.** (U8) The tab bar has five tabs; the design brief says four. Which is right?
 - **Q10.** (U9) Should a drawing invert at night, as SPEC §3.11 says?
 - **Q11.** (E5, H10) Could you capture a few read-only Hardcover replies, and tag one real note there, so the
   sync tests rest on real shapes?

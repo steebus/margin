@@ -100,7 +100,7 @@ Rules:
 
 ## Native feel on Android
 - Installed PWA, standalone display, themed status bar
-- Bottom tab bar: Desk · Shelves · Capture · Explore
+- Bottom tab bar: Desk · Shelves · Notes · Explore · Capture (Steve, 2026-11-10: five is right)
 - Sheet-style modals as routes, with a drag to dismiss and Back to close
 - Safe-area insets, 48dp targets, `navigator.vibrate` haptics on stamp,
   highlight and save

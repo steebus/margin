@@ -313,7 +313,7 @@ At the top are the books being read, each with its cover and progress: one is th
 current book and the others offer *Switch to*. Tapping a book opens its page. Under them are the quick actions for the
 current book, which every book's page also carries: *Log progress*, *Add excerpt*, *Add note*, *Talk*. Under them, the space
 for the **latest note** (the buddy's pending prompt if there is one,
-otherwise your most recent entry). The drawer has its own tab.
+otherwise your most recent entry). The tabs are Desk, Shelves, Notes, Explore and Capture; the drawer opens from Notes.
 
 ### 3.11 Cover art
 Every book's thumbnail is an engraved ink illustration with one bold subject from its world, not a copy of its cover.
@@ -568,7 +568,7 @@ At the top are the books being read, each with its cover and progress: one is th
 current book and the others offer *Switch to*. Tapping a book opens its page. Under them are the quick actions for the
 current book, which every book's page also carries: *Log progress*, *Add excerpt*, *Add note*, *Talk*. Under them, the space
 for the **latest note** (the buddy's pending prompt if there is one,
-otherwise your most recent entry). The drawer has its own tab.
+otherwise your most recent entry). The tabs are Desk, Shelves, Notes, Explore and Capture; the drawer opens from Notes.
 
 ### 3.11 Cover art
 Every book's thumbnail is an engraved ink illustration with one bold subject from its world, not a copy of its cover.
