@@ -43,7 +43,7 @@ export function parseNotesDoc(html: string): { title: string; volumeId: string |
     if (cells.length !== 3) continue
     const link = decode(/href="([^"]*)"/i.exec(cells[2])?.[1] ?? '')
     const inner = (() => { try { const u = new URL(link); return new URL(u.searchParams.get('q') ?? link) } catch { return null } })()
-    if (!inner || !/play\.google\.com$/.test(inner.hostname)) continue
+    if (!inner || !inner.hostname.endsWith('play.google.com')) continue
     volumeId ??= inner.searchParams.get('id')
     const pageText = /GBS\.PA(\d+)/.exec(inner.searchParams.get('pg') ?? '')?.[1] ?? text(cells[2])
     const page = /^\d+$/.test(pageText) ? Number(pageText) : null

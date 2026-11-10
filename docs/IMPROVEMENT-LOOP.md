@@ -130,7 +130,6 @@ line numbers moving.
 |---|---|---|---|---|---|
 | E1 | **A fixture mode for looking at the app.** No run can sign in, so no run can see a screen. A dev-only way to render routes on recorded, made-up library data (a fake `useBooks`/`useEntries`/`useActivity` source behind a `?fixture` flag or a `/__fixtures` route excluded from production builds) lets runs take screenshots, check overflow and reduced motion, and run Lighthouse. | `src/lib/offline.ts` is already the one place most screens get data | M | A | **done 2026-11-10**, see §1a |
 | E2 | **Screenshot and overflow check script** on top of E1: every route, two widths, two themes, saved as artifacts; fails on an element wider than the viewport (measure rects, as `CLAUDE.md` says, and scroll with the real wheel so lazy cells load). | `CLAUDE.md` notes on `overflow-x: clip` and lazy cells | M | A | **done 2026-11-10** as `scripts/fixture-shots.mjs`. Left: a production-mode fixture build for Lighthouse (O6) |
-| E3 | **Lint `convex/` and `scripts/` too.** `npm run lint` is `oxlint src`, so half the code is never linted. Fix what it finds in a separate commit. | `package.json` | S | A | ready |
 | E4 | **Bundle budget in CI.** Record the main chunk's size and fail the build if it grows more than 5% without the budget being raised on purpose. Baseline 2026-11-10: `index` 620 kB (194 kB gzip), precache 77 files, 1,439 kB. | `npm run build` output | S | A | ready |
 | E5 | **Recorded Hardcover fixtures.** `PLAN.md`'s risk table promises "recorded fixtures in tests" for Hardcover; the sync tests build their own replies by hand. Record the shapes of real read-only replies (scrubbed) so a schema change on Hardcover's side shows up as a failing test. Needs Steve to capture them once. | `convex/hardcoverSync.test.ts`, `PLAN.md` Risks | M | A | needs Steve |
 
@@ -244,6 +243,11 @@ Answer in this file, dated, and the items unblock.
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
 
+- **2026-11-10, run 2 (unattended).** Ground: `main` at `436f12c`, CI green. Did E3 (class A): lint now covers
+  `convex/` and `scripts/`; one warning fixed (`endsWith`, same behaviour). Verified: lint clean, 261 tests,
+  build green. Assessment (reading the run-1 shots, theme U) not done: this run had no browser pass, so **the
+  next run still starts there**. Pushed to the session branch `ccr-8f1e003b-tnfzh4`, not `main` (see report).
+
 - **2026-11-10, run 1 (fixture mode, with Steve).** Built E1 and most of E2: `fixtures/` (the made-up library and
   the generator that runs Margin's real queries over it), `src/fixtures/backend.tsx` (the stand-in client),
   `npm run fixtures`, `scripts/fixture-shots.mjs`. Checked: 116 shots (29 screens, two widths, two themes), no
@@ -262,7 +266,8 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
 
 Move items here with the date and the commit or the reason. Keep the id so old log entries still make sense.
 
-*(nothing yet)*
+- **E3** Lint `convex/` and `scripts/` too. Done 2026-11-10: `npm run lint` is now `oxlint src convex scripts`; the
+  one finding (a regex `$` in `convex/lib/playbooks.ts`) became `endsWith`. CI runs `npm run lint`, so it's covered.
 
 ## 8. Keeping this plan good
 
