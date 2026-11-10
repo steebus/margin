@@ -1,4 +1,3 @@
-import { useAuthActions } from '@convex-dev/auth/react'
 import { useAction, useConvex, useMutation } from 'convex/react'
 import { useQuery } from 'convex-helpers/react/cache/hooks'
 import { useState, type ReactNode } from 'react'
@@ -12,6 +11,7 @@ import { errorText } from '../../lib/books'
 import { download, toMarkdown } from '../../lib/export'
 import { forgetDevice } from '../../lib/offline'
 import { setTheme, useThemeChoice, type ThemeChoice } from '../../lib/theme'
+import { useAuthActions } from '../../lib/auth'
 
 function Account() {
   const viewer = useQuery(api.users.viewer)

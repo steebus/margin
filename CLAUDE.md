@@ -26,3 +26,7 @@ for an unattended run, are in `docs/IMPROVEMENT-LOOP.md`.
 - `GEMINI_API_KEY` lives in the gitignored `.env`. Never print it.
 - Offscreen cells only load when the browser renders frames. In automated checks
   scroll with the real wheel and force frames, or lazy covers look broken.
+- To look at the app without signing in: `npm run fixtures` serves it on a made-up library, and
+  `node scripts/fixture-shots.mjs` screenshots every screen (`docs/IMPROVEMENT-LOOP.md` §1a). A screen that needs
+  new data gets it in `fixtures/library.ts`; a new query gets a line in `fixtures/generate.test.ts`.
+- Don't cut animations or transitions back. Steve enjoys them.

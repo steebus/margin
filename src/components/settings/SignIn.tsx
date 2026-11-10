@@ -1,5 +1,5 @@
-import { useAuthActions } from '@convex-dev/auth/react'
 import { useState } from 'react'
+import { useAuthActions } from '../../lib/auth'
 
 export function SignIn() {
   const { signIn } = useAuthActions()

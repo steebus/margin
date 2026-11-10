@@ -6,3 +6,5 @@ dist
 .playwright-mcp
 /.impeccable/
 .superpowers/
+src/fixtures/data.json
+fixture-shots/
