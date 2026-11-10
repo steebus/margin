@@ -2,7 +2,7 @@ import { useConvex } from 'convex/react'
 import { useQuery } from 'convex-helpers/react/cache/hooks'
 import { useEffect, useState } from 'react'
 import { api } from '../../convex/_generated/api'
-import { replay } from './outbox'
+import { clearOutbox, replay } from './outbox'
 import { sayReplayFailure } from './quiet'
 
 // Versioned: an answer saved by an older build can lack fields this one reads, so a new shape gets a new key.
@@ -60,6 +60,7 @@ export const hasSavedSignIn = () => {
 export const forgetDevice = () => {
   memory.clear()
   for (const key of Object.values(KEYS)) localStorage.removeItem(key)
+  void clearOutbox().catch(() => { /* no IndexedDB: nothing was kept */ })
 }
 
 export function useOnline() {

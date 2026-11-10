@@ -159,8 +159,7 @@ line numbers moving.
 | Id | Item | Evidence | Sure? | Size | Class | Status |
 |---|---|---|---|---|---|---|
 | B2 | **No error or not-found screens.** No route has an `errorComponent` or `notFoundComponent`, so a thrown render error is a blank page and a bad address shows the router's default. Add one of each in the catalog's voice, with a way back to the Desk. | no matches for either in `src/` | Sure | S | C | ready |
-| B3 | **Signing out leaves queued writes behind.** `forgetDevice` clears the cached library but not the IndexedDB outbox, so writes queued under one sign-in replay under the next. One reader today, so harmless; wrong the day there are two. | `forgetDevice`, `deviceStore` | Sure | S | B | ready |
-| B4 | **A write can be sent twice.** `keepThenSend` stores then sends; if the connection flaps, `replay` can send the same stored write while the first is still in flight. Entries dedupe; progress gets two log rows, which doubles a step on the Desk chart. Hold a lock while replaying, or skip ids in flight. | `src/lib/outbox.ts` | Fairly sure | S | B | ready |
+| B8 | **`sendOrKeep` late path can double a progress log.** After 8 s it keeps a copy while the original send may still land; replay then sends it again. Entries dedupe, progress adds a second log row. Fix: register the kept id as in flight until the original settles, or drop the kept copy when it lands. | `src/lib/outbox.ts` `sendOrKeep` | Fairly sure | S | B | ready |
 | B6 | **Three routes are still placeholders:** `/books/:slug/guide`, `/imports/:jobId`, `/settings/integrations/:provider`. Build, redirect or remove each, and make SPEC §4.1 match. | `src/routes/*` importing `Placeholder` | Sure | S each | C | needs Steve (Q6) |
 | B7 | **Docs have drifted.** `SPEC.md` repeats §3.6 to §6 twice, and the first §3.6 says there is no Explore screen. `README.md` says the buddy and art are "still to come". SPEC §4 says `injectManifest` and a share-target POST handler; the build is `generateSW` with a GET share target. `PLAN.md`'s repo layout lists folders that don't exist. Bring them in line with what's built. | the files themselves | Sure | S | A | ready |
 
@@ -239,6 +238,14 @@ Answer in this file, dated, and the items unblock.
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
 
+- **2026-11-10, run 7 (unattended).** Ground: `main` at `73973ff`, CI green (Vercel not checked: no deploy status
+  reachable from here). Did B4 and B3 (class B, same file), see §7. Re-checked B4 against the code: real. Assessed
+  no new theme-U screens (no browser pass: the outbox fix is invisible), so U assessment continues next run, and
+  next run (8th) is a delight item (§3.4). Verified: the three new tests failed before the fix and pass after; lint
+  clean, 275 tests, build and budget green (main chunk 618.2 kB), no fixture code in `dist/`. Not checked: a real
+  flapping connection, or sign-out on a phone. Not covered: `sendOrKeep`'s "late" path can still land after its
+  copy was kept, so a slow write is sent twice (progress would log twice); entries dedupe, progress doesn't.
+
 - **2026-11-10, run 6 (unattended).** Ground: `main` at `ffd27d1`, CI green (Vercel not checked: no deploy status
   reachable from here). Assessed theme U at last, reading fixture shots of Desk, book, Shelves and Notes (phone and
   desktop, light and dark; 16 shots, nothing wider than its screen, no errors). Seen: on the phone Desk the progress
@@ -292,6 +299,11 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
 ## 7. Done and dropped
 
 Move items here with the date and the commit or the reason. Keep the id so old log entries still make sense.
+
+- **B4** A write sent twice. Done 2026-11-10 (run 7, class B): `outbox.ts` tracks ids being sent; `replay` skips them,
+  so a replay (or two at once) no longer re-sends a write `keepThenSend` still has in flight. The `sendOrKeep` late
+  path is separate and remains (see §6, run 7); file it as B8 if it matters.
+- **B3** Signing out leaves queued writes. Done 2026-11-10 (run 7, class B): `forgetDevice` calls `clearOutbox`.
 
 - **B5** `activity` read the clock. Done 2026-11-10 (run 6, class B): the query uses `windowEnd(since)` (start of
   tomorrow, `convex/lib/activity.ts`, tested) in place of `Date.now()`, so it is deterministic. Same totals: logs

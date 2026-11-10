@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { keepThenSend, replay, sendOrKeep, type Queued, type Store } from './outbox'
+import { clearOutbox, keepThenSend, replay, sendOrKeep, type Queued, type Store } from './outbox'
 
 const memory = (items: Queued[] = []): Store & { items: Queued[] } => ({
   items,
@@ -79,4 +79,32 @@ test('a refused replay tells the caller why, with the item', async () => {
   const heard: [string, unknown][] = []
   await replay(async () => { throw refusal }, store, (item, e) => heard.push([item.id, (e as { data: unknown }).data]))
   expect(heard).toEqual([['1', 'That book is gone.']])
+})
+
+test('a write still being sent is not sent a second time by a replay', async () => {
+  const store = memory()
+  let release: () => void = () => {}
+  const sent: string[] = []
+  const first = keepThenSend('logProgress', { pages: 10 }, () => new Promise<void>(resolve => { release = resolve }), store)
+  await new Promise(r => setTimeout(r, 0))
+  expect(store.items).toHaveLength(1)
+  await replay(async q => { sent.push(q.id) }, store)
+  expect(sent).toEqual([])
+  release()
+  await first
+  expect(store.items).toEqual([])
+})
+
+test('two replays at once send each waiting write once', async () => {
+  const store = memory([item('1'), item('2')])
+  const sent: string[] = []
+  const send = async (q: Queued) => { await new Promise(r => setTimeout(r, 1)); sent.push(q.id) }
+  await Promise.all([replay(send, store), replay(send, store)])
+  expect(sent).toEqual(['1', '2'])
+})
+
+test('forgetting the device empties the outbox', async () => {
+  const store = memory([item('1'), item('2')])
+  await clearOutbox(store)
+  expect(store.items).toEqual([])
 })

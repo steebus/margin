@@ -31,6 +31,14 @@ export const deviceStore: Store = {
   remove: async id => { await run('readwrite', s => s.delete(id)) },
 }
 
+/** Writes being sent right now, so a replay doesn't send the same stored write a second time. */
+const sending = new Set<string>()
+
+/** Empties the outbox: used when signing out, so one sign-in's writes never replay under the next. */
+export async function clearOutbox(store: Store = deviceStore) {
+  for (const queued of await store.all()) await store.remove(queued.id)
+}
+
 /** A refusal from the server is final: sending it again would only be refused again. A lost connection isn't. */
 const refused = (e: unknown) => (e as { data?: unknown })?.data !== undefined
 
@@ -39,12 +47,16 @@ export async function replay(send: (item: Queued) => Promise<unknown>, store: St
   const items = (await store.all()).sort((a, b) => a.id.localeCompare(b.id))
   const rejected: Queued[] = []
   for (const item of items) {
+    if (sending.has(item.id)) continue
+    sending.add(item.id)
     try {
       await send(item)
     } catch (e) {
       if (!refused(e)) break
       rejected.push(item)
       onRefused?.(item, e)
+    } finally {
+      sending.delete(item.id)
     }
     await store.remove(item.id)
   }
@@ -89,12 +101,17 @@ export async function sendOrKeep<T>(
 export async function keepThenSend(name: Queued['name'], args: Record<string, unknown>, send: () => Promise<unknown>, store: Store = deviceStore) {
   const id = `${Date.now().toString().padStart(15, '0')}-${Math.random().toString(36).slice(2)}`
   await store.put({ id, name, args }).catch(() => { /* no IndexedDB: it simply isn't kept */ })
+  sending.add(id)
   try {
-    await send()
-  } catch (e) {
-    if (!refused(e)) return // kept, so it goes on the next replay
+    try {
+      await send()
+    } catch (e) {
+      if (!refused(e)) return // kept, so it goes on the next replay
+      await store.remove(id).catch(() => {})
+      throw e
+    }
     await store.remove(id).catch(() => {})
-    throw e
+  } finally {
+    sending.delete(id)
   }
-  await store.remove(id).catch(() => {})
 }
