@@ -199,7 +199,7 @@ never in the way": nothing here may add a tap or delay an input. Every fourth ru
 | Id | Item | Notes | Size | Status |
 |---|---|---|---|---|
 | D1 | **Check the motion table.** Audit done 2026-11-10 (run 8), see the table below. Build the missing moments one at a time, cheapest first (D10 to D16). | `docs/DESIGN-DIRECTION.md` Motion table | S each | audit **done**; builds ready |
-| D10 | **Highlighter dries.** The mustard swipe on a marked line should follow the finger, then desaturate a touch. Neither exists: the highlight in the margin block (`app.css` ~523) is static. Cheapest: a one-off colour transition on first render. | `app.css` "In the margin on its book's page" | S | ready |
+| D10 | ~~**Highlighter dries.** The mustard swipe on a marked line should follow the finger, then desaturate a touch. Neither exists: the highlight in the margin block (`app.css` ~523) is static. Cheapest: a one-off colour transition on first render.~~ | `app.css` "In the margin on its book's page" | S | **done 2026-11-10** (§7) |
 | D11 | **Handwriting reveal for new entries.** A clip-path sweep when a note first lands. Only the `pen` stroke-dashoffset exists, on the biro marks; notes appear at once. | `app.css` `pen`, `.mark path` | S | ready |
 | D12 | **Tags swing on their string** when added and flutter when filtered. No tag animation exists. | grep `swing`: no match | S | ready |
 | D13 | **Ribbon bookmark** drapes and sways; logging progress drags it down. There is no ribbon element at all (progress is a bar and a percentage, per the Fair-catalog section). Needs Steve: does the ribbon still belong? | no `ribbon` in `src/components` | S | needs Steve |
@@ -264,6 +264,13 @@ Answer in this file, dated, and the items unblock.
 ## 6. Run log
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
+
+- **2026-11-10, run 12 (unattended; a delight run).** Ground: `main` at `fd9ee84`, CI green (Vercel not checked, Q13).
+  Assessed by reading book, Desk, Shelves and Notes fixture shots (phone and desktop, light and dark; 16 shots,
+  nothing wider than its screen, no errors); nothing new to file. Did D10 (class C), see §7. Verified: lint clean, tests
+  and build and budget green (main chunk unchanged at 617.9 kB), no fixture code in `dist/`, settled highlight identical
+  to before in the shots. Not checked: the sweep itself in motion (shots capture the settled state), or on a phone.
+  Run 13 is a normal pick.
 
 - **2026-11-10, run 11 (unattended; a normal pick).** Ground: `main` at `5666a35`, CI green (Vercel not checked, Q13).
   Re-checked O4 against the code: half stale. The Pile faces are already Latin-only imports, and the Desk's
@@ -364,6 +371,10 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
 ## 7. Done and dropped
 
 Move items here with the date and the commit or the reason. Keep the id so old log entries still make sense.
+
+- **D10** Highlighter dries. Done 2026-11-10 (run 12, class C): a marked line on the book page sweeps in left to right
+  (1.1 s) wet, then dries to its old resting tint (`highlight-swipe`, a registered `--wet` property, `app.css`). Plays
+  once when the line first renders; one fragment per wrapped line.
 
 - **O4** Fonts. Done 2026-11-10 (run 11, class A): `src/styles/fonts.css` declares Source Serif 4's Latin and Latin
   Extended faces only (same files and ranges as the package), replacing its `index.css`; Cyrillic, Greek and

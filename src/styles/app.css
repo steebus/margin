@@ -521,7 +521,10 @@ td a { display: inline-flex; align-items: center; min-height: 44px; color: inher
   .book-page > .book-margin { grid-column: 1; grid-row: 4; }
 }
 /* In the margin on its book's page: lines in the book's serif under a highlighter, notes beside them in hand. */
-.book-margin .entries .book-voice { display: inline; font-size: 1.375rem; line-height: 1.5; background: linear-gradient(transparent 12%, color-mix(in srgb, var(--rule) 22%, transparent) 12% 88%, transparent 88%); box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+/* The highlighter swipes across the line, wet (strong), then dries to its resting tint. */
+@property --wet { syntax: '<percentage>'; inherits: false; initial-value: 22%; }
+@keyframes highlight-swipe { from { background-size: 0% 100%; --wet: 42%; } 45% { --wet: 42%; } to { background-size: 100% 100%; --wet: 22%; } }
+.book-margin .entries .book-voice { display: inline; font-size: 1.375rem; line-height: 1.5; background: linear-gradient(transparent 12%, color-mix(in srgb, var(--rule) var(--wet), transparent) 12% 88%, transparent 88%) no-repeat 0 0 / 100% 100%; animation: highlight-swipe 1.1s ease-out both; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
 .book-margin .entries .hand { font-size: 1.375rem; }
 .book-more { display: grid; border-top: var(--line) solid var(--ink); }
 .book-more > details { border-bottom: var(--line) solid var(--ink); }
