@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { Plus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useActivity, useBooks, useEntries, useWaiting } from '../../lib/offline'
-import { toastDue } from '../../lib/drawer-rules'
+import { onThisDay, toastDue, yearsAgoToday } from '../../lib/drawer-rules'
 import { Reflection } from '../book/Reflection'
 import { Card } from '../shelf/ReadingStrip'
 import { CountUp } from './CountUp'
@@ -47,7 +47,9 @@ export function Desk() {
   const [now] = useState(Date.now)
   const since = windowStart(now)
   const activity = useActivity(since)
-  const shown = entries?.length ? entries[Math.floor(pick * entries.length)] : undefined
+  // A note written on this date in an earlier year is offered in preference to a random one.
+  const anniversary = entries?.length ? onThisDay(entries, now, pick) : undefined
+  const shown = anniversary?.entry ?? (entries?.length ? entries[Math.floor(pick * entries.length)] : undefined)
 
   // Only once there's something in the drawer to offer.
   useEffect(() => {
@@ -133,7 +135,7 @@ export function Desk() {
             exit={{ y: 24, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 420, damping: 30 }}
           >
-            <p className="toast-head">From the drawer</p>
+            <p className="toast-head">{anniversary ? yearsAgoToday(anniversary.years) : 'From the drawer'}</p>
             <p className="book-voice">{shown!.text}</p>
             <div className="btn-row">
               {/* The note itself, in its book: the drawer only chose it. */}

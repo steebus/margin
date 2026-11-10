@@ -245,6 +245,12 @@ export async function seed(ctx: MutationCtx, now: number): Promise<Id<'users'>> 
     }
   }
 
+  // One underlined line was written on this very date two years ago, so the drawer's "years ago today" toast has something to show.
+  const twoYearsAgo = new Date(now)
+  twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2)
+  const anniversaryRead = reads.find(x => x.book.status === 'read')
+  if (anniversaryRead) await write(anniversaryRead, 'excerpt', 'The bread was still warm when she understood she would not be asked to stay.', twoYearsAgo.getTime(), { tags: ['memory'] })
+
   const byTitle = (title: string) => reads.find(x => x.book.title === title)!
 
   // One finished book has its reflection answered, and the latest finish is still waiting to be asked about.

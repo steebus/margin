@@ -203,7 +203,6 @@ never in the way": nothing here may add a tap or delay an input. Every fourth ru
 |---|---|---|---|---|
 | D1 | **Check the motion table.** DESIGN-DIRECTION lists twelve moments (ribbon, highlighter drying, handwriting reveal, tags swinging, spines leaning, the drawer's flick…). Mark which exist, and build the missing ones one at a time, cheapest first. | The audit itself is class A | S, then S each | ready |
 | D2 | **Shelf to book as one movement.** Only the router's default view transition is on. Name the thumbnail so it travels from the shelf cell to the book page header. | `main.tsx` `defaultViewTransition`; no `view-transition-name` on thumbs | M | ready |
-| D3 | **On this day.** The drawer's toast, when there's a note or a finished book from this date in an earlier year, says so: "Three years ago today you underlined this." | `drawer-rules.ts` already weights by age | S | ready |
 | D4 | **A year in the catalog.** A printable end-of-year sheet in the Fair-catalog look: the year's books as stamps, pages, the most-marked book, the line most returned to. December is close. | `stats.ts` has most of the numbers | L | needs Steve |
 | D5 | **Typewriter sound,** off by default, as the brief always described. | `Typewriter.tsx` has no audio | S | ready |
 | D6 | **Finishing a book** beyond the stamp: the library card gets its date stamp with the thunk and slight turn the brief describes, and the book walks to the Pile. | `a3985b8` added stamps; compare with the brief | M | ready |
@@ -242,6 +241,13 @@ Answer in this file, dated, and the items unblock.
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
 
+- **2026-11-10, run 4 (unattended; a delight run, §3.4).** Ground: `main` at `8294a89`, CI green. Did D3 (class C),
+  see §7. Verified: lint clean, 268 tests (3 new), build and budget green (main chunk unchanged); fixture-mode Desk
+  read by eye on phone and desktop, light and dark: the toast says "Two years ago today", fits the screen, no page
+  errors. Not checked: on Steve's real library (the toast shows weekly, so it appears on the first Desk open after
+  the deploy only if a note shares today's date). Assessment of the run-1 shots (theme U) **still not done**: the
+  next run starts there. `docs/IMPROVEMENT-LOOP.md` said `drawer-rules.ts` "weights by age"; it never did (fixed in §7).
+
 - **2026-11-10, run 3 (unattended).** Ground: `main` at `d272047`, CI green. Did E4 (class A): `npm run budget`
   (`scripts/bundle-budget.mjs`, rule in `src/lib/bundleBudget.ts` with tests, numbers in `bundle-budget.json`) runs
   in CI after the build and fails if the main chunk grows more than 5% over its recorded size, raw or gzip. Checked
@@ -277,6 +283,11 @@ Move items here with the date and the commit or the reason. Keep the id so old l
 
 - **E4** Bundle budget in CI. Done 2026-11-10: `npm run budget` after the build in CI. Baseline: `index` 620,585
   bytes raw, 192,100 gzip (level 9; Vite's report says 194 kB at its own level). Raise `bundle-budget.json` on purpose.
+
+- **D3** On this day. Done 2026-11-10 (run 4, class C): when the drawer's weekly toast is due and a note was written on
+  today's date in an earlier year, it shows that note headed "Three years ago today" (`onThisDay`, `yearsAgoToday` in
+  `src/lib/drawer-rules.ts`, tested). Otherwise it's the random note as before. Nothing added to tap or wait for. The
+  note's earlier-year match uses the reader's local calendar day. Fixtures hold one such line (two years ago today).
 
 ## 8. Keeping this plan good
 
