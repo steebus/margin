@@ -173,7 +173,6 @@ line numbers moving.
 | O3 | **Main chunk is 620 kB (194 kB gzip).** By source share it's roughly react-dom 30%, Motion 26%, zod 18%, convex 9%, Margin's own code 9% (rough: measured on source, not output). Candidates: Motion's `LazyMotion` with the `m` components; zod only where a route validates search params, or `zod/mini`; check the Desk's route isn't dragging other screens in. Measure each change against E4's baseline. | build output; source-map estimate 2026-11-10 | Sure of the size; gains unmeasured | M | A | ready |
 | O5 | **`myBooks` re-sends the whole library on any change to any read.** Fine at 600 books; watch it. If Shelves ever janks on a sync, split the hot fields (progress, status) from the cold ones. Measure before touching. | `convex/library.ts` `myBooks` | A watch item | L | B | ready (measure only) |
 | O6 | **Lighthouse pass** (PLAN Phase 7.3: 90+ for accessibility and performance on mobile; SPEC §6: LCP under 2.5 s on mid-range Android). Never run. Needs E1 to get past sign-in. | `PLAN.md` Phase 7 | n/a | M | A | ready |
-| O7 | **Tests run one worker per file.** Vitest reports about 1.75 s to save with `isolate: false`. Try it; keep it only if nothing leaks between files. | `npm test` output | Sure | S | A | ready |
 
 ### U: UI and UX
 
@@ -264,6 +263,12 @@ Answer in this file, dated, and the items unblock.
 ## 6. Run log
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
+
+- **2026-11-10, run 13 (unattended; a normal pick).** Ground: `main` at `1d5a6d1`, CI green (Vercel not checked, Q13).
+  Did O7 (class A), see §7. Verified: 278 tests pass with `isolate: false`, also with shuffled files and tests (3
+  runs) and with stubs undone per test; lint, build and budget green (main chunk 617.9 kB, unchanged). Wall time
+  about 5.6 s to 2.2-4.4 s. No browser pass this run (test config only), so theme U's four-unread-screens rule
+  carries to run 14. Remaining safe supply: O1, B7, U1 (O3 too). Run 14 is a normal pick.
 
 - **2026-11-10, run 12 (unattended; a delight run).** Ground: `main` at `fd9ee84`, CI green (Vercel not checked, Q13).
   Assessed by reading book, Desk, Shelves and Notes fixture shots (phone and desktop, light and dark; 16 shots,
@@ -371,6 +376,10 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
 ## 7. Done and dropped
 
 Move items here with the date and the commit or the reason. Keep the id so old log entries still make sense.
+
+- **O7** Tests share workers. Done 2026-11-10 (run 13, class A): `vitest.config.ts` sets `isolate: false`, with
+  `unstubGlobals` and `unstubEnvs` so a stub can't outlive its test. If a test starts failing only in the full run,
+  suspect state shared between files first.
 
 - **D10** Highlighter dries. Done 2026-11-10 (run 12, class C): a marked line on the book page sweeps in left to right
   (1.1 s) wet, then dries to its old resting tint (`highlight-swipe`, a registered `--wet` property, `app.css`). Plays
