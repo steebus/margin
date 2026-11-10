@@ -1,0 +1,30 @@
+{
+  "query": "query($id: Int!) { me { user_books(where: {id: {_eq: $id}}) { edition { pages audio_seconds } book { pages audio_seconds } user_book_reads(order_by: {id: desc}, limit: 1) { id finished_at } } } }",
+  "variables": {
+    "id": 1002
+  },
+  "data": {
+    "me": [
+      {
+        "user_books": [
+          {
+            "edition": {
+              "pages": null,
+              "audio_seconds": 189660
+            },
+            "book": {
+              "pages": 1276,
+              "audio_seconds": null
+            },
+            "user_book_reads": [
+              {
+                "id": 1003,
+                "finished_at": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

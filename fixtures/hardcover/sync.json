@@ -1,0 +1,812 @@
+{
+  "query": "query($since: timestamptz!, $sinceLocal: timestamp!, $u: Int!) {\n  me { user_books(where: {updated_at: {_gt: $since}}, limit: 100, order_by: {updated_at: asc}) { id status_id rating first_started_reading_date last_read_date date_added recommended_by owned review_raw reviewed_at\n    edition { id isbn_13 isbn_10 pages audio_seconds reading_format_id }\n    book { id title pages audio_seconds release_year cached_contributors cached_image cached_tags contributions(limit: 1) { author { gender_id location is_bipoc is_lgbtq } } }\n    user_book_reads(order_by: {id: desc}) { id progress progress_pages progress_seconds started_at finished_at }\n   } }\n  reading_journals(where: {user_id: {_eq: $u}, updated_at: {_gt: $sinceLocal}}, limit: 100, order_by: {updated_at: asc}) { id event entry metadata book_id action_at taggings { tag { tag } } }\n}",
+  "variables": {
+    "since": "2026-10-11T21:13:30.482Z",
+    "sinceLocal": "2026-10-11T21:13:30.482Z",
+    "u": 1000
+  },
+  "data": {
+    "me": [
+      {
+        "user_books": [
+          {
+            "id": 1034,
+            "status_id": 1,
+            "rating": null,
+            "first_started_reading_date": null,
+            "last_read_date": null,
+            "date_added": "2026-10-13",
+            "recommended_by": null,
+            "owned": false,
+            "review_raw": null,
+            "reviewed_at": null,
+            "edition": {
+              "id": 33122014,
+              "isbn_13": "9781035086955",
+              "isbn_10": "1035086956",
+              "pages": 415,
+              "audio_seconds": null,
+              "reading_format_id": 1
+            },
+            "book": {
+              "id": 2262423,
+              "title": "John of John",
+              "pages": 415,
+              "audio_seconds": null,
+              "release_year": 2026,
+              "cached_contributors": [
+                {
+                  "author": {
+                    "id": 247351,
+                    "slug": "douglas-stuart-1976",
+                    "name": "Douglas Stuart",
+                    "image": {
+                      "id": 5980363,
+                      "url": "https://assets.hardcover.app/author/247351/ab42529e-ffe1-429f-93ae-6e6ecc3fbb8e.jpg",
+                      "color": "#5e5e5e",
+                      "width": 2500,
+                      "height": 3333,
+                      "color_name": "Gray"
+                    }
+                  },
+                  "contribution": "Author",
+                  "contributor_role_id": 1,
+                  "contributor_specialization_id": null,
+                  "contributor_role_name": "Author",
+                  "contributor_specialization_name": null,
+                  "contributor_role_blurb": "The author of a written work.",
+                  "contributor_specialization_blurb": null,
+                  "primary": true
+                }
+              ],
+              "cached_image": {
+                "id": 7719188,
+                "url": "https://assets.hardcover.app/edition/33122014/358d622b-ce72-4ef6-ad04-2adb65aedd7d.jpg",
+                "color": "#ede6d0",
+                "width": 780,
+                "height": 1200,
+                "color_name": "Beige"
+              },
+              "cached_tags": {
+                "Tag": [
+                  {
+                    "tag": "gay",
+                    "count": 1,
+                    "tagSlug": "gay",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Dysfunctional family",
+                    "count": 1,
+                    "tagSlug": "dysfunctional-family",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Fathers and sons",
+                    "count": 1,
+                    "tagSlug": "fathers-and-sons-17127472-8f30-41bf-aad9-2d3f37caee67",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "bookclub",
+                    "count": 1,
+                    "tagSlug": "bookclub",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "QLL",
+                    "count": 1,
+                    "tagSlug": "qll",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  }
+                ],
+                "Mood": [
+                  {
+                    "tag": "emotional",
+                    "count": 2,
+                    "tagSlug": "emotional",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "reflective",
+                    "count": 1,
+                    "tagSlug": "reflective",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "sad",
+                    "count": 1,
+                    "tagSlug": "sad",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "hopeful",
+                    "count": 1,
+                    "tagSlug": "hopeful",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "challenging",
+                    "count": 1,
+                    "tagSlug": "challenging",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "dark",
+                    "count": 1,
+                    "tagSlug": "dark",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  }
+                ],
+                "Genre": [
+                  {
+                    "tag": "LGBTQ",
+                    "count": 2,
+                    "tagSlug": "lgbtq",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Coming of Age",
+                    "count": 1,
+                    "tagSlug": "coming-of-age-7a8c5a5e-b98b-4589-bc26-4be18a640ecd",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Family Drama",
+                    "count": 1,
+                    "tagSlug": "family-drama-0c7be48b-6148-4926-b707-fafaf31de19c",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  }
+                ],
+                "Group": [],
+                "Content Warning": [
+                  {
+                    "tag": "Alcoholism",
+                    "count": 1,
+                    "tagSlug": "alcoholism",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Death",
+                    "count": 1,
+                    "tagSlug": "death",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Sexual content",
+                    "count": 1,
+                    "tagSlug": "sexual-content",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Domestic abuse",
+                    "count": 1,
+                    "tagSlug": "domestic-abuse",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Homophobia",
+                    "count": 1,
+                    "tagSlug": "homophobia",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Religious Bigotry",
+                    "count": 1,
+                    "tagSlug": "religious-bigotry",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  }
+                ]
+              },
+              "contributions": [
+                {
+                  "author": {
+                    "gender_id": 1,
+                    "location": "New York City, NY",
+                    "is_bipoc": null,
+                    "is_lgbtq": null
+                  }
+                }
+              ]
+            },
+            "user_book_reads": []
+          },
+          {
+            "id": 1035,
+            "status_id": 1,
+            "rating": null,
+            "first_started_reading_date": null,
+            "last_read_date": null,
+            "date_added": "2026-10-15",
+            "recommended_by": null,
+            "owned": false,
+            "review_raw": null,
+            "reviewed_at": null,
+            "edition": {
+              "id": 33121271,
+              "isbn_13": "9781784746643",
+              "isbn_10": "1784746649",
+              "pages": 352,
+              "audio_seconds": null,
+              "reading_format_id": 1
+            },
+            "book": {
+              "id": 2569242,
+              "title": "Switzy",
+              "pages": 352,
+              "audio_seconds": null,
+              "release_year": 2026,
+              "cached_contributors": [
+                {
+                  "author": {
+                    "id": 135092,
+                    "slug": "emma-cline",
+                    "name": "Emma Cline",
+                    "image": {
+                      "id": 7719233,
+                      "url": "https://assets.hardcover.app/author/135092/e9277b27-6b77-4f4d-bd3e-fbbbbaba90d1.png",
+                      "color": "#898770",
+                      "width": 651,
+                      "height": 869,
+                      "color_name": "Gray"
+                    }
+                  },
+                  "contribution": "Author",
+                  "contributor_role_id": 1,
+                  "contributor_specialization_id": null,
+                  "contributor_role_name": "Author",
+                  "contributor_specialization_name": null,
+                  "contributor_role_blurb": "The author of a written work.",
+                  "contributor_specialization_blurb": null,
+                  "primary": true
+                }
+              ],
+              "cached_image": {
+                "id": 7719116,
+                "url": "https://assets.hardcover.app/edition/33121271/6b6425ea-9f95-4265-89de-039ab98ce04b.jpg",
+                "color": "#9a1103",
+                "width": 746,
+                "height": 1200,
+                "color_name": "Brown"
+              },
+              "cached_tags": {
+                "Tag": [
+                  {
+                    "tag": "Character driven",
+                    "count": 1,
+                    "tagSlug": "character-driven-93bc26e1-5a51-45d4-854b-c94b6a16141a",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Unloveable Characters",
+                    "count": 1,
+                    "tagSlug": "unloveable-characters",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Not Diverse Characters",
+                    "count": 1,
+                    "tagSlug": "not-diverse-characters",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Weak Character Development",
+                    "count": 1,
+                    "tagSlug": "weak-character-development",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  }
+                ],
+                "Mood": [
+                  {
+                    "tag": "reflective",
+                    "count": 1,
+                    "tagSlug": "reflective",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "emotional",
+                    "count": 1,
+                    "tagSlug": "emotional",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "sad",
+                    "count": 1,
+                    "tagSlug": "sad",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "dark",
+                    "count": 1,
+                    "tagSlug": "dark",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  }
+                ],
+                "Genre": [
+                  {
+                    "tag": "Psychological",
+                    "count": 1,
+                    "tagSlug": "psychological-067ea4fe-3b93-4ea9-95cd-7078461b2102",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Literary Fiction",
+                    "count": 1,
+                    "tagSlug": "literary-fiction",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  }
+                ],
+                "Group": [],
+                "Content Warning": []
+              },
+              "contributions": [
+                {
+                  "author": {
+                    "gender_id": 2,
+                    "location": null,
+                    "is_bipoc": null,
+                    "is_lgbtq": null
+                  }
+                }
+              ]
+            },
+            "user_book_reads": []
+          },
+          {
+            "id": 1036,
+            "status_id": 1,
+            "rating": null,
+            "first_started_reading_date": null,
+            "last_read_date": null,
+            "date_added": "2017-05-10",
+            "recommended_by": null,
+            "owned": true,
+            "review_raw": "",
+            "reviewed_at": null,
+            "edition": {
+              "id": 30737444,
+              "isbn_13": "9781789430059",
+              "isbn_10": "1789430062",
+              "pages": 48,
+              "audio_seconds": null,
+              "reading_format_id": 1
+            },
+            "book": {
+              "id": 80661,
+              "title": "The Art of War",
+              "pages": 240,
+              "audio_seconds": null,
+              "release_year": -500,
+              "cached_contributors": [
+                {
+                  "author": {
+                    "id": 226448,
+                    "slug": "sun-tzu",
+                    "name": "Sun Tzu",
+                    "image": {
+                      "id": 4892216,
+                      "url": "https://assets.hardcover.app/author/226448/9d11e15d-9d8f-4492-aa82-3a45285f46f0.jpg",
+                      "color": "#e0b892",
+                      "width": 276,
+                      "height": 300,
+                      "color_name": "Silver"
+                    }
+                  },
+                  "contribution": "Author",
+                  "contributor_role_id": 1,
+                  "contributor_specialization_id": null,
+                  "contributor_role_name": "Author",
+                  "contributor_specialization_name": null,
+                  "contributor_role_blurb": "The author of a written work.",
+                  "contributor_specialization_blurb": null,
+                  "primary": true
+                },
+                {
+                  "author": {
+                    "id": 161311,
+                    "slug": "thomas-cleary",
+                    "name": "Thomas Cleary",
+                    "image": {}
+                  },
+                  "contribution": "Translator",
+                  "contributor_role_id": 64,
+                  "contributor_specialization_id": null,
+                  "contributor_role_name": "Translator",
+                  "contributor_specialization_name": null,
+                  "contributor_role_blurb": "Renders written content from one language into another.",
+                  "contributor_specialization_blurb": null,
+                  "primary": true
+                }
+              ],
+              "cached_image": {
+                "id": 6863670,
+                "url": "https://assets.hardcover.app/edition/28837755/8846adff-8f6d-4180-91ad-008d735ea86e.jpg",
+                "color": "#9a8364",
+                "width": 1232,
+                "height": 2024,
+                "color_name": "Gray"
+              },
+              "cached_tags": {
+                "Tag": [
+                  {
+                    "tag": "philosophy",
+                    "count": 2,
+                    "tagSlug": "philosophy-61d656d4-850b-4d26-bc05-ae8917c64ccd",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "History",
+                    "count": 1,
+                    "tagSlug": "history-b2719445-97dd-4c93-9755-76f70b8a8be2",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Military",
+                    "count": 1,
+                    "tagSlug": "military-38e32ee1-d3ca-48e6-8d72-1aed153988f0",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Strategy",
+                    "count": 1,
+                    "tagSlug": "strategy-780221ef-884c-451d-8721-c41a885415c4",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Eastern",
+                    "count": 1,
+                    "tagSlug": "eastern-64205ad9-a091-4af7-a39e-9b02ecb093f9",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Business & Economics",
+                    "count": 1,
+                    "tagSlug": "business-economics-f7ec8d88-d38a-428a-89f3-7c924bd85404",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "leadership",
+                    "count": 1,
+                    "tagSlug": "leadership",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "libby",
+                    "count": 1,
+                    "tagSlug": "libby",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Bisnis & Karier",
+                    "count": 1,
+                    "tagSlug": "bisnis-and-karier-92c3a902-c03e-4f3c-9cab-65d989acdbe6",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "to-read audiobook",
+                    "count": 1,
+                    "tagSlug": "to-read-audiobook",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  }
+                ],
+                "Mood": [
+                  {
+                    "tag": "informative",
+                    "count": 12,
+                    "tagSlug": "informative",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "reflective",
+                    "count": 5,
+                    "tagSlug": "reflective",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "inspiring",
+                    "count": 5,
+                    "tagSlug": "inspiring",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "educational",
+                    "count": 1,
+                    "tagSlug": "educational",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  }
+                ],
+                "Genre": [
+                  {
+                    "tag": "Classics",
+                    "count": 6,
+                    "tagSlug": "classics",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "History",
+                    "count": 4,
+                    "tagSlug": "history",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Business & Careers",
+                    "count": 2,
+                    "tagSlug": "business-careers",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Literature & Fiction",
+                    "count": 2,
+                    "tagSlug": "literature-fiction",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Philosophy",
+                    "count": 2,
+                    "tagSlug": "philosophy",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Politics & Social Sciences",
+                    "count": 2,
+                    "tagSlug": "politics-social-sciences",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Self-Help",
+                    "count": 2,
+                    "tagSlug": "self-help-e026dece-d926-4e01-9480-a316b3be0396",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Politics",
+                    "count": 2,
+                    "tagSlug": "politics",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Religion",
+                    "count": 1,
+                    "tagSlug": "religion",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Literature",
+                    "count": 1,
+                    "tagSlug": "literature",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  }
+                ],
+                "Group": [],
+                "Content Warning": [
+                  {
+                    "tag": "Violence",
+                    "count": 2,
+                    "tagSlug": "violence",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Death",
+                    "count": 1,
+                    "tagSlug": "death",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "War",
+                    "count": 1,
+                    "tagSlug": "war",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  }
+                ]
+              },
+              "contributions": [
+                {
+                  "author": {
+                    "gender_id": 1,
+                    "location": "Qi (modern Shandong province, China) — historical/ancient figure",
+                    "is_bipoc": true,
+                    "is_lgbtq": null
+                  }
+                }
+              ]
+            },
+            "user_book_reads": []
+          }
+        ]
+      }
+    ],
+    "reading_journals": [
+      {
+        "id": 1037,
+        "event": "progress_updated",
+        "entry": null,
+        "metadata": {
+          "progress": 46,
+          "pages_delta": 20,
+          "progress_was": 42,
+          "percent_delta": 4,
+          "seconds_delta": 0,
+          "progress_pages": 204,
+          "progress_seconds": null,
+          "user_book_read_id": 1038,
+          "progress_pages_was": 184,
+          "progress_seconds_was": null
+        },
+        "book_id": 482996,
+        "action_at": "2026-10-12T02:11:49.081+00:00",
+        "taggings": []
+      },
+      {
+        "id": 1039,
+        "event": "progress_updated",
+        "entry": null,
+        "metadata": {
+          "progress": 74,
+          "pages_delta": 0,
+          "progress_was": 70,
+          "percent_delta": 4,
+          "seconds_delta": 3600,
+          "progress_pages": null,
+          "progress_seconds": 68400,
+          "user_book_read_id": 1040,
+          "progress_pages_was": null,
+          "progress_seconds_was": 64800
+        },
+        "book_id": 338117,
+        "action_at": "2026-10-12T02:12:02.809+00:00",
+        "taggings": []
+      },
+      {
+        "id": 1041,
+        "event": "status_want_to_read",
+        "entry": null,
+        "metadata": {},
+        "book_id": 2262423,
+        "action_at": "2026-10-12T14:00:00+00:00",
+        "taggings": []
+      },
+      {
+        "id": 1042,
+        "event": "list_book",
+        "entry": null,
+        "metadata": {
+          "slug": "own",
+          "list_id": 1043,
+          "username": "reader",
+          "list_name": "A list"
+        },
+        "book_id": 2262423,
+        "action_at": "2026-10-13T07:10:05.177973+00:00",
+        "taggings": []
+      },
+      {
+        "id": 1044,
+        "event": "list_book",
+        "entry": null,
+        "metadata": {
+          "slug": "owned",
+          "list_id": 1045,
+          "username": "reader",
+          "list_name": "A list"
+        },
+        "book_id": 2262423,
+        "action_at": "2026-10-13T07:10:06.874724+00:00",
+        "taggings": []
+      }
+    ]
+  }
+}

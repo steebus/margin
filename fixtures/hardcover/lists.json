@@ -1,0 +1,57 @@
+{
+  "query": "{ me { lists(limit: 100) { id name slug list_books(limit: 2000) { book_id } } } }",
+  "variables": {},
+  "data": {
+    "me": [
+      {
+        "lists": [
+          {
+            "id": 1046,
+            "name": "List 1",
+            "slug": "list-1",
+            "list_books": [
+              {
+                "book_id": 377505
+              },
+              {
+                "book_id": 427517
+              },
+              {
+                "book_id": 427723
+              },
+              {
+                "book_id": 430657
+              },
+              {
+                "book_id": 441336
+              }
+            ]
+          },
+          {
+            "id": 1047,
+            "name": "List 2",
+            "slug": "list-2",
+            "list_books": [
+              {
+                "book_id": 1248670
+              }
+            ]
+          },
+          {
+            "id": 1048,
+            "name": "List 3",
+            "slug": "list-3",
+            "list_books": [
+              {
+                "book_id": 447203
+              },
+              {
+                "book_id": 627388
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

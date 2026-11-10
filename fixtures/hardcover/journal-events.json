@@ -1,0 +1,99 @@
+{
+  "query": "query($u: Int!) { reading_journals(where: {user_id: {_eq: $u}}, limit: 500, order_by: {id: desc}) { id event entry metadata book_id action_at taggings { tag { tag } } } }",
+  "variables": {
+    "u": 1000
+  },
+  "data": {
+    "reading_journals": [
+      {
+        "id": 1026,
+        "event": "progress_updated",
+        "entry": null,
+        "metadata": {
+          "source": "completion",
+          "progress": 100,
+          "pages_delta": 320,
+          "progress_was": 0,
+          "percent_delta": 100,
+          "seconds_delta": 0,
+          "progress_pages": 320,
+          "progress_seconds": null,
+          "user_book_read_id": 1027,
+          "progress_pages_was": null,
+          "progress_seconds_was": null,
+          "completion_pages_delta": 320,
+          "completion_seconds_delta": 0
+        },
+        "book_id": 370837,
+        "action_at": "2026-11-05T10:01:26.989501+00:00",
+        "taggings": []
+      },
+      {
+        "id": 1028,
+        "event": "user_book_read_started",
+        "entry": null,
+        "metadata": {
+          "started_at": "2026-11-08",
+          "user_book_read_id": 1029
+        },
+        "book_id": 473869,
+        "action_at": "2026-11-07T14:00:00+00:00",
+        "taggings": []
+      },
+      {
+        "id": 1030,
+        "event": "status_want_to_read",
+        "entry": null,
+        "metadata": {},
+        "book_id": 511650,
+        "action_at": "2026-11-07T14:00:00+00:00",
+        "taggings": []
+      },
+      {
+        "id": 1031,
+        "event": "user_book_read_finished",
+        "entry": null,
+        "metadata": {
+          "started_at": "2006-11-10",
+          "finished_at": "2006-11-19",
+          "user_book_read_id": 1027
+        },
+        "book_id": 370837,
+        "action_at": "2006-11-19T13:59:59.999999+00:00",
+        "taggings": []
+      },
+      {
+        "id": 1032,
+        "event": "quote",
+        "entry": "Scrubbed text, 115 characters long in the original.",
+        "metadata": {
+          "position": {
+            "type": "pages",
+            "value": 376,
+            "percent": null,
+            "possible": null
+          }
+        },
+        "book_id": 1819353,
+        "action_at": "2026-11-06T00:00:00+00:00",
+        "taggings": []
+      },
+      {
+        "id": 1033,
+        "event": "note",
+        "entry": "Scrubbed text, 986 characters long in the original.",
+        "metadata": {
+          "position": {
+            "type": "pages",
+            "value": 270,
+            "percent": null,
+            "possible": null
+          }
+        },
+        "book_id": 375634,
+        "action_at": "2019-02-11T00:00:00+00:00",
+        "taggings": []
+      }
+    ]
+  }
+}

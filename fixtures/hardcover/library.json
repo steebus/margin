@@ -1,0 +1,3653 @@
+{
+  "query": "query Library($limit: Int!, $offset: Int!) {\n  me { user_books(limit: $limit, offset: $offset, order_by: {id: asc}) {\n    id status_id rating first_started_reading_date last_read_date date_added recommended_by owned review_raw reviewed_at\n    edition { id isbn_13 isbn_10 pages audio_seconds reading_format_id }\n    book { id title pages audio_seconds release_year cached_contributors cached_image cached_tags contributions(limit: 1) { author { gender_id location is_bipoc is_lgbtq } } }\n    user_book_reads(order_by: {id: desc}) { id progress progress_pages progress_seconds started_at finished_at }\n  } }\n}",
+  "variables": {
+    "limit": 100,
+    "offset": 0
+  },
+  "data": {
+    "me": [
+      {
+        "user_books": [
+          {
+            "id": 1001,
+            "status_id": 1,
+            "rating": null,
+            "first_started_reading_date": null,
+            "last_read_date": null,
+            "date_added": "2020-09-17",
+            "recommended_by": null,
+            "owned": false,
+            "review_raw": "",
+            "reviewed_at": null,
+            "edition": {
+              "id": 28550547,
+              "isbn_13": "9780307476463",
+              "isbn_10": "0307476464",
+              "pages": 1184,
+              "audio_seconds": null,
+              "reading_format_id": 1
+            },
+            "book": {
+              "id": 427687,
+              "title": "1Q84",
+              "pages": 1184,
+              "audio_seconds": null,
+              "release_year": 2009,
+              "cached_contributors": [
+                {
+                  "author": {
+                    "id": 209137,
+                    "slug": "haruki-murakami",
+                    "name": "Haruki Murakami",
+                    "image": {
+                      "id": 1709616,
+                      "url": "https://assets.hardcover.app/author/209137/3202329615577719.jpg",
+                      "color": "#d8d8da",
+                      "width": 1704,
+                      "height": 1704,
+                      "color_name": "Pink"
+                    }
+                  },
+                  "contribution": "Author",
+                  "contributor_role_id": 1,
+                  "contributor_specialization_id": null,
+                  "contributor_role_name": "Author",
+                  "contributor_specialization_name": null,
+                  "contributor_role_blurb": "The author of a written work.",
+                  "contributor_specialization_blurb": null,
+                  "primary": true
+                },
+                {
+                  "author": {
+                    "id": 62160,
+                    "slug": "jay-rubin",
+                    "name": "Jay Rubin",
+                    "image": {
+                      "id": 1709622,
+                      "url": "https://assets.hardcover.app/author/62160/510124025343579.jpg",
+                      "color": "#74684f",
+                      "width": 400,
+                      "height": 400,
+                      "color_name": "Gray"
+                    }
+                  },
+                  "contribution": "Translator",
+                  "contributor_role_id": 64,
+                  "contributor_specialization_id": null,
+                  "contributor_role_name": "Translator",
+                  "contributor_specialization_name": null,
+                  "contributor_role_blurb": "Renders written content from one language into another.",
+                  "contributor_specialization_blurb": null,
+                  "primary": true
+                },
+                {
+                  "author": {
+                    "id": 251501,
+                    "slug": "philip-gabriel",
+                    "name": "Philip Gabriel",
+                    "image": {
+                      "id": 1709621,
+                      "url": "https://assets.hardcover.app/author/251501/1250185275283795.jpg",
+                      "color": "#67442a",
+                      "width": 479,
+                      "height": 488,
+                      "color_name": "Brown"
+                    }
+                  },
+                  "contribution": "Translator",
+                  "contributor_role_id": 64,
+                  "contributor_specialization_id": null,
+                  "contributor_role_name": "Translator",
+                  "contributor_specialization_name": null,
+                  "contributor_role_blurb": "Renders written content from one language into another.",
+                  "contributor_specialization_blurb": null,
+                  "primary": true
+                }
+              ],
+              "cached_image": {
+                "id": 1709665,
+                "url": "https://assets.hardcover.app/editions/28550547/2665591638920066.jpg",
+                "color": "#d9cac4",
+                "width": 779,
+                "height": 1200,
+                "color_name": "Silver"
+              },
+              "cached_tags": {
+                "Tag": [
+                  {
+                    "tag": "Not Diverse Characters",
+                    "count": 11,
+                    "tagSlug": "not-diverse-characters",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Strong Character Development",
+                    "count": 10,
+                    "tagSlug": "strong-character-development",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Unloveable Characters",
+                    "count": 10,
+                    "tagSlug": "unloveable-characters",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "A mix driven",
+                    "count": 10,
+                    "tagSlug": "a-mix-driven",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Weak Character Development",
+                    "count": 7,
+                    "tagSlug": "weak-character-development",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Loveable Characters",
+                    "count": 6,
+                    "tagSlug": "loveable-characters",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Diverse Characters",
+                    "count": 4,
+                    "tagSlug": "diverse-characters",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Character driven",
+                    "count": 4,
+                    "tagSlug": "character-driven-93bc26e1-5a51-45d4-854b-c94b6a16141a",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Plot driven",
+                    "count": 3,
+                    "tagSlug": "plot-driven",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "owned-epub",
+                    "count": 1,
+                    "tagSlug": "owned-epub",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  }
+                ],
+                "Mood": [
+                  {
+                    "tag": "mysterious",
+                    "count": 22,
+                    "tagSlug": "mysterious",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "reflective",
+                    "count": 12,
+                    "tagSlug": "reflective",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "dark",
+                    "count": 11,
+                    "tagSlug": "dark",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "challenging",
+                    "count": 9,
+                    "tagSlug": "challenging",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "emotional",
+                    "count": 8,
+                    "tagSlug": "emotional",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Adventurous",
+                    "count": 8,
+                    "tagSlug": "adventurous",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "tense",
+                    "count": 6,
+                    "tagSlug": "tense",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "sad",
+                    "count": 4,
+                    "tagSlug": "sad",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "inspiring",
+                    "count": 2,
+                    "tagSlug": "inspiring",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "funny",
+                    "count": 1,
+                    "tagSlug": "funny",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  }
+                ],
+                "Genre": [
+                  {
+                    "tag": "Fantasy",
+                    "count": 7,
+                    "tagSlug": "fantasy",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Dystopian",
+                    "count": 3,
+                    "tagSlug": "dystopian",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Science Fiction",
+                    "count": 3,
+                    "tagSlug": "science-fiction",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Magical Realism",
+                    "count": 7,
+                    "tagSlug": "magical-realism",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Romance",
+                    "count": 2,
+                    "tagSlug": "romance",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Genre Fiction",
+                    "count": 4,
+                    "tagSlug": "genre-fiction",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Literary",
+                    "count": 2,
+                    "tagSlug": "literary",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Literature & Fiction",
+                    "count": 3,
+                    "tagSlug": "literature-fiction",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  }
+                ],
+                "Group": [],
+                "Content Warning": [
+                  {
+                    "tag": "Sexual content",
+                    "count": 3,
+                    "tagSlug": "sexual-content",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Sexual violence",
+                    "count": 2,
+                    "tagSlug": "sexual-violence",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Adult/minor relationship",
+                    "count": 2,
+                    "tagSlug": "adult-minor-relationship",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Murder",
+                    "count": 2,
+                    "tagSlug": "murder",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Child abuse",
+                    "count": 2,
+                    "tagSlug": "child-abuse",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Sexual assault",
+                    "count": 2,
+                    "tagSlug": "sexual-assault",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Suicide attempt",
+                    "count": 2,
+                    "tagSlug": "suicide-attempt",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "confinement",
+                    "count": 1,
+                    "tagSlug": "confinement",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "bullying",
+                    "count": 1,
+                    "tagSlug": "bullying",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "misogyny",
+                    "count": 1,
+                    "tagSlug": "misogyny",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  }
+                ]
+              },
+              "contributions": [
+                {
+                  "author": {
+                    "gender_id": 1,
+                    "location": "Fushimi-ku, Kyoto, Japan",
+                    "is_bipoc": true,
+                    "is_lgbtq": false
+                  }
+                }
+              ]
+            },
+            "user_book_reads": []
+          },
+          {
+            "id": 1002,
+            "status_id": 2,
+            "rating": null,
+            "first_started_reading_date": "2026-11-09",
+            "last_read_date": null,
+            "date_added": "2020-09-27",
+            "recommended_by": null,
+            "owned": false,
+            "review_raw": "",
+            "reviewed_at": null,
+            "edition": {
+              "id": 31442448,
+              "isbn_13": "9789626341346",
+              "isbn_10": "9626341343",
+              "pages": null,
+              "audio_seconds": 189660,
+              "reading_format_id": 2
+            },
+            "book": {
+              "id": 473869,
+              "title": "The Count of Monte Cristo",
+              "pages": 1276,
+              "audio_seconds": null,
+              "release_year": 1846,
+              "cached_contributors": [
+                {
+                  "author": {
+                    "id": 104448,
+                    "slug": "alexandre-dumas",
+                    "name": "Alexandre Dumas",
+                    "image": {
+                      "id": 5488480,
+                      "url": "https://assets.hardcover.app/author/104448/872eea0e-a831-4bf1-a2c2-6d7047b3ec9a.jpg",
+                      "color": "#dec698",
+                      "width": 1010,
+                      "height": 1010,
+                      "color_name": "Silver"
+                    }
+                  },
+                  "contribution": "Author",
+                  "contributor_role_id": 1,
+                  "contributor_specialization_id": null,
+                  "contributor_role_name": "Author",
+                  "contributor_specialization_name": null,
+                  "contributor_role_blurb": "The author of a written work.",
+                  "contributor_specialization_blurb": null,
+                  "primary": true
+                },
+                {
+                  "author": {
+                    "id": 264462,
+                    "slug": "robin-buss",
+                    "name": "Robin Buss",
+                    "image": {}
+                  },
+                  "contribution": "Translator",
+                  "contributor_role_id": 64,
+                  "contributor_specialization_id": null,
+                  "contributor_role_name": "Translator",
+                  "contributor_specialization_name": null,
+                  "contributor_role_blurb": "Renders written content from one language into another.",
+                  "contributor_specialization_blurb": null,
+                  "primary": true
+                }
+              ],
+              "cached_image": {
+                "id": 3552191,
+                "url": "https://assets.hardcover.app/edition/22062767/3432f1033b04d23e47edea3a864bb956f3b6346e.jpeg",
+                "color": "#dbdbd9",
+                "width": 326,
+                "height": 500,
+                "color_name": "Beige"
+              },
+              "cached_tags": {
+                "Tag": [
+                  {
+                    "tag": "Strong Character Development",
+                    "count": 30,
+                    "tagSlug": "strong-character-development",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "A mix driven",
+                    "count": 19,
+                    "tagSlug": "a-mix-driven",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Loveable Characters",
+                    "count": 18,
+                    "tagSlug": "loveable-characters",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Not Diverse Characters",
+                    "count": 16,
+                    "tagSlug": "not-diverse-characters",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Diverse Characters",
+                    "count": 15,
+                    "tagSlug": "diverse-characters",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Unloveable Characters",
+                    "count": 13,
+                    "tagSlug": "unloveable-characters",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Character driven",
+                    "count": 7,
+                    "tagSlug": "character-driven-93bc26e1-5a51-45d4-854b-c94b6a16141a",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Plot driven",
+                    "count": 6,
+                    "tagSlug": "plot-driven",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "adventure",
+                    "count": 4,
+                    "tagSlug": "adventure-67f2b744-9030-48ee-a88d-0151361af733",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Weak Character Development",
+                    "count": 3,
+                    "tagSlug": "weak-character-development",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  }
+                ],
+                "Mood": [
+                  {
+                    "tag": "Adventurous",
+                    "count": 40,
+                    "tagSlug": "adventurous",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "mysterious",
+                    "count": 24,
+                    "tagSlug": "mysterious",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "tense",
+                    "count": 21,
+                    "tagSlug": "tense",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "dark",
+                    "count": 21,
+                    "tagSlug": "dark",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "emotional",
+                    "count": 19,
+                    "tagSlug": "emotional",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "reflective",
+                    "count": 15,
+                    "tagSlug": "reflective",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "sad",
+                    "count": 13,
+                    "tagSlug": "sad",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "challenging",
+                    "count": 13,
+                    "tagSlug": "challenging",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "inspiring",
+                    "count": 10,
+                    "tagSlug": "inspiring",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "hopeful",
+                    "count": 10,
+                    "tagSlug": "hopeful",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  }
+                ],
+                "Genre": [
+                  {
+                    "tag": "Classics",
+                    "count": 13,
+                    "tagSlug": "classics",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Historical Fiction",
+                    "count": 9,
+                    "tagSlug": "historical-fiction",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Adventure",
+                    "count": 6,
+                    "tagSlug": "adventure",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Literary Fiction",
+                    "count": 5,
+                    "tagSlug": "literary-fiction",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Romance",
+                    "count": 3,
+                    "tagSlug": "romance",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Historical",
+                    "count": 3,
+                    "tagSlug": "historical",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Literary",
+                    "count": 2,
+                    "tagSlug": "literary",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "General",
+                    "count": 2,
+                    "tagSlug": "general",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "French fiction",
+                    "count": 1,
+                    "tagSlug": "french-fiction",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Friendship",
+                    "count": 1,
+                    "tagSlug": "friendship",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  }
+                ],
+                "Group": [],
+                "Content Warning": [
+                  {
+                    "tag": "suicide",
+                    "count": 3,
+                    "tagSlug": "suicide",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Death",
+                    "count": 2,
+                    "tagSlug": "death",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Grief",
+                    "count": 1,
+                    "tagSlug": "grief",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Murder",
+                    "count": 1,
+                    "tagSlug": "murder",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "child death",
+                    "count": 1,
+                    "tagSlug": "child-death",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Slavery",
+                    "count": 1,
+                    "tagSlug": "slavery",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "suicidal thoughts",
+                    "count": 1,
+                    "tagSlug": "suicidal-thoughts",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Blood",
+                    "count": 1,
+                    "tagSlug": "blood",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "kidnapping",
+                    "count": 1,
+                    "tagSlug": "kidnapping",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Suicide attempt",
+                    "count": 1,
+                    "tagSlug": "suicide-attempt",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  }
+                ]
+              },
+              "contributions": [
+                {
+                  "author": {
+                    "gender_id": 1,
+                    "location": "",
+                    "is_bipoc": true,
+                    "is_lgbtq": false
+                  }
+                }
+              ]
+            },
+            "user_book_reads": [
+              {
+                "id": 1003,
+                "progress": 6.6434672571970905,
+                "progress_pages": null,
+                "progress_seconds": 12600,
+                "started_at": "2026-11-09",
+                "finished_at": null
+              }
+            ]
+          },
+          {
+            "id": 1004,
+            "status_id": 3,
+            "rating": 4,
+            "first_started_reading_date": null,
+            "last_read_date": "2020-03-28",
+            "date_added": "2020-02-18",
+            "recommended_by": null,
+            "owned": false,
+            "review_raw": "",
+            "reviewed_at": "2020-03-28T00:00:00",
+            "edition": {
+              "id": 12235756,
+              "isbn_13": "9789720033062",
+              "isbn_10": "9720033061",
+              "pages": 358,
+              "audio_seconds": null,
+              "reading_format_id": 1
+            },
+            "book": {
+              "id": 379760,
+              "title": "1984",
+              "pages": 336,
+              "audio_seconds": null,
+              "release_year": 1949,
+              "cached_contributors": [
+                {
+                  "author": {
+                    "id": 133899,
+                    "slug": "george-orwell",
+                    "name": "George Orwell",
+                    "image": {
+                      "id": 33249,
+                      "url": "https://assets.hardcover.app/authors/133899/9160343-L.jpg",
+                      "color": "#739594",
+                      "width": 500,
+                      "height": 281,
+                      "color_name": "Purple"
+                    }
+                  },
+                  "contribution": "Author",
+                  "contributor_role_id": 1,
+                  "contributor_specialization_id": null,
+                  "contributor_role_name": "Author",
+                  "contributor_specialization_name": null,
+                  "contributor_role_blurb": "The author of a written work.",
+                  "contributor_specialization_blurb": null,
+                  "primary": true
+                },
+                {
+                  "author": {
+                    "id": 263470,
+                    "slug": "peter-hobley-davison",
+                    "name": "Peter Hobley Davison",
+                    "image": {}
+                  },
+                  "contribution": "Foreword",
+                  "contributor_role_id": 146,
+                  "contributor_specialization_id": null,
+                  "contributor_role_name": "Foreword",
+                  "contributor_specialization_name": null,
+                  "contributor_role_blurb": "An introductory text that presents or endorses a work.",
+                  "contributor_specialization_blurb": null,
+                  "primary": false
+                },
+                {
+                  "author": {
+                    "id": 177510,
+                    "slug": "shepard-fairey",
+                    "name": "Shepard Fairey",
+                    "image": {}
+                  },
+                  "contribution": "Cover Artist",
+                  "contributor_role_id": 68,
+                  "contributor_specialization_id": null,
+                  "contributor_role_name": "Cover Artist",
+                  "contributor_specialization_name": null,
+                  "contributor_role_blurb": "Creates artwork used on a cover.",
+                  "contributor_specialization_blurb": null,
+                  "primary": false
+                }
+              ],
+              "cached_image": {
+                "id": 6820527,
+                "url": "https://assets.hardcover.app/edition/29258002/fb69559e-7c34-40cb-8518-3ef4898b830c.jpg",
+                "color": "#9f0204",
+                "width": 291,
+                "height": 475,
+                "color_name": "Purple"
+              },
+              "cached_tags": {
+                "Tag": [
+                  {
+                    "tag": "Unloveable Characters",
+                    "count": 117,
+                    "tagSlug": "unloveable-characters",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Not Diverse Characters",
+                    "count": 116,
+                    "tagSlug": "not-diverse-characters",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Strong Character Development",
+                    "count": 72,
+                    "tagSlug": "strong-character-development",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "A mix driven",
+                    "count": 72,
+                    "tagSlug": "a-mix-driven",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Weak Character Development",
+                    "count": 69,
+                    "tagSlug": "weak-character-development",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Character driven",
+                    "count": 37,
+                    "tagSlug": "character-driven-93bc26e1-5a51-45d4-854b-c94b6a16141a",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Plot driven",
+                    "count": 30,
+                    "tagSlug": "plot-driven",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Loveable Characters",
+                    "count": 20,
+                    "tagSlug": "loveable-characters",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Diverse Characters",
+                    "count": 13,
+                    "tagSlug": "diverse-characters",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "classics",
+                    "count": 9,
+                    "tagSlug": "classics-a6d38e19-11a4-42a5-8bd4-76960d21479d",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  }
+                ],
+                "Mood": [
+                  {
+                    "tag": "dark",
+                    "count": 149,
+                    "tagSlug": "dark",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "tense",
+                    "count": 111,
+                    "tagSlug": "tense",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "reflective",
+                    "count": 86,
+                    "tagSlug": "reflective",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "challenging",
+                    "count": 71,
+                    "tagSlug": "challenging",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "sad",
+                    "count": 66,
+                    "tagSlug": "sad",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "mysterious",
+                    "count": 47,
+                    "tagSlug": "mysterious",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "emotional",
+                    "count": 40,
+                    "tagSlug": "emotional",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "informative",
+                    "count": 19,
+                    "tagSlug": "informative",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Adventurous",
+                    "count": 7,
+                    "tagSlug": "adventurous",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "inspiring",
+                    "count": 5,
+                    "tagSlug": "inspiring",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  }
+                ],
+                "Genre": [
+                  {
+                    "tag": "Classics",
+                    "count": 29,
+                    "tagSlug": "classics",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Dystopian",
+                    "count": 36,
+                    "tagSlug": "dystopian",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  }
+                ],
+                "Group": [],
+                "Content Warning": [
+                  {
+                    "tag": "Torture",
+                    "count": 15,
+                    "tagSlug": "torture",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Violence",
+                    "count": 14,
+                    "tagSlug": "violence",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Sexual content",
+                    "count": 9,
+                    "tagSlug": "sexual-content",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "War",
+                    "count": 9,
+                    "tagSlug": "war",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "gaslighting",
+                    "count": 6,
+                    "tagSlug": "gaslighting",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "misogyny",
+                    "count": 6,
+                    "tagSlug": "misogyny",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Classism",
+                    "count": 5,
+                    "tagSlug": "classism",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "confinement",
+                    "count": 4,
+                    "tagSlug": "confinement",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "police brutality",
+                    "count": 4,
+                    "tagSlug": "police-brutality",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "sexism",
+                    "count": 4,
+                    "tagSlug": "sexism",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  }
+                ]
+              },
+              "contributions": [
+                {
+                  "author": {
+                    "gender_id": 1,
+                    "location": "",
+                    "is_bipoc": null,
+                    "is_lgbtq": null
+                  }
+                }
+              ]
+            },
+            "user_book_reads": [
+              {
+                "id": 1005,
+                "progress": null,
+                "progress_pages": null,
+                "progress_seconds": null,
+                "started_at": null,
+                "finished_at": "2020-03-28"
+              }
+            ]
+          },
+          {
+            "id": 1006,
+            "status_id": 4,
+            "rating": null,
+            "first_started_reading_date": "2026-05-31",
+            "last_read_date": null,
+            "date_added": "2025-10-13",
+            "recommended_by": null,
+            "owned": false,
+            "review_raw": "",
+            "reviewed_at": null,
+            "edition": {
+              "id": 30885739,
+              "isbn_13": "9780141035789",
+              "isbn_10": "0141035781",
+              "pages": 207,
+              "audio_seconds": null,
+              "reading_format_id": 1
+            },
+            "book": {
+              "id": 52273,
+              "title": "On Photography",
+              "pages": 207,
+              "audio_seconds": null,
+              "release_year": 1973,
+              "cached_contributors": [
+                {
+                  "author": {
+                    "id": 1354069,
+                    "slug": "susan-sontag",
+                    "name": "Susan Sontag",
+                    "image": {
+                      "id": 32561,
+                      "url": "https://assets.hardcover.app/authors/107467/9150895-L.jpg",
+                      "color": "#5b5b5b",
+                      "width": 220,
+                      "height": 211,
+                      "color_name": "Gray"
+                    }
+                  },
+                  "contribution": "Author",
+                  "contributor_role_id": 1,
+                  "contributor_specialization_id": null,
+                  "contributor_role_name": "Author",
+                  "contributor_specialization_name": null,
+                  "contributor_role_blurb": "The author of a written work.",
+                  "contributor_specialization_blurb": null,
+                  "primary": true
+                }
+              ],
+              "cached_image": {
+                "id": 6519274,
+                "url": "https://assets.hardcover.app/edition/19151011/634c1380c20f9070ac28742cebaa280511874932.jpeg",
+                "color": "#565e61",
+                "width": 379,
+                "height": 500,
+                "color_name": "Purple"
+              },
+              "cached_tags": {
+                "Tag": [
+                  {
+                    "tag": "Capitalism",
+                    "count": 1,
+                    "tagSlug": "capitalism",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "nonfiction",
+                    "count": 1,
+                    "tagSlug": "nonfiction-4f1de8d9-ae75-4f5a-aa31-55f237278476",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "philosophy",
+                    "count": 1,
+                    "tagSlug": "philosophy-61d656d4-850b-4d26-bc05-ae8917c64ccd",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Sociology",
+                    "count": 1,
+                    "tagSlug": "sociology",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "short-read",
+                    "count": 1,
+                    "tagSlug": "short-read",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  }
+                ],
+                "Mood": [
+                  {
+                    "tag": "challenging",
+                    "count": 1,
+                    "tagSlug": "challenging",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "inspiring",
+                    "count": 1,
+                    "tagSlug": "inspiring",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  }
+                ],
+                "Genre": [
+                  {
+                    "tag": "Philosophy",
+                    "count": 1,
+                    "tagSlug": "philosophy",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Art",
+                    "count": 1,
+                    "tagSlug": "art-3edc3db2-a727-4df4-8e55-ba4130d4601b",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "General",
+                    "count": 1,
+                    "tagSlug": "general",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Classics",
+                    "count": 1,
+                    "tagSlug": "classics",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "literary criticism",
+                    "count": 1,
+                    "tagSlug": "literary-criticism",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "social science",
+                    "count": 0,
+                    "tagSlug": "social-science",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": null
+                  },
+                  {
+                    "tag": "Fotography",
+                    "count": 0,
+                    "tagSlug": "fotography",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": null
+                  },
+                  {
+                    "tag": " artistic",
+                    "count": 0,
+                    "tagSlug": "artistic",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": null
+                  },
+                  {
+                    "tag": "Literary Collections",
+                    "count": 0,
+                    "tagSlug": "literary-collections",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": null
+                  }
+                ],
+                "Group": [],
+                "Content Warning": []
+              },
+              "contributions": [
+                {
+                  "author": {
+                    "gender_id": 2,
+                    "location": null,
+                    "is_bipoc": null,
+                    "is_lgbtq": null
+                  }
+                }
+              ]
+            },
+            "user_book_reads": [
+              {
+                "id": 1007,
+                "progress": 42.028985507246375,
+                "progress_pages": 87,
+                "progress_seconds": 0,
+                "started_at": "2026-05-31",
+                "finished_at": null
+              }
+            ]
+          },
+          {
+            "id": 1008,
+            "status_id": 5,
+            "rating": null,
+            "first_started_reading_date": null,
+            "last_read_date": null,
+            "date_added": "2019-02-28",
+            "recommended_by": null,
+            "owned": false,
+            "review_raw": "",
+            "reviewed_at": null,
+            "edition": {
+              "id": 30425557,
+              "isbn_13": null,
+              "isbn_10": null,
+              "pages": 449,
+              "audio_seconds": null,
+              "reading_format_id": 1
+            },
+            "book": {
+              "id": 441336,
+              "title": "Homo Deus: A Brief History of Tomorrow",
+              "pages": 449,
+              "audio_seconds": null,
+              "release_year": 2015,
+              "cached_contributors": [
+                {
+                  "author": {
+                    "id": 167616,
+                    "slug": "yuval-noah-harari",
+                    "name": "Yuval Noah Harari",
+                    "image": {
+                      "id": 34105,
+                      "url": "https://assets.hardcover.app/authors/167616/7914208-L.jpg",
+                      "color": "#574429",
+                      "width": 334,
+                      "height": 500,
+                      "color_name": "Brown"
+                    }
+                  },
+                  "contribution": "Author",
+                  "contributor_role_id": 1,
+                  "contributor_specialization_id": null,
+                  "contributor_role_name": "Author",
+                  "contributor_specialization_name": null,
+                  "contributor_role_blurb": "The author of a written work.",
+                  "contributor_specialization_blurb": null,
+                  "primary": true
+                }
+              ],
+              "cached_image": {
+                "id": 5372203,
+                "url": "https://assets.hardcover.app/edition/30425557/3b67f74a7a1f38cdd9ce2941e2cc608229ff3492.jpeg",
+                "color": "#d50305",
+                "width": 333,
+                "height": 500,
+                "color_name": "Purple"
+              },
+              "cached_tags": {
+                "Tag": [
+                  {
+                    "tag": "Science",
+                    "count": 2,
+                    "tagSlug": "science-7584c867-4a37-49b9-8802-4c5d8804e937",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "History",
+                    "count": 2,
+                    "tagSlug": "history-b2719445-97dd-4c93-9755-76f70b8a8be2",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "istorie",
+                    "count": 1,
+                    "tagSlug": "istorie",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "sociologie",
+                    "count": 1,
+                    "tagSlug": "sociologie-c70f4cb0-36cf-49c3-92f1-17d2ce9946b4",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "stiinta",
+                    "count": 1,
+                    "tagSlug": "stiinta",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Shelf: 05 Meaning Philosophy & World-Model Calibration",
+                    "count": 1,
+                    "tagSlug": "shelf-05-meaning-philosophy-world-model-calibration",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "philosophy",
+                    "count": 1,
+                    "tagSlug": "philosophy-61d656d4-850b-4d26-bc05-ae8917c64ccd",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "nonfictiune",
+                    "count": 1,
+                    "tagSlug": "nonfictiune",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Sociology",
+                    "count": 1,
+                    "tagSlug": "sociology",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "filozofie",
+                    "count": 1,
+                    "tagSlug": "filozofie",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  }
+                ],
+                "Mood": [
+                  {
+                    "tag": "informative",
+                    "count": 8,
+                    "tagSlug": "informative",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "reflective",
+                    "count": 6,
+                    "tagSlug": "reflective",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "challenging",
+                    "count": 3,
+                    "tagSlug": "challenging",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "dark",
+                    "count": 1,
+                    "tagSlug": "dark",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Nonfiction",
+                    "count": 1,
+                    "tagSlug": "nonfiction-3fc32c1c-7932-414a-9efe-970c29504c50",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  }
+                ],
+                "Genre": [
+                  {
+                    "tag": "History",
+                    "count": 5,
+                    "tagSlug": "history",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "World",
+                    "count": 2,
+                    "tagSlug": "world",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Science",
+                    "count": 2,
+                    "tagSlug": "science",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Civilization",
+                    "count": 1,
+                    "tagSlug": "civilization",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": " Modern",
+                    "count": 1,
+                    "tagSlug": "modern",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Books & Spoken Word",
+                    "count": 1,
+                    "tagSlug": "books-and-spoken-word",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "English Books",
+                    "count": 1,
+                    "tagSlug": "english-books",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Business & Economics",
+                    "count": 1,
+                    "tagSlug": "business-economics",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "social science",
+                    "count": 1,
+                    "tagSlug": "social-science",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Imprint",
+                    "count": 1,
+                    "tagSlug": "imprint",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  }
+                ],
+                "Group": [],
+                "Content Warning": []
+              },
+              "contributions": [
+                {
+                  "author": {
+                    "gender_id": 1,
+                    "location": "Near Tel Aviv, Israel",
+                    "is_bipoc": null,
+                    "is_lgbtq": true
+                  }
+                }
+              ]
+            },
+            "user_book_reads": []
+          },
+          {
+            "id": 1009,
+            "status_id": 1,
+            "rating": null,
+            "first_started_reading_date": null,
+            "last_read_date": null,
+            "date_added": "2021-08-19",
+            "recommended_by": null,
+            "owned": false,
+            "review_raw": "",
+            "reviewed_at": null,
+            "edition": {
+              "id": 30399523,
+              "isbn_13": "9781494580759",
+              "isbn_10": "1494580756",
+              "pages": null,
+              "audio_seconds": 41640,
+              "reading_format_id": 2
+            },
+            "book": {
+              "id": 374090,
+              "title": "A Darker Shade of Magic",
+              "pages": 413,
+              "audio_seconds": null,
+              "release_year": 2014,
+              "cached_contributors": [
+                {
+                  "author": {
+                    "id": 1101812,
+                    "slug": "ve-schwab",
+                    "name": "V. E. Schwab",
+                    "image": {
+                      "id": 33882,
+                      "url": "https://assets.hardcover.app/authors/158901/7410938-L.jpg",
+                      "color": "#7b7b71",
+                      "width": 375,
+                      "height": 500,
+                      "color_name": "Gray"
+                    }
+                  },
+                  "contribution": "Author",
+                  "contributor_role_id": 1,
+                  "contributor_specialization_id": null,
+                  "contributor_role_name": "Author",
+                  "contributor_specialization_name": null,
+                  "contributor_role_blurb": "The author of a written work.",
+                  "contributor_specialization_blurb": null,
+                  "primary": true
+                }
+              ],
+              "cached_image": {
+                "id": 2545574,
+                "url": "https://assets.hardcover.app/edition/12484409/ad3c96ba221d6245bff0c0c777d825b012d74ec9.jpeg",
+                "color": "#ede4d2",
+                "width": 333,
+                "height": 500,
+                "color_name": "Beige"
+              },
+              "cached_tags": {
+                "Tag": [
+                  {
+                    "tag": "Loveable Characters",
+                    "count": 72,
+                    "tagSlug": "loveable-characters",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "A mix driven",
+                    "count": 56,
+                    "tagSlug": "a-mix-driven",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Not Diverse Characters",
+                    "count": 54,
+                    "tagSlug": "not-diverse-characters",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Strong Character Development",
+                    "count": 51,
+                    "tagSlug": "strong-character-development",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Weak Character Development",
+                    "count": 36,
+                    "tagSlug": "weak-character-development",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Diverse Characters",
+                    "count": 31,
+                    "tagSlug": "diverse-characters",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Plot driven",
+                    "count": 26,
+                    "tagSlug": "plot-driven",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Unloveable Characters",
+                    "count": 17,
+                    "tagSlug": "unloveable-characters",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Character driven",
+                    "count": 6,
+                    "tagSlug": "character-driven-93bc26e1-5a51-45d4-854b-c94b6a16141a",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "from-audible",
+                    "count": 1,
+                    "tagSlug": "from-audible",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  }
+                ],
+                "Mood": [
+                  {
+                    "tag": "Adventurous",
+                    "count": 96,
+                    "tagSlug": "adventurous",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "dark",
+                    "count": 51,
+                    "tagSlug": "dark",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "mysterious",
+                    "count": 50,
+                    "tagSlug": "mysterious",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "tense",
+                    "count": 29,
+                    "tagSlug": "tense",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "emotional",
+                    "count": 11,
+                    "tagSlug": "emotional",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "funny",
+                    "count": 11,
+                    "tagSlug": "funny",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "lighthearted",
+                    "count": 6,
+                    "tagSlug": "lighthearted",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "challenging",
+                    "count": 6,
+                    "tagSlug": "challenging",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "hopeful",
+                    "count": 5,
+                    "tagSlug": "hopeful",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "inspiring",
+                    "count": 5,
+                    "tagSlug": "inspiring",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  }
+                ],
+                "Genre": [
+                  {
+                    "tag": "Fantasy",
+                    "count": 10,
+                    "tagSlug": "fantasy",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0.1
+                  },
+                  {
+                    "tag": "Young Adult",
+                    "count": 4,
+                    "tagSlug": "young-adult",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Adventure",
+                    "count": 4,
+                    "tagSlug": "adventure",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0.25
+                  },
+                  {
+                    "tag": "Historical Fiction",
+                    "count": 2,
+                    "tagSlug": "historical-fiction",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Dystopian",
+                    "count": 1,
+                    "tagSlug": "dystopian",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "LGBTQ",
+                    "count": 1,
+                    "tagSlug": "lgbtq",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Science Fiction",
+                    "count": 1,
+                    "tagSlug": "science-fiction",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "YA",
+                    "count": 1,
+                    "tagSlug": "ya-d940dea4-8000-4e78-863b-f8b3ef889c5e",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Sci-fi",
+                    "count": 1,
+                    "tagSlug": "sci-fi",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Family & Relationships",
+                    "count": 0,
+                    "tagSlug": "family-relationships",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": null
+                  }
+                ],
+                "Group": [],
+                "Content Warning": [
+                  {
+                    "tag": "Death",
+                    "count": 3,
+                    "tagSlug": "death",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Blood",
+                    "count": 3,
+                    "tagSlug": "blood",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Slavery",
+                    "count": 2,
+                    "tagSlug": "slavery",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Murder",
+                    "count": 2,
+                    "tagSlug": "murder",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Violence",
+                    "count": 2,
+                    "tagSlug": "violence",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Classism",
+                    "count": 1,
+                    "tagSlug": "classism",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Cursing",
+                    "count": 1,
+                    "tagSlug": "cursing",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Self harm",
+                    "count": 1,
+                    "tagSlug": "self-harm",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Child abuse",
+                    "count": 1,
+                    "tagSlug": "child-abuse",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "body horror",
+                    "count": 1,
+                    "tagSlug": "body-horror",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  }
+                ]
+              },
+              "contributions": [
+                {
+                  "author": {
+                    "gender_id": 2,
+                    "location": "",
+                    "is_bipoc": null,
+                    "is_lgbtq": true
+                  }
+                }
+              ]
+            },
+            "user_book_reads": []
+          },
+          {
+            "id": 1010,
+            "status_id": 3,
+            "rating": 4,
+            "first_started_reading_date": null,
+            "last_read_date": "2022-12-09",
+            "date_added": "2022-11-02",
+            "recommended_by": null,
+            "owned": false,
+            "review_raw": "",
+            "reviewed_at": "2022-12-09T00:00:00",
+            "edition": {
+              "id": 30399613,
+              "isbn_13": "9780765397522",
+              "isbn_10": "0765397528",
+              "pages": 144,
+              "audio_seconds": null,
+              "reading_format_id": 4
+            },
+            "book": {
+              "id": 427971,
+              "title": "All Systems Red",
+              "pages": 176,
+              "audio_seconds": null,
+              "release_year": 2017,
+              "cached_contributors": [
+                {
+                  "author": {
+                    "id": 168073,
+                    "slug": "martha-wells",
+                    "name": "Martha Wells",
+                    "image": {
+                      "id": 1614083,
+                      "url": "https://assets.hardcover.app/author/168073/5352db3de7cb6197cbd9fc162a564d95db565112.jpeg",
+                      "color": "#b79182",
+                      "width": 300,
+                      "height": 450,
+                      "color_name": "Gray"
+                    }
+                  },
+                  "contribution": "Author",
+                  "contributor_role_id": 1,
+                  "contributor_specialization_id": null,
+                  "contributor_role_name": "Author",
+                  "contributor_specialization_name": null,
+                  "contributor_role_blurb": "The author of a written work.",
+                  "contributor_specialization_blurb": null,
+                  "primary": true
+                }
+              ],
+              "cached_image": {
+                "id": 3911402,
+                "url": "https://assets.hardcover.app/edition/31608045/3c51e2999ec8dc7e94fdd569d083d45f2d46dd3b.jpeg",
+                "color": "#5b655d",
+                "width": 314,
+                "height": 500,
+                "color_name": "Brown"
+              },
+              "cached_tags": {
+                "Tag": [
+                  {
+                    "tag": "Loveable Characters",
+                    "count": 218,
+                    "tagSlug": "loveable-characters",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Diverse Characters",
+                    "count": 165,
+                    "tagSlug": "diverse-characters",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Strong Character Development",
+                    "count": 139,
+                    "tagSlug": "strong-character-development",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "A mix driven",
+                    "count": 115,
+                    "tagSlug": "a-mix-driven",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Weak Character Development",
+                    "count": 93,
+                    "tagSlug": "weak-character-development",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Character driven",
+                    "count": 76,
+                    "tagSlug": "character-driven-93bc26e1-5a51-45d4-854b-c94b6a16141a",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Not Diverse Characters",
+                    "count": 65,
+                    "tagSlug": "not-diverse-characters",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Plot driven",
+                    "count": 43,
+                    "tagSlug": "plot-driven",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Unloveable Characters",
+                    "count": 30,
+                    "tagSlug": "unloveable-characters",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "audiobook",
+                    "count": 4,
+                    "tagSlug": "audiobook",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  }
+                ],
+                "Mood": [
+                  {
+                    "tag": "Adventurous",
+                    "count": 234,
+                    "tagSlug": "adventurous",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "funny",
+                    "count": 209,
+                    "tagSlug": "funny",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "lighthearted",
+                    "count": 91,
+                    "tagSlug": "lighthearted",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "mysterious",
+                    "count": 73,
+                    "tagSlug": "mysterious",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "tense",
+                    "count": 68,
+                    "tagSlug": "tense",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "dark",
+                    "count": 23,
+                    "tagSlug": "dark",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "emotional",
+                    "count": 23,
+                    "tagSlug": "emotional",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "hopeful",
+                    "count": 21,
+                    "tagSlug": "hopeful",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "reflective",
+                    "count": 17,
+                    "tagSlug": "reflective",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "relaxing",
+                    "count": 15,
+                    "tagSlug": "relaxing",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  }
+                ],
+                "Genre": [
+                  {
+                    "tag": "Science Fiction",
+                    "count": 38,
+                    "tagSlug": "science-fiction",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Space",
+                    "count": 8,
+                    "tagSlug": "space",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Fantasy",
+                    "count": 9,
+                    "tagSlug": "fantasy",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Adventure",
+                    "count": 6,
+                    "tagSlug": "adventure",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Science Fiction & Fantasy",
+                    "count": 9,
+                    "tagSlug": "science-fiction-fantasy-4c14c349-8d52-4893-aaf0-34f7e33bf275",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Sci-fi",
+                    "count": 5,
+                    "tagSlug": "sci-fi",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Mystery",
+                    "count": 5,
+                    "tagSlug": "mystery",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Hard Science Fiction",
+                    "count": 4,
+                    "tagSlug": "hard-science-fiction-c7a768a4-925e-4396-a0f3-dc1918f4cfc9",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  }
+                ],
+                "Group": [],
+                "Content Warning": [
+                  {
+                    "tag": "Violence",
+                    "count": 6,
+                    "tagSlug": "violence",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Death",
+                    "count": 4,
+                    "tagSlug": "death",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Blood",
+                    "count": 2,
+                    "tagSlug": "blood",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Injury/Injury detail",
+                    "count": 2,
+                    "tagSlug": "injury-injury-detail",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Slavery",
+                    "count": 1,
+                    "tagSlug": "slavery",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "body horror",
+                    "count": 1,
+                    "tagSlug": "body-horror",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Murder",
+                    "count": 1,
+                    "tagSlug": "murder",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  }
+                ]
+              },
+              "contributions": [
+                {
+                  "author": {
+                    "gender_id": 2,
+                    "location": "",
+                    "is_bipoc": null,
+                    "is_lgbtq": null
+                  }
+                }
+              ]
+            },
+            "user_book_reads": [
+              {
+                "id": 1011,
+                "progress": 0,
+                "progress_pages": 0,
+                "progress_seconds": 0,
+                "started_at": null,
+                "finished_at": "2022-12-09"
+              }
+            ]
+          },
+          {
+            "id": 1012,
+            "status_id": 3,
+            "rating": 5,
+            "first_started_reading_date": null,
+            "last_read_date": "2025-03-24",
+            "date_added": "2024-07-21",
+            "recommended_by": null,
+            "owned": false,
+            "review_raw": "Scrubbed text, 653 characters long in the original.",
+            "reviewed_at": "2025-03-24T00:00:00",
+            "edition": {
+              "id": 6923324,
+              "isbn_13": "9780983748427",
+              "isbn_10": "098374842X",
+              "pages": 104,
+              "audio_seconds": null,
+              "reading_format_id": 1
+            },
+            "book": {
+              "id": 436502,
+              "title": "A Short Stay in Hell",
+              "pages": 110,
+              "audio_seconds": null,
+              "release_year": 2011,
+              "cached_contributors": [
+                {
+                  "author": {
+                    "id": 237279,
+                    "slug": "steven-l-peck",
+                    "name": "Steven L. Peck",
+                    "image": {
+                      "id": 5231383,
+                      "url": "https://assets.hardcover.app/author/237279/9bc488f9-3852-49ae-bb0b-fce22233df5d.jpg",
+                      "color": "#313537",
+                      "width": 1200,
+                      "height": 1200,
+                      "color_name": "Purple"
+                    }
+                  },
+                  "contribution": "Author",
+                  "contributor_role_id": 1,
+                  "contributor_specialization_id": null,
+                  "contributor_role_name": "Author",
+                  "contributor_specialization_name": null,
+                  "contributor_role_blurb": "The author of a written work.",
+                  "contributor_specialization_blurb": null,
+                  "primary": true
+                }
+              ],
+              "cached_image": {
+                "id": 6931399,
+                "url": "https://assets.hardcover.app/edition/32076091/1fb38c39-58fb-4af1-8960-5b0ff1b9cbb4.jpg",
+                "color": "#e7dea8",
+                "width": 907,
+                "height": 1360,
+                "color_name": "Beige"
+              },
+              "cached_tags": {
+                "Tag": [
+                  {
+                    "tag": "Not Diverse Characters",
+                    "count": 37,
+                    "tagSlug": "not-diverse-characters",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Character driven",
+                    "count": 29,
+                    "tagSlug": "character-driven-93bc26e1-5a51-45d4-854b-c94b6a16141a",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Weak Character Development",
+                    "count": 27,
+                    "tagSlug": "weak-character-development",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Unloveable Characters",
+                    "count": 23,
+                    "tagSlug": "unloveable-characters",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Loveable Characters",
+                    "count": 17,
+                    "tagSlug": "loveable-characters",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Strong Character Development",
+                    "count": 14,
+                    "tagSlug": "strong-character-development",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "A mix driven",
+                    "count": 11,
+                    "tagSlug": "a-mix-driven",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Plot driven",
+                    "count": 5,
+                    "tagSlug": "plot-driven",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Diverse Characters",
+                    "count": 2,
+                    "tagSlug": "diverse-characters",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Horror",
+                    "count": 1,
+                    "tagSlug": "horror-93183409-4bce-4025-93d4-442a8d5be965",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  }
+                ],
+                "Mood": [
+                  {
+                    "tag": "dark",
+                    "count": 45,
+                    "tagSlug": "dark",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "reflective",
+                    "count": 36,
+                    "tagSlug": "reflective",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "sad",
+                    "count": 29,
+                    "tagSlug": "sad",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "emotional",
+                    "count": 19,
+                    "tagSlug": "emotional",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "mysterious",
+                    "count": 19,
+                    "tagSlug": "mysterious",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "tense",
+                    "count": 10,
+                    "tagSlug": "tense",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "funny",
+                    "count": 8,
+                    "tagSlug": "funny",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Adventurous",
+                    "count": 6,
+                    "tagSlug": "adventurous",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "challenging",
+                    "count": 5,
+                    "tagSlug": "challenging",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "hopeful",
+                    "count": 2,
+                    "tagSlug": "hopeful",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  }
+                ],
+                "Genre": [
+                  {
+                    "tag": "Horror",
+                    "count": 6,
+                    "tagSlug": "horror",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Fantasy",
+                    "count": 5,
+                    "tagSlug": "fantasy",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Philosophy",
+                    "count": 4,
+                    "tagSlug": "philosophy",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Religion",
+                    "count": 3,
+                    "tagSlug": "religion",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "BookClub",
+                    "count": 2,
+                    "tagSlug": "bookclub-59544303-55ce-4938-a3a9-bc8bf5e5b887",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Fantasy fiction",
+                    "count": 1,
+                    "tagSlug": "fantasy-fiction",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "cosmic horror",
+                    "count": 2,
+                    "tagSlug": "cosmic-horror",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Science Fiction",
+                    "count": 1,
+                    "tagSlug": "science-fiction",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  }
+                ],
+                "Group": [],
+                "Content Warning": [
+                  {
+                    "tag": "Religious Bigotry",
+                    "count": 1,
+                    "tagSlug": "religious-bigotry",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Violence",
+                    "count": 1,
+                    "tagSlug": "violence",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  }
+                ]
+              },
+              "contributions": [
+                {
+                  "author": {
+                    "gender_id": 1,
+                    "location": "America",
+                    "is_bipoc": null,
+                    "is_lgbtq": null
+                  }
+                }
+              ]
+            },
+            "user_book_reads": [
+              {
+                "id": 1013,
+                "progress": null,
+                "progress_pages": null,
+                "progress_seconds": null,
+                "started_at": "2025-03-22",
+                "finished_at": "2025-03-24"
+              }
+            ]
+          },
+          {
+            "id": 1014,
+            "status_id": 1,
+            "rating": null,
+            "first_started_reading_date": null,
+            "last_read_date": null,
+            "date_added": "2026-11-04",
+            "recommended_by": "A friend",
+            "owned": false,
+            "review_raw": null,
+            "reviewed_at": null,
+            "edition": {
+              "id": 6061512,
+              "isbn_13": "9780670845873",
+              "isbn_10": "0670845876",
+              "pages": 311,
+              "audio_seconds": null,
+              "reading_format_id": 1
+            },
+            "book": {
+              "id": 59616,
+              "title": "The Van",
+              "pages": 311,
+              "audio_seconds": null,
+              "release_year": 1991,
+              "cached_contributors": [
+                {
+                  "author": {
+                    "id": 77989,
+                    "slug": "roddy-doyle",
+                    "name": "Roddy Doyle",
+                    "image": {
+                      "id": 6890457,
+                      "url": "https://assets.hardcover.app/author/77989/ed842ede-468b-4e95-88a4-3780ff57c8f7.jpg",
+                      "color": "#9e6352",
+                      "width": 389,
+                      "height": 450,
+                      "color_name": "Gray"
+                    }
+                  },
+                  "contribution": "Author",
+                  "contributor_role_id": 1,
+                  "contributor_specialization_id": null,
+                  "contributor_role_name": "Author",
+                  "contributor_specialization_name": null,
+                  "contributor_role_blurb": "The author of a written work.",
+                  "contributor_specialization_blurb": null,
+                  "primary": true
+                }
+              ],
+              "cached_image": {
+                "id": 7418037,
+                "url": "https://assets.hardcover.app/external_data/3517352/360f2954d87da460269937d853d132c9d338cad8.jpeg",
+                "color": "#eeecee",
+                "width": 321,
+                "height": 500,
+                "color_name": "Pink"
+              },
+              "cached_tags": {
+                "Tag": [],
+                "Mood": [],
+                "Genre": [
+                  {
+                    "tag": "Classics",
+                    "count": 1,
+                    "tagSlug": "classics",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Literature",
+                    "count": 1,
+                    "tagSlug": "literature",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "General",
+                    "count": 1,
+                    "tagSlug": "general",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Humor",
+                    "count": 1,
+                    "tagSlug": "humor",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Friendship",
+                    "count": 1,
+                    "tagSlug": "friendship",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  }
+                ],
+                "Group": [],
+                "Content Warning": []
+              },
+              "contributions": [
+                {
+                  "author": {
+                    "gender_id": null,
+                    "location": null,
+                    "is_bipoc": null,
+                    "is_lgbtq": null
+                  }
+                }
+              ]
+            },
+            "user_book_reads": []
+          },
+          {
+            "id": 1015,
+            "status_id": 3,
+            "rating": 5,
+            "first_started_reading_date": null,
+            "last_read_date": "2025-12-20",
+            "date_added": "2025-12-02",
+            "recommended_by": null,
+            "owned": false,
+            "review_raw": "",
+            "reviewed_at": "2025-12-20T00:00:00",
+            "edition": {
+              "id": 31660765,
+              "isbn_13": "9781501920516",
+              "isbn_10": "1501920510",
+              "pages": null,
+              "audio_seconds": null,
+              "reading_format_id": 2
+            },
+            "book": {
+              "id": 427876,
+              "title": "Dark Age",
+              "pages": 800,
+              "audio_seconds": null,
+              "release_year": 2019,
+              "cached_contributors": [
+                {
+                  "author": {
+                    "id": 232665,
+                    "slug": "pierce-brown",
+                    "name": "Pierce Brown",
+                    "image": {
+                      "id": 4661705,
+                      "url": "https://assets.hardcover.app/author/232665/5362292652538587.jpeg",
+                      "color": "#acb2b8",
+                      "width": 2400,
+                      "height": 3512,
+                      "color_name": "Pink"
+                    }
+                  },
+                  "contribution": "Author",
+                  "contributor_role_id": 1,
+                  "contributor_specialization_id": null,
+                  "contributor_role_name": "Author",
+                  "contributor_specialization_name": null,
+                  "contributor_role_blurb": "The author of a written work.",
+                  "contributor_specialization_blurb": null,
+                  "primary": true
+                }
+              ],
+              "cached_image": {
+                "id": 2690331,
+                "url": "https://assets.hardcover.app/editions/30399300/3644584410675518.jpg",
+                "color": "#9b6b17",
+                "width": 631,
+                "height": 960,
+                "color_name": "Brown"
+              },
+              "cached_tags": {
+                "Tag": [
+                  {
+                    "tag": "Diverse Characters",
+                    "count": 27,
+                    "tagSlug": "diverse-characters",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Strong Character Development",
+                    "count": 25,
+                    "tagSlug": "strong-character-development",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "A mix driven",
+                    "count": 22,
+                    "tagSlug": "a-mix-driven",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Unloveable Characters",
+                    "count": 15,
+                    "tagSlug": "unloveable-characters",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Loveable Characters",
+                    "count": 13,
+                    "tagSlug": "loveable-characters",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Plot driven",
+                    "count": 5,
+                    "tagSlug": "plot-driven",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Weak Character Development",
+                    "count": 5,
+                    "tagSlug": "weak-character-development",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Not Diverse Characters",
+                    "count": 4,
+                    "tagSlug": "not-diverse-characters",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Sci-fi",
+                    "count": 2,
+                    "tagSlug": "sci-fi-2bfff483-ab94-4530-8414-a9c2b90113c1",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Character driven",
+                    "count": 2,
+                    "tagSlug": "character-driven-93bc26e1-5a51-45d4-854b-c94b6a16141a",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  }
+                ],
+                "Mood": [
+                  {
+                    "tag": "tense",
+                    "count": 33,
+                    "tagSlug": "tense",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "dark",
+                    "count": 32,
+                    "tagSlug": "dark",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Adventurous",
+                    "count": 25,
+                    "tagSlug": "adventurous",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "emotional",
+                    "count": 17,
+                    "tagSlug": "emotional",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "sad",
+                    "count": 12,
+                    "tagSlug": "sad",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "challenging",
+                    "count": 10,
+                    "tagSlug": "challenging",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "mysterious",
+                    "count": 5,
+                    "tagSlug": "mysterious",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "hopeful",
+                    "count": 4,
+                    "tagSlug": "hopeful",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "inspiring",
+                    "count": 3,
+                    "tagSlug": "inspiring",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "funny",
+                    "count": 3,
+                    "tagSlug": "funny",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  }
+                ],
+                "Genre": [
+                  {
+                    "tag": "Science Fiction",
+                    "count": 6,
+                    "tagSlug": "science-fiction",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Dystopian",
+                    "count": 3,
+                    "tagSlug": "dystopian",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Science Fiction & Fantasy",
+                    "count": 3,
+                    "tagSlug": "science-fiction-fantasy-4c14c349-8d52-4893-aaf0-34f7e33bf275",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Fantasy",
+                    "count": 3,
+                    "tagSlug": "fantasy",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Young Adult",
+                    "count": 2,
+                    "tagSlug": "young-adult",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Adventure",
+                    "count": 2,
+                    "tagSlug": "adventure",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Dystopia",
+                    "count": 2,
+                    "tagSlug": "dystopia",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Space",
+                    "count": 2,
+                    "tagSlug": "space",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Audiobook",
+                    "count": 1,
+                    "tagSlug": "audiobook-28d9b978-31e9-43d5-a61a-499c03237945",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "SpaceOpera",
+                    "count": 1,
+                    "tagSlug": "spaceopera",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  }
+                ],
+                "Group": [],
+                "Content Warning": [
+                  {
+                    "tag": "child death",
+                    "count": 2,
+                    "tagSlug": "child-death",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Violence",
+                    "count": 2,
+                    "tagSlug": "violence",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  }
+                ]
+              },
+              "contributions": [
+                {
+                  "author": {
+                    "gender_id": 1,
+                    "location": "Los Angeles, California",
+                    "is_bipoc": null,
+                    "is_lgbtq": null
+                  }
+                }
+              ]
+            },
+            "user_book_reads": [
+              {
+                "id": 1016,
+                "progress": null,
+                "progress_pages": null,
+                "progress_seconds": null,
+                "started_at": "2025-12-05",
+                "finished_at": "2025-12-20"
+              },
+              {
+                "id": 1017,
+                "progress": 86.83676807327446,
+                "progress_pages": 0,
+                "progress_seconds": 106184,
+                "started_at": null,
+                "finished_at": null
+              }
+            ]
+          },
+          {
+            "id": 1018,
+            "status_id": 3,
+            "rating": 4.5,
+            "first_started_reading_date": null,
+            "last_read_date": "2025-10-02",
+            "date_added": "2025-09-13",
+            "recommended_by": null,
+            "owned": false,
+            "review_raw": "",
+            "reviewed_at": "2025-10-02T00:00:00",
+            "edition": {
+              "id": 30559800,
+              "isbn_13": "9780007444236",
+              "isbn_10": "0007444230",
+              "pages": 753,
+              "audio_seconds": null,
+              "reading_format_id": 4
+            },
+            "book": {
+              "id": 458644,
+              "title": "Fool's Quest",
+              "pages": 753,
+              "audio_seconds": null,
+              "release_year": 2015,
+              "cached_contributors": [
+                {
+                  "author": {
+                    "id": 100126,
+                    "slug": "robin-hobb",
+                    "name": "Robin Hobb",
+                    "image": {
+                      "id": 7034005,
+                      "url": "https://assets.hardcover.app/author/100126/3386ce57-07f9-4fe9-bde9-c80528b9fc29.jpeg",
+                      "color": "#505053",
+                      "width": 755,
+                      "height": 565,
+                      "color_name": "Purple"
+                    }
+                  },
+                  "contribution": "Author",
+                  "contributor_role_id": 1,
+                  "contributor_specialization_id": null,
+                  "contributor_role_name": "Author",
+                  "contributor_specialization_name": null,
+                  "contributor_role_blurb": "The author of a written work.",
+                  "contributor_specialization_blurb": null,
+                  "primary": true
+                }
+              ],
+              "cached_image": {
+                "id": 7735839,
+                "url": "https://assets.hardcover.app/external_data/4052652/133ecbfb15713011b9a92b8fb4d3dfa00f160da5.jpeg",
+                "color": "#686869",
+                "width": 325,
+                "height": 500,
+                "color_name": "Purple"
+              },
+              "cached_tags": {
+                "Tag": [
+                  {
+                    "tag": "Weak Character Development",
+                    "count": 7,
+                    "tagSlug": "weak-character-development",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Diverse Characters",
+                    "count": 7,
+                    "tagSlug": "diverse-characters",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Loveable Characters",
+                    "count": 6,
+                    "tagSlug": "loveable-characters",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Plot driven",
+                    "count": 3,
+                    "tagSlug": "plot-driven",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Character driven",
+                    "count": 2,
+                    "tagSlug": "character-driven-93bc26e1-5a51-45d4-854b-c94b6a16141a",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Unloveable Characters",
+                    "count": 2,
+                    "tagSlug": "unloveable-characters",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "A mix driven",
+                    "count": 2,
+                    "tagSlug": "a-mix-driven",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "dark",
+                    "count": 1,
+                    "tagSlug": "dark-97db5d95-89eb-4765-aad4-42299d217769",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Strong Character Development",
+                    "count": 1,
+                    "tagSlug": "strong-character-development",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Emotional",
+                    "count": 1,
+                    "tagSlug": "emotional-fa51da32-18b7-4cac-a377-3f4482bcbcc9",
+                    "category": "Tag",
+                    "categorySlug": "tag",
+                    "spoilerRatio": 0
+                  }
+                ],
+                "Mood": [
+                  {
+                    "tag": "Adventurous",
+                    "count": 9,
+                    "tagSlug": "adventurous",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "emotional",
+                    "count": 8,
+                    "tagSlug": "emotional",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "dark",
+                    "count": 4,
+                    "tagSlug": "dark",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "mysterious",
+                    "count": 4,
+                    "tagSlug": "mysterious",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "tense",
+                    "count": 3,
+                    "tagSlug": "tense",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "challenging",
+                    "count": 2,
+                    "tagSlug": "challenging",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "sad",
+                    "count": 2,
+                    "tagSlug": "sad",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "slow-paced",
+                    "count": 1,
+                    "tagSlug": "slow-paced-8f07d68e-d3bc-44da-8ab3-0cd9a8bfe315",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "reflective",
+                    "count": 1,
+                    "tagSlug": "reflective",
+                    "category": "Mood",
+                    "categorySlug": "mood",
+                    "spoilerRatio": 0
+                  }
+                ],
+                "Genre": [
+                  {
+                    "tag": "Fantasy",
+                    "count": 6,
+                    "tagSlug": "fantasy",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Adventure",
+                    "count": 2,
+                    "tagSlug": "adventure",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Friendship",
+                    "count": 1,
+                    "tagSlug": "friendship",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Science Fiction",
+                    "count": 1,
+                    "tagSlug": "science-fiction",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "English",
+                    "count": 1,
+                    "tagSlug": "english-ba3899af-a3fd-4bda-b149-173c48083f7a",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Fantasy & Science fiction",
+                    "count": 1,
+                    "tagSlug": "fantasy-science-fiction",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "High Fantasy",
+                    "count": 1,
+                    "tagSlug": "high-fantasy-dfcd50f5-2789-45fc-9ee3-3e4354620e62",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Literature & Fiction",
+                    "count": 1,
+                    "tagSlug": "literature-fiction",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  },
+                  {
+                    "tag": "Science Fiction & Fantasy",
+                    "count": 1,
+                    "tagSlug": "science-fiction-fantasy-4c14c349-8d52-4893-aaf0-34f7e33bf275",
+                    "category": "Genre",
+                    "categorySlug": "genre",
+                    "spoilerRatio": 0
+                  }
+                ],
+                "Group": [],
+                "Content Warning": [
+                  {
+                    "tag": "Rape",
+                    "count": 1,
+                    "tagSlug": "rape",
+                    "category": "Content Warning",
+                    "categorySlug": "content-warning",
+                    "spoilerRatio": 0
+                  }
+                ]
+              },
+              "contributions": [
+                {
+                  "author": {
+                    "gender_id": 2,
+                    "location": "Washington State, United States of America",
+                    "is_bipoc": null,
+                    "is_lgbtq": null
+                  }
+                }
+              ]
+            },
+            "user_book_reads": [
+              {
+                "id": 1019,
+                "progress": 0,
+                "progress_pages": 0,
+                "progress_seconds": 0,
+                "started_at": "2025-09-14",
+                "finished_at": "2025-10-02"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

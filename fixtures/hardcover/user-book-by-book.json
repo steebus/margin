@@ -1,0 +1,17 @@
+{
+  "query": "query($b: Int!) { me { user_books(where: {book_id: {_eq: $b}}, limit: 1) { id } } }",
+  "variables": {
+    "b": 473869
+  },
+  "data": {
+    "me": [
+      {
+        "user_books": [
+          {
+            "id": 1002
+          }
+        ]
+      }
+    ]
+  }
+}

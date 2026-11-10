@@ -68,6 +68,33 @@ node scripts/fixture-shots.mjs       # every screen, phone and desktop, both the
 - What it can't show: real drawings (fixture art is a plain ink stand-in), cross-hatched covers (they need
   Hardcover's images), the typewriter streaming a live reply, push, the service worker, real sizes of data.
 
+### 1b. Recorded Hardcover replies: what Hardcover really sends
+
+`fixtures/hardcover/*.json` are real replies from Steve's account (recorded 2026-11-11), each with the exact query
+and variables that produced it. Read them before writing a Hardcover test or guessing a field's shape; build test
+replies from them rather than by hand. `convex/lib/hardcoverRecorded.test.ts` runs them through `mapUserBook`,
+`mapJournal`, `mapSearch` and `listSlug`, and fails if Margin's queries no longer match the recorded ones.
+
+| File | Query | What's in it |
+|---|---|---|
+| `me.json` | `{ me { id } }` | the user id |
+| `library.json` | `LIBRARY_QUERY` | 11 books picked for variety: every status, audio and ebook editions, a review, a recommendation, a re-read, a half star |
+| `journals.json` | the import's quote/note query | 2 quotes, 2 notes, 2 tagged notes; `metadata.position` with and without a page |
+| `journal-events.json` | every event, newest 500 | one of each type seen: `progress_updated`, `user_book_read_started`, `user_book_read_finished`, `status_want_to_read`, `quote`, `note` (metadata differs by type) |
+| `sync.json` | the two-minute sync | books changed and journal events in the last 30 days, including `list_book` events |
+| `lists.json` | `LISTS_QUERY` | 3 lists, 5 books each |
+| `search.json` | `SEARCH_QUERY`, "piranesi" | Hardcover's full search document, unmapped |
+| `read-length.json`, `user-book-by-book.json` | the outbox's lookups before it writes | |
+
+- **Scrubbed** (the repo is public): Steve's user id, user_book, read, journal and list ids are renumbered from 1000,
+  consistently across files; his reviews, notes and quotes are replaced by "Scrubbed text, N characters long";
+  `recommended_by`, list names and slugs, usernames are replaced. Catalog facts (titles, authors, editions, covers,
+  Hardcover's tags, book ids) and dates are real. Note tags are Steve's and kept, because H10 needs them.
+- **Re-record** only when a query in `convex/lib/hardcover.ts` changes or Hardcover's shape is in doubt:
+  `node --env-file=.env scripts/hardcover-record.mjs`. It sends queries only (it refuses anything with `mutation`),
+  at Margin's pace, about a minute. An unattended run can't: the key is only on Steve's machine. Ask instead.
+  After re-recording, `grep -rn steebus fixtures/hardcover` must find nothing, and read the diff before committing.
+
 ## 2. Limits for an unattended run
 
 Margin's one Convex deployment is production and holds the real library, and Margin writes to Steve's real
@@ -132,7 +159,7 @@ line numbers moving.
 |---|---|---|---|---|---|
 | E1 | **A fixture mode for looking at the app.** No run can sign in, so no run can see a screen. A dev-only way to render routes on recorded, made-up library data (a fake `useBooks`/`useEntries`/`useActivity` source behind a `?fixture` flag or a `/__fixtures` route excluded from production builds) lets runs take screenshots, check overflow and reduced motion, and run Lighthouse. | `src/lib/offline.ts` is already the one place most screens get data | M | A | **done 2026-11-10**, see §1a |
 | E2 | **Screenshot and overflow check script** on top of E1: every route, two widths, two themes, saved as artifacts; fails on an element wider than the viewport (measure rects, as `CLAUDE.md` says, and scroll with the real wheel so lazy cells load). | `CLAUDE.md` notes on `overflow-x: clip` and lazy cells | M | A | **done 2026-11-10** as `scripts/fixture-shots.mjs`. Left: a production-mode fixture build for Lighthouse (O6) |
-| E5 | **Recorded Hardcover fixtures.** `PLAN.md`'s risk table promises "recorded fixtures in tests" for Hardcover; the sync tests build their own replies by hand. Record the shapes of real read-only replies (scrubbed) so a schema change on Hardcover's side shows up as a failing test. Needs Steve to capture them once. | `convex/hardcoverSync.test.ts`, `PLAN.md` Risks | M | A | needs Steve |
+| ~~E5~~ | **Done 2026-11-11, see §1b and §7.** ~~Recorded Hardcover fixtures.~~ `PLAN.md`'s risk table promises "recorded fixtures in tests" for Hardcover; the sync tests build their own replies by hand. Record the shapes of real read-only replies (scrubbed) so a schema change on Hardcover's side shows up as a failing test. Needs Steve to capture them once. | `convex/hardcoverSync.test.ts`, `PLAN.md` Risks | M | A | **done** |
 
 ### H: Hardcover connection
 
@@ -147,12 +174,12 @@ line numbers moving.
 | H7 | **Give up gracefully.** An outbox row that keeps failing retries hourly for ever with no way to see or drop it. After N tries, mark it stuck, show it in Settings with the error and "try again" / "discard". | `fail`, `retryDelayMs`; `syncStatus` counts at most 100 and shows one error | Sure | M | C | ready |
 | H8 | **Notes and books removed on Hardcover stay in Margin.** SPEC §3.5 records this as a known gap because deletions aren't reported. The hourly compare already reads the whole library; it could also list journal ids and offer (not silently apply) "3 notes were removed on Hardcover: remove here too?". | SPEC §3.5 "Not synced" | A design question | L | D | decided: see H17 |
 | H9 | **Fields that only travel one way.** Owned, recommended-by and date added come in from Hardcover but a change in Margin never goes back; the push sends status, rating and review only. **Decided (Steve, 2026-11-10): any field Hardcover supports goes back to it.** First list what `UserBookUpdateInput` and the read and journal inputs accept (from Hardcover's docs or a read-only introspection fixture, E5), then send every one Margin holds, one field per run, each with a test and the same "a waiting change wins" rule. Margin-only corrections (`reads.edits`) stay Margin's. | `flush` `update_user_book` object vs `mapUserBook` | Sure | M, then S each | D | ready |
-| H10 | **Confirm the journal tag shape.** Tags are sent as `{category: 'general', spoiler: false, tag}`, marked unverified in the code. One real tagged note from Steve, then a fixture and a test. | `journalObject` in `convex/lib/hardcover.ts` | Open | S | D | needs Steve |
+| H10 | **Confirm the journal tag shape.** Tags are sent as `{category: 'general', spoiler: false, tag}`, marked unverified in the code. Half done 2026-11-11: `fixtures/hardcover/journals.json` has two real tagged notes, so the shape Hardcover *returns* (`taggings { tag { tag } }`) is recorded and tested. The shape it *accepts* on `insert_reading_journal` still isn't; check Hardcover's schema (introspection is a read) or ask Steve to tag one note from Margin and look on Hardcover. | `journalObject` in `convex/lib/hardcover.ts`; §1b | Open | S | D | ready (the write half) |
 | H11 | **Lighter hourly compare.** Every hour the whole library is fetched with full metadata to catch read-date changes. Split it: dates and read ids hourly, titles/tags/author facts daily. Fewer and smaller requests, and fewer reactive wake-ups. | `reconcile`, `LIBRARY_QUERY` | Sure it's heavier than needed; gain unmeasured | M | D | ready |
 | H12 | **Finish Phase 4's own checks.** `PLAN.md` still lists "progress logged on Hardcover appears in Margin within 2 minutes" and "a re-pull creates no duplicates" as not checked. Steve checks the first; a test can cover the second (import twice, compare counts). | `PLAN.md` Phase 4 | n/a | S | A | ready (the test half) |
 | H13 | **Offline writes keep their own time.** A note or progress written offline is stamped when it's replayed, not when it was written, and a stale offline progress can move a book backwards over a newer place that arrived from Hardcover. Carry the written-at time in the queued write, and ignore a queued progress older than the read's latest log. | `src/lib/outbox.ts`; `logProgress` and `addEntry` use `Date.now()` | Sure | M | B | ready |
 | H14 | **Books Hardcover doesn't have.** SPEC §3.1 says search falls back to Open Library, then Google Books. Only Hardcover is searched, so a book it lacks can't be added. | `convex/books.ts` `search` | Sure | L | C | **dropped 2026-11-10: Steve doesn't need books Hardcover lacks.** Take the Open Library and Google Books fallback out of SPEC §3.1 and PLAN (B7) |
-| H15 | **Progress history from Hardcover's journal.** Hardcover keeps dated progress events; Margin's `progressLog` only starts when Margin did. Reading those in (read-only) would fill the Desk's chart and "pages by month" for years before Margin. Explore the journal's event types first. | `mapJournal` drops everything but quotes and notes | An idea | M | B | ready (explore, read-only fixture needed: E5) |
+| H15 | **Progress history from Hardcover's journal.** Hardcover keeps dated progress events; Margin's `progressLog` only starts when Margin did. Reading those in (read-only) would fill the Desk's chart and "pages by month" for years before Margin. Explore the journal's event types first. | `mapJournal` drops everything but quotes and notes; `fixtures/hardcover/journal-events.json` has a real `progress_updated` (`metadata.progress`, `progress_pages`, `progress_seconds`, `*_was`, `*_delta`, `user_book_read_id`) and read started/finished events | An idea | M | B | ready (fixtures in §1b) |
 | H16 | **Series from Hardcover.** On finishing a book that's in a series, offer the next one for the TBR. Needs Hardcover's series fields in the library query. | not built | An idea | M | C | needs Steve |
 | H17 | **Offer to remove what Hardcover removed** (Steve, 2026-11-10; this is H8 decided). The hourly compare lists the journal ids and books Hardcover still has; anything Margin holds with a Hardcover id that's gone is shown in Settings and on its book, with "Remove here too" and "Keep". Never removed without the tap. Kept ones aren't offered again. | H8 | Decided | L: split into books, then notes | D | ready |
 
@@ -256,14 +283,19 @@ Answer in this file, dated, and the items unblock.
 - Any field Hardcover supports goes back to it when changed in Margin (H9).
 - Books Hardcover lacks aren't needed (H14 dropped).
 - Five tabs is right; the docs were brought into line (U8).
+- Recorded Hardcover replies are in `fixtures/hardcover/` (Q11, 2026-11-11; E5 done, H10 half done, see §1b).
 
 **Open:**
-- **Q11.** (E5, H10) Could you capture a few read-only Hardcover replies, and tag one real note there, so the
-  sync tests rest on real shapes?
+- None.
 
 ## 6. Run log
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
+
+- **2026-11-11 (with Steve).** Did E5 (class A), see §7 and §1b: recorded real read-only Hardcover replies with
+  `scripts/hardcover-record.mjs`, scrubbed, into `fixtures/hardcover/`, with a test. Q11 answered. Verified: lint,
+  285 tests and build green; grepped the fixtures for the username and user id (nothing). H10 is down to its write
+  half; H15 has its fixtures.
 
 - **2026-11-10, run 14 (unattended; a normal pick).** Ground: `main` at `74a1524`, CI green (Vercel not checked, Q13).
   Assessed Stats, Review, Capture and Settings by reading fixture shots (phone and desktop, light and dark; 16 shots,
@@ -383,6 +415,10 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
 ## 7. Done and dropped
 
 Move items here with the date and the commit or the reason. Keep the id so old log entries still make sense.
+
+- **E5** Recorded Hardcover fixtures. Done 2026-11-11 (with Steve, class A): `fixtures/hardcover/*.json` from
+  `scripts/hardcover-record.mjs`, tested by `convex/lib/hardcoverRecorded.test.ts`. How to use and re-record: §1b.
+  Existing sync tests still build replies by hand; moving them onto the recordings is fine work for a class A run.
 
 - **B7** Docs drift. Done 2026-11-10 (run 14, class A): SPEC's duplicated §3.6 to §6 removed (the copy with the
   current Explore text stays); architecture sketch says `generateSW` and a GET share target; README status and PLAN's
