@@ -159,7 +159,6 @@ line numbers moving.
 | Id | Item | Evidence | Sure? | Size | Class | Status |
 |---|---|---|---|---|---|---|
 | B2 | **No error or not-found screens.** No route has an `errorComponent` or `notFoundComponent`, so a thrown render error is a blank page and a bad address shows the router's default. Add one of each in the catalog's voice, with a way back to the Desk. | no matches for either in `src/` | Sure | S | C | ready |
-| B8 | **`sendOrKeep` late path can double a progress log.** After 8 s it keeps a copy while the original send may still land; replay then sends it again. Entries dedupe, progress adds a second log row. Fix: register the kept id as in flight until the original settles, or drop the kept copy when it lands. | `src/lib/outbox.ts` `sendOrKeep` | Fairly sure | S | B | ready |
 | B6 | **Three routes are still placeholders:** `/books/:slug/guide`, `/imports/:jobId`, `/settings/integrations/:provider`. Build, redirect or remove each, and make SPEC §4.1 match. | `src/routes/*` importing `Placeholder` | Sure | S each | C | needs Steve (Q6) |
 | B7 | **Docs have drifted.** `SPEC.md` repeats §3.6 to §6 twice, and the first §3.6 says there is no Explore screen. `README.md` says the buddy and art are "still to come". SPEC §4 says `injectManifest` and a share-target POST handler; the build is `generateSW` with a GET share target. `PLAN.md`'s repo layout lists folders that don't exist. Bring them in line with what's built. | the files themselves | Sure | S | A | ready |
 
@@ -264,6 +263,12 @@ Answer in this file, dated, and the items unblock.
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
 
+- **2026-11-10, run 9 (unattended).** Ground: `main` at `01bdef6`, CI green (Vercel not checked: no deploy status
+  reachable from here). Re-checked B8 against the code: real. Did it (class B), see §7. Verified: the two tests that
+  exercise the bug failed before the fix, all pass after (a third pins the failure path). No theme-U assessment this run
+  (the fix is invisible), so it continues next run. Next run (10th) is the review of the loop itself (§8), then a
+  delight run at 12. Not checked: a real slow connection on a phone.
+
 - **2026-11-10, run 8 (unattended; a delight run, §3.4).** Ground: `main` at `eb6a82c`, CI green (Vercel not checked:
   no deploy status reachable from here). Did the D1 audit (class A, docs only): the motion table checked against the
   code, seven missing or partial moments filed as D10 to D16 (§4 D). No app code changed, so lint, tests and build
@@ -333,9 +338,13 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
 
 Move items here with the date and the commit or the reason. Keep the id so old log entries still make sense.
 
+- **B8** `sendOrKeep` late path could double a progress log. Done 2026-11-10 (run 9, class B): the kept copy is marked
+  in flight until the original settles, so a replay skips it; if the original lands the copy is removed, if it fails
+  the copy stays for the replay.
+
 - **B4** A write sent twice. Done 2026-11-10 (run 7, class B): `outbox.ts` tracks ids being sent; `replay` skips them,
   so a replay (or two at once) no longer re-sends a write `keepThenSend` still has in flight. The `sendOrKeep` late
-  path is separate and remains (see §6, run 7); file it as B8 if it matters.
+  path was B8 (done, run 9).
 - **B3** Signing out leaves queued writes. Done 2026-11-10 (run 7, class B): `forgetDevice` calls `clearOutbox`.
 
 - **B5** `activity` read the clock. Done 2026-11-10 (run 6, class B): the query uses `windowEnd(since)` (start of

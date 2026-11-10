@@ -51,6 +51,43 @@ test('a connection that claims to work but never answers still keeps the words',
   expect(store.items).toHaveLength(1)
 })
 
+test('a slow write that lands after being kept leaves no copy behind', async () => {
+  const store = memory()
+  let land!: () => void
+  const slow = new Promise<void>(r => { land = r })
+  expect(await sendOrKeep('logProgress', {}, () => slow, { store, online: () => true, waitMs: 5 })).toEqual({ kept: true })
+  expect(store.items).toHaveLength(1)
+  land()
+  await new Promise(r => setTimeout(r, 0))
+  expect(store.items).toEqual([])
+})
+
+test('a replay while the slow original is still out does not send it a second time', async () => {
+  const store = memory()
+  let land!: () => void
+  const slow = new Promise<void>(r => { land = r })
+  await sendOrKeep('logProgress', {}, () => slow, { store, online: () => true, waitMs: 5 })
+  const sent: string[] = []
+  await replay(async q => { sent.push(q.id) }, store)
+  expect(sent).toEqual([])
+  land()
+  await new Promise(r => setTimeout(r, 0))
+  expect(store.items).toEqual([])
+})
+
+test('a slow write that then fails stays kept for the replay', async () => {
+  const store = memory()
+  let fail!: () => void
+  const slow = new Promise<void>((_, rej) => { fail = () => rej(new Error('network')) })
+  await sendOrKeep('logProgress', {}, () => slow, { store, online: () => true, waitMs: 5 })
+  fail()
+  await new Promise(r => setTimeout(r, 0))
+  expect(store.items).toHaveLength(1)
+  const sent: string[] = []
+  await replay(async q => { sent.push(q.id) }, store)
+  expect(sent).toHaveLength(1)
+})
+
 test('a lost connection keeps it, but a refusal is the reader\'s to hear about', async () => {
   const store = memory()
   expect(await sendOrKeep('addEntry', {}, async () => { throw new Error('network') }, { store, online: () => true })).toEqual({ kept: true })

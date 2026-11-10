@@ -67,7 +67,7 @@ const WAIT_MS = 8000
 
 /**
  * Sends a write, or keeps it for later. "Online" can't be trusted on a bad connection, so a write that hasn't
- * landed in a few seconds is kept too. If that one lands after all, the replay is harmless.
+ * landed in a few seconds is kept too. If that one lands after all, the kept copy is dropped; until it settles, a replay leaves the copy alone.
  */
 export async function sendOrKeep<T>(
   name: Queued['name'],
@@ -75,16 +75,23 @@ export async function sendOrKeep<T>(
   send: () => Promise<T>,
   { store = deviceStore, online = () => navigator.onLine, waitMs = WAIT_MS }: { store?: Store; online?: () => boolean; waitMs?: number } = {},
 ): Promise<{ kept: true } | { kept: false; result: T }> {
-  const keep = async () => {
-    await store.put({ id: `${Date.now().toString().padStart(15, '0')}-${Math.random().toString(36).slice(2)}`, name, args })
+  const keep = async (original?: Promise<unknown>) => {
+    const id = `${Date.now().toString().padStart(15, '0')}-${Math.random().toString(36).slice(2)}`
+    await store.put({ id, name, args })
+    if (original) {
+      // The original is still out and may land: until it settles, a replay must not send the kept copy too.
+      sending.add(id)
+      original.then(() => store.remove(id).catch(() => {}), () => {}).finally(() => sending.delete(id))
+    }
     return { kept: true as const }
   }
   if (!online()) return keep()
   let timer: ReturnType<typeof setTimeout> | undefined
   const late = new Promise<'late'>(resolve => { timer = setTimeout(() => resolve('late'), waitMs) })
+  const original = send()
   try {
-    const answer = await Promise.race([send(), late])
-    return answer === 'late' ? keep() : { kept: false, result: answer as T }
+    const answer = await Promise.race([original, late])
+    return answer === 'late' ? keep(original) : { kept: false, result: answer as T }
   } catch (e) {
     if (refused(e)) throw e
     return keep()
