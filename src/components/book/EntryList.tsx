@@ -1,10 +1,11 @@
 import { Link } from '@tanstack/react-router'
 import { useMutation } from 'convex/react'
 import { Plus, Trash2 } from 'lucide-react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { errorText } from '../../lib/books'
+import { landedSince } from '../../lib/newEntries'
 
 export type Entry = { id: Id<'entries'>; kind: string; text: string; question: string | null; position: string; parentId?: Id<'entries'> | null }
 
@@ -79,15 +80,19 @@ function AttachNote({ parent, readId }: { parent: Entry; readId: Id<'reads'> }) 
 export function EntryList({ entries, readId, limit }: { entries: Entry[]; readId: Id<'reads'>; limit?: number }) {
   const ids = new Set(entries.map(e => e.id))
   const top = entries.filter(e => !e.parentId || !ids.has(e.parentId))
+  // Entries present when the list first showed are not "new"; ones that arrive later are written out as they land.
+  const first = useRef<Set<string> | null>(null)
+  if (first.current === null) first.current = new Set(entries.map(e => e.id))
+  const landed = landedSince(first.current, entries.map(e => e.id))
   return (
     <ul className="entries">
       {top.slice(0, limit).map(e => (
-        <li key={e.id}>
+        <li key={e.id} data-landed={landed.has(e.id) || undefined}>
           <span className="entry-position">{entryLabel(e)}</span>
           <div className="entry-body">
             <Link to="/e/$entryId" params={{ entryId: e.id }} className="note-link"><EntryText entry={e} /></Link>
             {entries.filter(c => c.parentId === e.id).reverse().map(c => (
-              <div key={c.id} className="entry-child">
+              <div key={c.id} className="entry-child" data-landed={landed.has(c.id) || undefined}>
                 <Link to="/e/$entryId" params={{ entryId: c.id }} className="note-link"><p className="hand">{c.text}</p></Link>
                 <Delete entry={c} />
               </div>

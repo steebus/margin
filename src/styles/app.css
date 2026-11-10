@@ -526,6 +526,9 @@ td a { display: inline-flex; align-items: center; min-height: 44px; color: inher
 @keyframes highlight-swipe { from { background-size: 0% 100%; --wet: 42%; } 45% { --wet: 42%; } to { background-size: 100% 100%; --wet: 22%; } }
 .book-margin .entries .book-voice { display: inline; font-size: 1.375rem; line-height: 1.5; background: linear-gradient(transparent 12%, color-mix(in srgb, var(--rule) var(--wet), transparent) 12% 88%, transparent 88%) no-repeat 0 0 / 100% 100%; animation: highlight-swipe 1.1s ease-out both; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
 .book-margin .entries .hand { font-size: 1.375rem; }
+/* A note that lands while the page is open is written out left to right, like a pen, over 0.7 s. */
+@keyframes write-out { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 -0.2em 0 0); } }
+.book-margin .entries [data-landed] .hand { animation: write-out 0.7s cubic-bezier(0.45, 0, 0.3, 1) both; }
 .book-more { display: grid; border-top: var(--line) solid var(--ink); }
 .book-more > details { border-bottom: var(--line) solid var(--ink); }
 .book-more > details[open] { padding-bottom: 14px; }

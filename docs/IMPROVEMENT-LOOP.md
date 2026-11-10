@@ -226,7 +226,6 @@ never in the way": nothing here may add a tap or delay an input. Every fourth ru
 |---|---|---|---|---|
 | D1 | **Check the motion table.** Audit done 2026-11-10 (run 8), see the table below. Build the missing moments one at a time, cheapest first (D10 to D16). | `docs/DESIGN-DIRECTION.md` Motion table | S each | audit **done**; builds ready |
 | D10 | ~~**Highlighter dries.** The mustard swipe on a marked line should follow the finger, then desaturate a touch. Neither exists: the highlight in the margin block (`app.css` ~523) is static. Cheapest: a one-off colour transition on first render.~~ | `app.css` "In the margin on its book's page" | S | **done 2026-11-10** (§7) |
-| D11 | **Handwriting reveal for new entries.** A clip-path sweep when a note first lands. Only the `pen` stroke-dashoffset exists, on the biro marks; notes appear at once. | `app.css` `pen`, `.mark path` | S | ready |
 | D12 | **Tags swing on their string** when added and flutter when filtered. No tag animation exists. | grep `swing`: no match | S | ready |
 | D13 | **Ribbon bookmark** drapes and sways; logging progress drags it down. There is no ribbon element at all (progress is a bar and a percentage, per the Fair-catalog section). Needs Steve: does the ribbon still belong? | no `ribbon` in `src/components` | S | needs Steve |
 | D14 | **Spines lean on a fast scroll.** The Pile has an unfurl (clip-path), no lean. | `app.css` `.pile-row` | M | ready |
@@ -290,6 +289,13 @@ Answer in this file, dated, and the items unblock.
 ## 6. Run log
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
+
+- **2026-11-10, run 16 (unattended; a delight run).** Ground: `main` at `7932922`, CI green (Vercel not checked, Q13).
+  Did D11 (class C), see §7. Verified: lint clean, 288 tests (3 new), build and budget green (main chunk 617.9 kB,
+  unchanged), no fixture code in `dist/`; Book page read in fixture mode (phone light, desktop dark): settled
+  notes identical to before, nothing wider than its screen, no errors. Not checked: the reveal itself in motion
+  (fixture writes are forgotten, so a note can't land there; shots capture the settled state), or on a phone.
+  Run 17 is a normal pick. Remaining safe supply: O1, U1, O3, U10, D12.
 
 - **2026-11-10, run 15 (unattended; a normal pick).** Ground: `main` at `abe50bf`, CI green (Vercel not checked, Q13).
   Assessed Capture, Review, Explore and Stats by reading fixture shots (phone and desktop, light and dark; 16 shots,
@@ -420,6 +426,11 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
 ## 7. Done and dropped
 
 Move items here with the date and the commit or the reason. Keep the id so old log entries still make sense.
+
+- **D11** Handwriting reveal. Done 2026-11-10 (run 16, class C): a note that lands on a book's page while it's open (an
+  entry not in the list when it first showed, `landedSince` in `src/lib/newEntries.ts`) is written out left to right
+  over 0.7 s (`write-out`, a clip-path sweep, `app.css`). Entries already there on arrival don't animate, so
+  nothing replays on each visit. Applies to the book page's margin list only; Notes, Drawer and Desk unchanged.
 
 - **U11** Uneven radio dots. Done 2026-11-10 (run 15, class C): `.check input` in `app.css` is `flex: none`, so a wrapped label no longer squeezes its radio or checkbox. Fixes Review's matches and the same list on Share, Add a book and the Kobo import.
 
