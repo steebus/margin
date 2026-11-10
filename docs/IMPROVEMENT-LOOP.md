@@ -198,7 +198,33 @@ never in the way": nothing here may add a tap or delay an input. Every fourth ru
 
 | Id | Item | Notes | Size | Status |
 |---|---|---|---|---|
-| D1 | **Check the motion table.** DESIGN-DIRECTION lists twelve moments (ribbon, highlighter drying, handwriting reveal, tags swinging, spines leaning, the drawer's flick…). Mark which exist, and build the missing ones one at a time, cheapest first. | The audit itself is class A | S, then S each | ready |
+| D1 | **Check the motion table.** Audit done 2026-11-10 (run 8), see the table below. Build the missing moments one at a time, cheapest first (D10 to D16). | `docs/DESIGN-DIRECTION.md` Motion table | S each | audit **done**; builds ready |
+| D10 | **Highlighter dries.** The mustard swipe on a marked line should follow the finger, then desaturate a touch. Neither exists: the highlight in the margin block (`app.css` ~523) is static. Cheapest: a one-off colour transition on first render. | `app.css` "In the margin on its book's page" | S | ready |
+| D11 | **Handwriting reveal for new entries.** A clip-path sweep when a note first lands. Only the `pen` stroke-dashoffset exists, on the biro marks; notes appear at once. | `app.css` `pen`, `.mark path` | S | ready |
+| D12 | **Tags swing on their string** when added and flutter when filtered. No tag animation exists. | grep `swing`: no match | S | ready |
+| D13 | **Ribbon bookmark** drapes and sways; logging progress drags it down. There is no ribbon element at all (progress is a bar and a percentage, per the Fair-catalog section). Needs Steve: does the ribbon still belong? | no `ribbon` in `src/components` | S | needs Steve |
+| D14 | **Spines lean on a fast scroll.** The Pile has an unfurl (clip-path), no lean. | `app.css` `.pile-row` | M | ready |
+| D15 | **Adding a book slides into its slot** and nudges neighbours (a `layout` animation on Shelves). Motion is used on Desk, book page, drawer, capture and toasts only. | `motion/react` importers | M | ready |
+| D16 | **Library card stamp for each event** (thunk, rotation, ink spread) beyond the status stamp. `stamp-land` scales in; there is no rotation or ink spread, and haptics fire only on finish. | `app.css` `stamp-land` | S | same as D6 |
+
+**D1's audit (2026-11-10, by reading code, not the running app):**
+
+| Moment | State |
+|---|---|
+| Buddy note typing, strike, carriage creep | exists (`Typewriter.tsx`, `strike`) |
+| Clack and ding | missing (D5) |
+| Route changes | default view transition only, 120 ms (D2 for the shared element) |
+| Shelves lean / slide-in | missing (D14, D15) |
+| Ribbon | missing (D13) |
+| Highlighter swipe and dry | missing (D10) |
+| Handwriting reveal | partial: biro marks draw (`pen`), notes don't (D11) |
+| Library card stamp | partial: `stamp-land`, haptic on finish (D6, D16) |
+| Tags | missing (D12) |
+| The drawer | exists: card rises with a tilt, exits flicked right (`Drawer.tsx`) |
+| Review queue swipe | missing (U4) |
+| Explore graph | exists: d3 force layout settles; spring physics and iron-filings focus not checked |
+| Empty states | missing (U3) |
+
 | D2 | **Shelf to book as one movement.** Only the router's default view transition is on. Name the thumbnail so it travels from the shelf cell to the book page header. | `main.tsx` `defaultViewTransition`; no `view-transition-name` on thumbs | M | ready |
 | D4 | **A year in the catalog.** A printable end-of-year sheet in the Fair-catalog look: the year's books as stamps, pages, the most-marked book, the line most returned to. December is close. | `stats.ts` has most of the numbers | L | needs Steve |
 | D5 | **Typewriter sound,** off by default, as the brief always described. | `Typewriter.tsx` has no audio | S | ready |
@@ -237,6 +263,13 @@ Answer in this file, dated, and the items unblock.
 ## 6. Run log
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
+
+- **2026-11-10, run 8 (unattended; a delight run, §3.4).** Ground: `main` at `eb6a82c`, CI green (Vercel not checked:
+  no deploy status reachable from here). Did the D1 audit (class A, docs only): the motion table checked against the
+  code, seven missing or partial moments filed as D10 to D16 (§4 D). No app code changed, so lint, tests and build
+  were not rerun. Not checked: the audit is from reading code, not from the running app; Explore's spring physics
+  unverified. Theme U assessment still outstanding beyond run 6's four screens. Next run (9th) is a normal pick; B8 or
+  D10 are good candidates.
 
 - **2026-11-10, run 7 (unattended).** Ground: `main` at `73973ff`, CI green (Vercel not checked: no deploy status
   reachable from here). Did B4 and B3 (class B, same file), see §7. Re-checked B4 against the code: real. Assessed
