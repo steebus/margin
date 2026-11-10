@@ -34,12 +34,12 @@ margin/
     routes/          TanStack Router file routes (SPEC §4.1)
     components/      UI, one folder per object (desk/, shelf/, thumb/, typewriter/ …)
     lib/             logic: parsers, cover drawing, theme, drawer rules (unit-tested)
-    sample/          demonstration data, until Phase 1 replaces it
+    fixtures/        fixture mode: a stand-in Convex client for looking at the app on made-up data
     styles/          tokens.css (both themes), app.css
-    motion/, sw/     added when there's a second user of a spring, and with the PWA
-  convex/
-    schema.ts
-    library/ entries/ buddy/ capture/ graph/ imports/ integrations/ push/
+  fixtures/          the made-up library and the generator that runs Margin's real queries over it
+  scripts/           fixture shots, bundle budget, art batches
+  convex/            flat files by area (library.ts, entries.ts, hardcover.ts, buddy.ts, guides.ts,
+                     art.ts, topics.ts, push.ts, kobo.ts …), each with its test beside it
     lib/             visibleTo, guideUpTo, matching, dedupe (unit-tested)
   docs/              SPEC, PLAN, DESIGN-DIRECTION
   PRODUCT.md, DESIGN.md, CLAUDE.md
@@ -102,7 +102,7 @@ itself.
      page)
 7. **PWA.**
    - Manifest with icons, theme colour and standalone display
-   - Service worker (vite-plugin-pwa, injectManifest) for the offline shell
+   - Service worker (vite-plugin-pwa, generateSW; push handlers in public/push-sw.js) for the offline shell
      and the install prompt
    - Safe-area insets
 
@@ -121,8 +121,7 @@ itself.
 1. **Schema.** The tables are `works`, `authors`, `reads`, `progressLog`,
    `entries`, `shelves`, `tags`, `people`. Every row carries a `userId`.
 2. **Book search and add.**
-   - Search Hardcover, then Open Library, then Google Books, merged and
-     de-duplicated by ISBN.
+   - Search Hardcover only (Steve, 2026-11-10: no Open Library or Google Books fallback).
    - Adding a book takes status, format and source (kind, who → `people`,
      URL, why, date).
 3. **Reads.**

@@ -162,7 +162,6 @@ line numbers moving.
 |---|---|---|---|---|---|---|
 | B2 | **No error or not-found screens.** No route has an `errorComponent` or `notFoundComponent`, so a thrown render error is a blank page and a bad address shows the router's default. Add one of each in the catalog's voice, with a way back to the Desk. | no matches for either in `src/` | Sure | S | C | ready |
 | B6 | **Two routes are still placeholders:** `/books/:slug/guide`, `/imports/:jobId`, `/settings/integrations/:provider`. Build, redirect or remove each, and make SPEC §4.1 match. **`/guide` removed 2026-11-10 (Steve).** | `src/routes/*` importing `Placeholder` | Sure | S each | C | two left, ready |
-| B7 | **Docs have drifted.** `SPEC.md` repeats §3.6 to §6 twice, and the first §3.6 says there is no Explore screen. `README.md` says the buddy and art are "still to come". SPEC §4 says `injectManifest` and a share-target POST handler; the build is `generateSW` with a GET share target. `PLAN.md`'s repo layout lists folders that don't exist. Bring them in line with what's built. | the files themselves | Sure | S | A | ready |
 
 ### O: optimisation
 
@@ -181,6 +180,8 @@ Every item here is class C unless it's a plain bug. Look at each in fixture mode
 | Id | Item | Evidence | Size | Status |
 |---|---|---|---|---|
 | ~~U9~~ | **Closed 2026-11-10 (Steve: dim, don't invert; SPEC §3.11 corrected).** ~~Drawings in the dark theme.~~ In fixture mode a book with a drawing shows as a pale panel with black ink on Shelves at night, where SPEC §3.11 says `invert` plus `screen`. It may be the stand-in art (an SVG, not a WebP), a decision since the spec, or a bug. Check with Steve's eyes on a real drawing before touching it. | `fixture-shots/shelves.phone.dark.png` | S | closed |
+| U10 | **Disabled "Save excerpt" is grey on grey** on Capture (light theme), low contrast against the page; check it reaches AA or reads as disabled without losing the label. Part of U1's contrast pass. | `capture.phone.light.png` | S | ready |
+| U11 | **Review's Hardcover matches:** the radio dots differ in size and the selected row's text is indented differently from the others, so the list looks uneven. | `review.phone.dark.png` | S | ready |
 | U1 | **An accessibility sweep, one surface per run:** focus order and visible focus, names on icon buttons, contrast in both themes (WCAG AA is a brand commitment), 48dp targets, nothing hover-only, toasts announced once. Start with the Desk and the book page. | `PRODUCT.md` Accessibility; never audited | M each | ready |
 | ~~U2~~ | **Dropped 2026-11-10 (Steve doesn't want motion reduced).** ~~A reduced-motion sweep.~~ Nine places mention reduced motion; `PLAN.md` wants a designed path for every animation. List every animation, tick the ones with a designed still version, fix the rest. | `grep prefers-reduced-motion` | M | ready |
 | U3 | **Loading and empty states.** Several screens show a bare "Opening…" line. DESIGN-DIRECTION asks for "something small and alive". Design one empty state and one loading state and use them everywhere. | `Desk.tsx`, `__root.tsx` | M | ready |
@@ -263,6 +264,12 @@ Answer in this file, dated, and the items unblock.
 ## 6. Run log
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
+
+- **2026-11-10, run 14 (unattended; a normal pick).** Ground: `main` at `74a1524`, CI green (Vercel not checked, Q13).
+  Assessed Stats, Review, Capture and Settings by reading fixture shots (phone and desktop, light and dark; 16 shots,
+  nothing wider than its screen, no errors). Seen, filed as U10 and U11. Did B7 (class A), see §7. Verified: lint clean,
+  278 tests, build and budget green (main chunk 617.9 kB, unchanged); docs only, so no visible change. Remaining safe
+  supply: O1, U1, O3, U10, U11. Run 15 is a normal pick; run 16 a delight run.
 
 - **2026-11-10, run 13 (unattended; a normal pick).** Ground: `main` at `1d5a6d1`, CI green (Vercel not checked, Q13).
   Did O7 (class A), see §7. Verified: 278 tests pass with `isolate: false`, also with shuffled files and tests (3
@@ -376,6 +383,11 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
 ## 7. Done and dropped
 
 Move items here with the date and the commit or the reason. Keep the id so old log entries still make sense.
+
+- **B7** Docs drift. Done 2026-11-10 (run 14, class A): SPEC's duplicated §3.6 to §6 removed (the copy with the
+  current Explore text stays); architecture sketch says `generateSW` and a GET share target; README status and PLAN's
+  repo layout match what's built; SPEC §3.1 and PLAN no longer promise Open Library or Google Books (H14), and §3.11
+  says books aren't drawn automatically (D8).
 
 - **O7** Tests share workers. Done 2026-11-10 (run 13, class A): `vitest.config.ts` sets `isolate: false`, with
   `unstubGlobals` and `unstubEnvs` so a stub can't outlive its test. If a test starts failing only in the full run,

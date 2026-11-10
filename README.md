@@ -8,8 +8,9 @@ and have a conversation with the book while you read it.
 - `docs/DESIGN-DIRECTION.md`: what it looks like and how it moves
 - `docs/IMPROVEMENT-LOOP.md`: what to make better next, and how an unattended run does it
 
-Status: Phase 1 in progress. Live and installable, with Google sign-in and the Hardcover import. Shelves, Desk,
-Book page, progress logging, excerpts and notes run on real data; the buddy and the art pipeline are still to come.
+Status: live and installable, with Google sign-in and a two-way Hardcover sync. Shelves, Desk, book page, progress,
+excerpts and notes, the buddy, topics and Explore, the drawer, and the cover-art pipeline are built and run on real data.
+`docs/IMPROVEMENT-LOOP.md` lists what's next.
 
 ```
 npm install
