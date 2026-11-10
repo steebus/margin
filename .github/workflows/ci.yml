@@ -19,3 +19,5 @@ jobs:
       - run: npm test
       # Typechecks too.
       - run: npm run build
+      # The main chunk may not grow more than 5% without bundle-budget.json being raised on purpose.
+      - run: npm run budget

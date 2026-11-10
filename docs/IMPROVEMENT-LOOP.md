@@ -130,7 +130,6 @@ line numbers moving.
 |---|---|---|---|---|---|
 | E1 | **A fixture mode for looking at the app.** No run can sign in, so no run can see a screen. A dev-only way to render routes on recorded, made-up library data (a fake `useBooks`/`useEntries`/`useActivity` source behind a `?fixture` flag or a `/__fixtures` route excluded from production builds) lets runs take screenshots, check overflow and reduced motion, and run Lighthouse. | `src/lib/offline.ts` is already the one place most screens get data | M | A | **done 2026-11-10**, see §1a |
 | E2 | **Screenshot and overflow check script** on top of E1: every route, two widths, two themes, saved as artifacts; fails on an element wider than the viewport (measure rects, as `CLAUDE.md` says, and scroll with the real wheel so lazy cells load). | `CLAUDE.md` notes on `overflow-x: clip` and lazy cells | M | A | **done 2026-11-10** as `scripts/fixture-shots.mjs`. Left: a production-mode fixture build for Lighthouse (O6) |
-| E4 | **Bundle budget in CI.** Record the main chunk's size and fail the build if it grows more than 5% without the budget being raised on purpose. Baseline 2026-11-10: `index` 620 kB (194 kB gzip), precache 77 files, 1,439 kB. | `npm run build` output | S | A | ready |
 | E5 | **Recorded Hardcover fixtures.** `PLAN.md`'s risk table promises "recorded fixtures in tests" for Hardcover; the sync tests build their own replies by hand. Record the shapes of real read-only replies (scrubbed) so a schema change on Hardcover's side shows up as a failing test. Needs Steve to capture them once. | `convex/hardcoverSync.test.ts`, `PLAN.md` Risks | M | A | needs Steve |
 
 ### H: Hardcover connection
@@ -243,6 +242,13 @@ Answer in this file, dated, and the items unblock.
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
 
+- **2026-11-10, run 3 (unattended).** Ground: `main` at `d272047`, CI green. Did E4 (class A): `npm run budget`
+  (`scripts/bundle-budget.mjs`, rule in `src/lib/bundleBudget.ts` with tests, numbers in `bundle-budget.json`) runs
+  in CI after the build and fails if the main chunk grows more than 5% over its recorded size, raw or gzip. Checked
+  it fails when the budget is lowered, then restored. Verified: lint clean, 265 tests, build green. Assessment (the
+  run-1 shots, theme U) **still not done**: this run had no browser pass either, so the next run starts there.
+  Seen in passing: Vitest still says `isolate: false` would save ~2.8 s (O7).
+
 - **2026-11-10, run 2 (unattended).** Ground: `main` at `436f12c`, CI green. Did E3 (class A): lint now covers
   `convex/` and `scripts/`; one warning fixed (`endsWith`, same behaviour). Verified: lint clean, 261 tests,
   build green. Assessment (reading the run-1 shots, theme U) not done: this run had no browser pass, so **the
@@ -268,6 +274,9 @@ Move items here with the date and the commit or the reason. Keep the id so old l
 
 - **E3** Lint `convex/` and `scripts/` too. Done 2026-11-10: `npm run lint` is now `oxlint src convex scripts`; the
   one finding (a regex `$` in `convex/lib/playbooks.ts`) became `endsWith`. CI runs `npm run lint`, so it's covered.
+
+- **E4** Bundle budget in CI. Done 2026-11-10: `npm run budget` after the build in CI. Baseline: `index` 620,585
+  bytes raw, 192,100 gzip (level 9; Vite's report says 194 kB at its own level). Raise `bundle-budget.json` on purpose.
 
 ## 8. Keeping this plan good
 
