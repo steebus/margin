@@ -72,3 +72,11 @@ test('a write that is not waited for is kept until it lands, and dropped when re
   await keepThenSend('addEntry', {}, async () => { throw new Error('network') }, store)
   expect(store.items).toHaveLength(1)
 })
+
+test('a refused replay tells the caller why, with the item', async () => {
+  const store = memory([{ id: '1', name: 'addEntry', args: { text: 'kept words' } }])
+  const refusal = Object.assign(new Error('Server Error'), { data: 'That book is gone.' })
+  const heard: [string, unknown][] = []
+  await replay(async () => { throw refusal }, store, (item, e) => heard.push([item.id, (e as { data: unknown }).data]))
+  expect(heard).toEqual([['1', 'That book is gone.']])
+})

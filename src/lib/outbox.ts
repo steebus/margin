@@ -35,7 +35,7 @@ export const deviceStore: Store = {
 const refused = (e: unknown) => (e as { data?: unknown })?.data !== undefined
 
 /** Sends what's waiting, oldest first. Stops at the first lost connection, so the order holds. Returns what was refused. */
-export async function replay(send: (item: Queued) => Promise<unknown>, store: Store = deviceStore) {
+export async function replay(send: (item: Queued) => Promise<unknown>, store: Store = deviceStore, onRefused?: (item: Queued, error: unknown) => void) {
   const items = (await store.all()).sort((a, b) => a.id.localeCompare(b.id))
   const rejected: Queued[] = []
   for (const item of items) {
@@ -44,6 +44,7 @@ export async function replay(send: (item: Queued) => Promise<unknown>, store: St
     } catch (e) {
       if (!refused(e)) break
       rejected.push(item)
+      onRefused?.(item, e)
     }
     await store.remove(item.id)
   }

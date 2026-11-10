@@ -158,7 +158,6 @@ line numbers moving.
 
 | Id | Item | Evidence | Sure? | Size | Class | Status |
 |---|---|---|---|---|---|---|
-| B1 | **Words written offline can vanish without a word.** When a queued write is refused on replay, it's removed from the device and only logged to the console. It should raise the same "Not saved" toast as a live refusal, holding the words. | `useReplayOutbox` in `src/lib/offline.ts`; `FailureToast` already takes `words` | Sure | S | B | ready |
 | B2 | **No error or not-found screens.** No route has an `errorComponent` or `notFoundComponent`, so a thrown render error is a blank page and a bad address shows the router's default. Add one of each in the catalog's voice, with a way back to the Desk. | no matches for either in `src/` | Sure | S | C | ready |
 | B3 | **Signing out leaves queued writes behind.** `forgetDevice` clears the cached library but not the IndexedDB outbox, so writes queued under one sign-in replay under the next. One reader today, so harmless; wrong the day there are two. | `forgetDevice`, `deviceStore` | Sure | S | B | ready |
 | B4 | **A write can be sent twice.** `keepThenSend` stores then sends; if the connection flaps, `replay` can send the same stored write while the first is still in flight. Entries dedupe; progress gets two log rows, which doubles a step on the Desk chart. Hold a lock while replaying, or skip ids in flight. | `src/lib/outbox.ts` | Fairly sure | S | B | ready |
@@ -241,6 +240,14 @@ Answer in this file, dated, and the items unblock.
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
 
+- **2026-11-10, run 5 (unattended).** Ground: `main` at `48e6ebf`, CI green. Did B1 (class B, data-loss rule §3.1),
+  see §7. Re-checked B5 against the code: still real (`Date.now()` at `convex/library.ts` `activity`, the `movedIn`
+  call). Verified: the three new tests failed before the fix and pass after; lint clean, 271 tests, build and budget
+  green (main chunk 618.0 kB, slightly under budget); no fixture code in `dist/`. Not checked: a refusal on replay
+  in a real browser (no way to make the server refuse in fixture mode), and the toast wording on a phone.
+  Assessment of the run-1 shots (theme U) **still not done, a fourth run in a row**: next run does it first, before
+  choosing anything.
+
 - **2026-11-10, run 4 (unattended; a delight run, §3.4).** Ground: `main` at `8294a89`, CI green. Did D3 (class C),
   see §7. Verified: lint clean, 268 tests (3 new), build and budget green (main chunk unchanged); fixture-mode Desk
   read by eye on phone and desktop, light and dark: the toast says "Two years ago today", fits the screen, no page
@@ -277,6 +284,11 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
 ## 7. Done and dropped
 
 Move items here with the date and the commit or the reason. Keep the id so old log entries still make sense.
+
+- **B1** Words written offline vanishing. Done 2026-11-10 (run 5, class B): `replay` takes an `onRefused(item, error)`;
+  `useReplayOutbox` passes `sayReplayFailure` (`src/lib/quiet.ts`, `replayFailure` tested), so a queued note the
+  server refuses raises the same "Not saved" toast holding its words (note and excerpt text), and a refused progress
+  log says which place didn't save. Still taken off the device, as a refusal is final.
 
 - **E3** Lint `convex/` and `scripts/` too. Done 2026-11-10: `npm run lint` is now `oxlint src convex scripts`; the
   one finding (a regex `$` in `convex/lib/playbooks.ts`) became `endsWith`. CI runs `npm run lint`, so it's covered.

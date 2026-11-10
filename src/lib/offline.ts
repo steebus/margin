@@ -3,6 +3,7 @@ import { useQuery } from 'convex-helpers/react/cache/hooks'
 import { useEffect, useState } from 'react'
 import { api } from '../../convex/_generated/api'
 import { replay } from './outbox'
+import { sayReplayFailure } from './quiet'
 
 // Versioned: an answer saved by an older build can lack fields this one reads, so a new shape gets a new key.
 const KEYS = {
@@ -83,7 +84,7 @@ export function useReplayOutbox(signedIn: boolean) {
     if (!signedIn || !online) return
     replay(item => (item.name === 'addEntry'
       ? convex.mutation(api.entries.addEntry, item.args as never)
-      : convex.mutation(api.library.logProgress, item.args as never)))
+      : convex.mutation(api.library.logProgress, item.args as never)), undefined, sayReplayFailure)
       .then(rejected => { if (rejected.length) console.error('Refused when replayed:', rejected) })
       .catch(e => console.error('Replay failed:', e))
   }, [signedIn, online, convex])

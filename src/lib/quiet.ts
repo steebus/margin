@@ -13,10 +13,24 @@ export type Failure = { id: number; message: string; words?: string }
 const listeners = new Set<(f: Failure) => void>()
 let next = 0
 
+const say = (f: Omit<Failure, 'id'>) => {
+  const failure = { ...f, id: ++next }
+  for (const listen of listeners) listen(failure)
+}
+
+/** A queued write the server refused when it was replayed: the same "Not saved" toast, holding the words. */
+export function replayFailure(item: Queued, error: unknown): Omit<Failure, 'id'> {
+  if (item.name === 'logProgress') return { message: `A place logged offline didn't save. ${errorText(error, '')}`.trim() }
+  const { kind, text, note } = item.args as { kind?: string; text?: string; note?: string }
+  const words = [text, note?.trim()].filter(Boolean).join('\n\n')
+  return { message: `A ${kind === 'excerpt' ? 'line' : kind ?? 'note'} written offline didn't save. ${errorText(error, '')}`.trim(), words: words || undefined }
+}
+
+export const sayReplayFailure = (item: Queued, error: unknown) => say(replayFailure(item, error))
+
 export function sendQuietly(name: Queued['name'], args: Record<string, unknown>, send: () => Promise<unknown>, failure: { message: string; words?: string }) {
   return keepThenSend(name, args, send).then(() => true, e => {
-    const f = { id: ++next, message: `${failure.message} ${errorText(e, '')}`.trim(), words: failure.words }
-    for (const listen of listeners) listen(f)
+    say({ message: `${failure.message} ${errorText(e, '')}`.trim(), words: failure.words })
     return false
   })
 }

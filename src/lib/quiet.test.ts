@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { withLogged } from './quiet'
+import { replayFailure, withLogged } from './quiet'
 
 const DAY = 86_400_000
 const now = 20 * DAY
@@ -25,4 +25,16 @@ test('audio moves the listening, not the pages', () => {
   const next = withLogged(quiet, audio, 40, since, now)
   expect(next.pages).toBe(0)
   expect(next.audioSeconds).toBe(10_800)
+})
+
+test('a refused offline note comes back as a failure holding its words', () => {
+  const f = replayFailure({ id: '1', name: 'addEntry', args: { kind: 'note', text: 'Hold this.', note: 'And this.' } }, Object.assign(new Error('x'), { data: 'That book is gone.' }))
+  expect(f.message).toBe("A note written offline didn't save. That book is gone.")
+  expect(f.words).toBe('Hold this.\n\nAnd this.')
+})
+
+test('a refused offline progress log has no words to hold', () => {
+  const f = replayFailure({ id: '2', name: 'logProgress', args: {} }, new Error('x'))
+  expect(f.message).toBe("A place logged offline didn't save.")
+  expect(f.words).toBeUndefined()
 })
