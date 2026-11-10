@@ -31,7 +31,6 @@ import { Route as TopicsTopicSlugRouteImport } from './routes/topics.$topicSlug'
 import { Route as BooksBookSlugIndexRouteImport } from './routes/books.$bookSlug.index'
 import { Route as BooksBookSlugBuddyRouteImport } from './routes/books.$bookSlug.buddy'
 import { Route as BooksBookSlugEditRouteImport } from './routes/books.$bookSlug.edit'
-import { Route as BooksBookSlugGuideRouteImport } from './routes/books.$bookSlug.guide'
 import { Route as BooksBookSlugReviewRouteImport } from './routes/books.$bookSlug.review'
 import { Route as SettingsIntegrationsProviderRouteImport } from './routes/settings.integrations.$provider'
 import { Route as BooksBookSlugEntriesIndexRouteImport } from './routes/books.$bookSlug.entries.index'
@@ -148,11 +147,6 @@ const BooksBookSlugEditRoute = BooksBookSlugEditRouteImport.update({
   path: '/books/$bookSlug/edit',
   getParentRoute: () => rootRouteImport,
 } as any)
-const BooksBookSlugGuideRoute = BooksBookSlugGuideRouteImport.update({
-  id: '/books/$bookSlug/guide',
-  path: '/books/$bookSlug/guide',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const BooksBookSlugReviewRoute = BooksBookSlugReviewRouteImport.update({
   id: '/books/$bookSlug/review',
   path: '/books/$bookSlug/review',
@@ -204,7 +198,6 @@ export interface FileRoutesByFullPath {
   '/topics/': typeof TopicsIndexRoute
   '/books/$bookSlug/buddy': typeof BooksBookSlugBuddyRoute
   '/books/$bookSlug/edit': typeof BooksBookSlugEditRoute
-  '/books/$bookSlug/guide': typeof BooksBookSlugGuideRoute
   '/books/$bookSlug/review': typeof BooksBookSlugReviewRoute
   '/settings/integrations/$provider': typeof SettingsIntegrationsProviderRoute
   '/books/$bookSlug/': typeof BooksBookSlugIndexRoute
@@ -234,7 +227,6 @@ export interface FileRoutesByTo {
   '/topics': typeof TopicsIndexRoute
   '/books/$bookSlug/buddy': typeof BooksBookSlugBuddyRoute
   '/books/$bookSlug/edit': typeof BooksBookSlugEditRoute
-  '/books/$bookSlug/guide': typeof BooksBookSlugGuideRoute
   '/books/$bookSlug/review': typeof BooksBookSlugReviewRoute
   '/settings/integrations/$provider': typeof SettingsIntegrationsProviderRoute
   '/books/$bookSlug': typeof BooksBookSlugIndexRoute
@@ -265,7 +257,6 @@ export interface FileRoutesById {
   '/topics/': typeof TopicsIndexRoute
   '/books/$bookSlug/buddy': typeof BooksBookSlugBuddyRoute
   '/books/$bookSlug/edit': typeof BooksBookSlugEditRoute
-  '/books/$bookSlug/guide': typeof BooksBookSlugGuideRoute
   '/books/$bookSlug/review': typeof BooksBookSlugReviewRoute
   '/settings/integrations/$provider': typeof SettingsIntegrationsProviderRoute
   '/books/$bookSlug/': typeof BooksBookSlugIndexRoute
@@ -297,7 +288,6 @@ export interface FileRouteTypes {
     | '/topics/'
     | '/books/$bookSlug/buddy'
     | '/books/$bookSlug/edit'
-    | '/books/$bookSlug/guide'
     | '/books/$bookSlug/review'
     | '/settings/integrations/$provider'
     | '/books/$bookSlug/'
@@ -327,7 +317,6 @@ export interface FileRouteTypes {
     | '/topics'
     | '/books/$bookSlug/buddy'
     | '/books/$bookSlug/edit'
-    | '/books/$bookSlug/guide'
     | '/books/$bookSlug/review'
     | '/settings/integrations/$provider'
     | '/books/$bookSlug'
@@ -357,7 +346,6 @@ export interface FileRouteTypes {
     | '/topics/'
     | '/books/$bookSlug/buddy'
     | '/books/$bookSlug/edit'
-    | '/books/$bookSlug/guide'
     | '/books/$bookSlug/review'
     | '/settings/integrations/$provider'
     | '/books/$bookSlug/'
@@ -388,7 +376,6 @@ export interface RootRouteChildren {
   TopicsIndexRoute: typeof TopicsIndexRoute
   BooksBookSlugBuddyRoute: typeof BooksBookSlugBuddyRoute
   BooksBookSlugEditRoute: typeof BooksBookSlugEditRoute
-  BooksBookSlugGuideRoute: typeof BooksBookSlugGuideRoute
   BooksBookSlugReviewRoute: typeof BooksBookSlugReviewRoute
   SettingsIntegrationsProviderRoute: typeof SettingsIntegrationsProviderRoute
   BooksBookSlugIndexRoute: typeof BooksBookSlugIndexRoute
@@ -553,13 +540,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BooksBookSlugEditRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/books/$bookSlug/guide': {
-      id: '/books/$bookSlug/guide'
-      path: '/books/$bookSlug/guide'
-      fullPath: '/books/$bookSlug/guide'
-      preLoaderRoute: typeof BooksBookSlugGuideRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/books/$bookSlug/review': {
       id: '/books/$bookSlug/review'
       path: '/books/$bookSlug/review'
@@ -620,7 +600,6 @@ const rootRouteChildren: RootRouteChildren = {
   TopicsIndexRoute: TopicsIndexRoute,
   BooksBookSlugBuddyRoute: BooksBookSlugBuddyRoute,
   BooksBookSlugEditRoute: BooksBookSlugEditRoute,
-  BooksBookSlugGuideRoute: BooksBookSlugGuideRoute,
   BooksBookSlugReviewRoute: BooksBookSlugReviewRoute,
   SettingsIntegrationsProviderRoute: SettingsIntegrationsProviderRoute,
   BooksBookSlugIndexRoute: BooksBookSlugIndexRoute,

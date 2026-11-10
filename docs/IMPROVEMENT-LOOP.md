@@ -33,8 +33,9 @@ Each run does one cycle, then stops. A run is small on purpose: one item, or two
 
 If nothing is `ready` and safe, the run only assesses, updates the plan, and says what it needs from Steve.
 
-**Schedule (Steve, 2026-11-10):** one agent every four hours, never two at once. *Run 10 found the job firing
-hourly (commits at :37 every hour from 09:37 to 15:37), not four-hourly: see Q12.*
+**Schedule (Steve, 2026-11-10):** one agent every four hours, never two at once. *Steve, 2026-11-10: hourly is fine
+(run 10 found it firing hourly; commits at :37 every hour).* The "every fourth run" and "one class D a day" counts are
+per run, so they come round faster.
 
 **Suggested instruction for the scheduled job:** "Read `docs/IMPROVEMENT-LOOP.md` in `steebus/margin` and do one
 run exactly as §1 describes, inside §2's limits. Finish by telling me what changed, what you verified and how,
@@ -160,7 +161,7 @@ line numbers moving.
 | Id | Item | Evidence | Sure? | Size | Class | Status |
 |---|---|---|---|---|---|---|
 | B2 | **No error or not-found screens.** No route has an `errorComponent` or `notFoundComponent`, so a thrown render error is a blank page and a bad address shows the router's default. Add one of each in the catalog's voice, with a way back to the Desk. | no matches for either in `src/` | Sure | S | C | ready |
-| B6 | **Three routes are still placeholders:** `/books/:slug/guide`, `/imports/:jobId`, `/settings/integrations/:provider`. Build, redirect or remove each, and make SPEC §4.1 match. | `src/routes/*` importing `Placeholder` | Sure | S each | C | needs Steve (Q6) |
+| B6 | **Two routes are still placeholders:** `/books/:slug/guide`, `/imports/:jobId`, `/settings/integrations/:provider`. Build, redirect or remove each, and make SPEC §4.1 match. **`/guide` removed 2026-11-10 (Steve).** | `src/routes/*` importing `Placeholder` | Sure | S each | C | two left, ready |
 | B7 | **Docs have drifted.** `SPEC.md` repeats §3.6 to §6 twice, and the first §3.6 says there is no Explore screen. `README.md` says the buddy and art are "still to come". SPEC §4 says `injectManifest` and a share-target POST handler; the build is `generateSW` with a GET share target. `PLAN.md`'s repo layout lists folders that don't exist. Bring them in line with what's built. | the files themselves | Sure | S | A | ready |
 
 ### O: optimisation
@@ -181,7 +182,7 @@ Every item here is class C unless it's a plain bug. Look at each in fixture mode
 
 | Id | Item | Evidence | Size | Status |
 |---|---|---|---|---|
-| U9 | **Drawings in the dark theme.** In fixture mode a book with a drawing shows as a pale panel with black ink on Shelves at night, where SPEC §3.11 says `invert` plus `screen`. It may be the stand-in art (an SVG, not a WebP), a decision since the spec, or a bug. Check with Steve's eyes on a real drawing before touching it. | `fixture-shots/shelves.phone.dark.png` | S | needs Steve |
+| ~~U9~~ | **Closed 2026-11-10 (Steve: dim, don't invert; SPEC §3.11 corrected).** ~~Drawings in the dark theme.~~ In fixture mode a book with a drawing shows as a pale panel with black ink on Shelves at night, where SPEC §3.11 says `invert` plus `screen`. It may be the stand-in art (an SVG, not a WebP), a decision since the spec, or a bug. Check with Steve's eyes on a real drawing before touching it. | `fixture-shots/shelves.phone.dark.png` | S | closed |
 | U1 | **An accessibility sweep, one surface per run:** focus order and visible focus, names on icon buttons, contrast in both themes (WCAG AA is a brand commitment), 48dp targets, nothing hover-only, toasts announced once. Start with the Desk and the book page. | `PRODUCT.md` Accessibility; never audited | M each | ready |
 | ~~U2~~ | **Dropped 2026-11-10 (Steve doesn't want motion reduced).** ~~A reduced-motion sweep.~~ Nine places mention reduced motion; `PLAN.md` wants a designed path for every animation. List every animation, tick the ones with a designed still version, fix the rest. | `grep prefers-reduced-motion` | M | ready |
 | U3 | **Loading and empty states.** Several screens show a bare "Opening…" line. DESIGN-DIRECTION asks for "something small and alive". Design one empty state and one loading state and use them everywhere. | `Desk.tsx`, `__root.tsx` | M | ready |
@@ -244,6 +245,9 @@ author-fact gaps filled by a model (§3.7). None is for an unattended run to sta
 Answer in this file, dated, and the items unblock.
 
 **Answered 2026-11-10:**
+- Hourly runs are fine (Q12). CI alone is the deploy check for now; Vercel's connector isn't needed (Q13).
+- The guide route is removed (Q6; B6 is down to two placeholders).
+- Drawings don't invert at night: they're dimmed, as built (Q10; U9 closed, SPEC §3.11 corrected).
 - Merges are automatic, and runs push to `main` (§2).
 - One agent every four hours. A failed build is the next run's job (§1).
 - Removed on Hardcover: Margin offers to remove it, and never does it unasked (H17).
@@ -255,19 +259,16 @@ Answer in this file, dated, and the items unblock.
 - Five tabs is right; the docs were brought into line (U8).
 
 **Open:**
-- **Q12.** (§1) The scheduled job fires every hour, not every four. Is hourly what you want? If not, the schedule
-  needs changing where the job is configured; a run can't change it.
-- **Q13.** (§1 step 2) Every run since run 2 says "Vercel not checked": the Vercel connector answers 403 for your
-  team (`steves-projects-d84d5e39`) until someone approves its access (`authorize_team_access`). Approve it once,
-  or tell me CI alone is enough for the deploy check.
-- **Q6.** (B6) The guide page: build it (the guide so far, cut at your place), or remove the route?
-- **Q10.** (U9) Should a drawing invert at night, as SPEC §3.11 says?
 - **Q11.** (E5, H10) Could you capture a few read-only Hardcover replies, and tag one real note there, so the
   sync tests rest on real shapes?
 
 ## 6. Run log
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
+
+- **2026-11-10, after run 10 (with Steve).** Answers recorded in §5: hourly stays, CI alone checks the deploy, the
+  guide route is gone (file, route tree and SPEC §4.1 line), drawings dim and never invert (SPEC §3.11). Build green
+  (`npm run build`); lint and tests also green.
 
 - **2026-11-10, run 10 (unattended; the review of the loop, §8).** Ground: `main` at `c9ba531`, CI green; Vercel
   unreachable (403, see Q13). Docs only (class A), so lint, tests and build were not rerun. Findings:

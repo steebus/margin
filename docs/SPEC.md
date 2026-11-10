@@ -350,8 +350,8 @@ books use about 124 MB, and at most about 166 MB, of Convex's included 1 GB. `sr
 regeneration gets a new file. Verify the real cache headers on Convex's file URLs.
 
 **One file, both themes.** Art is stored as a neutral drawing on white and printed onto
-the page with blend modes: `multiply` by day, `invert` plus `screen` by night. No
-per-theme assets.
+the page with blend modes: `multiply` by day, and by night the same ink on paper, dimmed
+rather than inverted (Steve, 2026-11-10). No per-theme assets.
 
 **When it runs.**
 - A book being read is generated straight away at the standard price.
@@ -441,7 +441,6 @@ they open over their parent, and Back closes them.
 /books/:bookSlug/entries            margin view; ?kind=&from=&to=
 /books/:bookSlug/entries/:entryId   one entry (also deep-linked from buddy citations)
 /books/:bookSlug/buddy              conversation thread
-/books/:bookSlug/guide              the guide, spoiler-filtered
 /books/:bookSlug/edit               edit sheet
 /e/:entryId                         short link → redirects to canonical entry URL
 /drawer                             random entry; ?kind=&topic=
@@ -605,8 +604,8 @@ books use about 124 MB, and at most about 166 MB, of Convex's included 1 GB. `sr
 regeneration gets a new file. Verify the real cache headers on Convex's file URLs.
 
 **One file, both themes.** Art is stored as a neutral drawing on white and printed onto
-the page with blend modes: `multiply` by day, `invert` plus `screen` by night. No
-per-theme assets.
+the page with blend modes: `multiply` by day, and by night the same ink on paper, dimmed
+rather than inverted (Steve, 2026-11-10). No per-theme assets.
 
 **When it runs.**
 - A book being read is generated straight away at the standard price.
@@ -696,7 +695,6 @@ they open over their parent, and Back closes them.
 /books/:bookSlug/entries            margin view; ?kind=&from=&to=
 /books/:bookSlug/entries/:entryId   one entry (also deep-linked from buddy citations)
 /books/:bookSlug/buddy              conversation thread
-/books/:bookSlug/guide              the guide, spoiler-filtered
 /books/:bookSlug/edit               edit sheet
 /e/:entryId                         short link → redirects to canonical entry URL
 /drawer                             random entry; ?kind=&topic=
