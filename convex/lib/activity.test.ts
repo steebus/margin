@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { movedIn, progressSteps } from './activity'
+import { movedIn, progressSteps, windowEnd, windowStart } from './activity'
 
 const DAY = 86_400_000
 const now = 100 * DAY
@@ -32,4 +32,11 @@ test("with no log before the window, the line starts at the first log, not at a 
 test('how far a read moved, as a share of the book', () => {
   expect(movedIn([{ at: since - DAY, percent: 10 }, { at: since + DAY, percent: 35 }], since, now, null)).toBe(0.25)
   expect(movedIn([], since, now, null)).toBe(0)
+})
+
+test('the window ends at the start of tomorrow, known from its start alone, so a query needn\'t read the clock', () => {
+  const at = new Date(2026, 10, 10, 15, 30).getTime()
+  const end = windowEnd(windowStart(at))
+  expect(new Date(end).getTime()).toBe(new Date(2026, 10, 11).getTime())
+  expect(end).toBeGreaterThan(at)
 })

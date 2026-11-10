@@ -161,7 +161,6 @@ line numbers moving.
 | B2 | **No error or not-found screens.** No route has an `errorComponent` or `notFoundComponent`, so a thrown render error is a blank page and a bad address shows the router's default. Add one of each in the catalog's voice, with a way back to the Desk. | no matches for either in `src/` | Sure | S | C | ready |
 | B3 | **Signing out leaves queued writes behind.** `forgetDevice` clears the cached library but not the IndexedDB outbox, so writes queued under one sign-in replay under the next. One reader today, so harmless; wrong the day there are two. | `forgetDevice`, `deviceStore` | Sure | S | B | ready |
 | B4 | **A write can be sent twice.** `keepThenSend` stores then sends; if the connection flaps, `replay` can send the same stored write while the first is still in flight. Entries dedupe; progress gets two log rows, which doubles a step on the Desk chart. Hold a lock while replaying, or skip ids in flight. | `src/lib/outbox.ts` | Fairly sure | S | B | ready |
-| B5 | **`activity` reads the clock inside a query.** Convex queries should be deterministic; `Date.now()` in one defeats caching and can give a stale "two weeks". Pass `now` from the client as `since` already is. | `convex/library.ts` `activity` | Sure | S | B | ready |
 | B6 | **Three routes are still placeholders:** `/books/:slug/guide`, `/imports/:jobId`, `/settings/integrations/:provider`. Build, redirect or remove each, and make SPEC §4.1 match. | `src/routes/*` importing `Placeholder` | Sure | S each | C | needs Steve (Q6) |
 | B7 | **Docs have drifted.** `SPEC.md` repeats §3.6 to §6 twice, and the first §3.6 says there is no Explore screen. `README.md` says the buddy and art are "still to come". SPEC §4 says `injectManifest` and a share-target POST handler; the build is `generateSW` with a GET share target. `PLAN.md`'s repo layout lists folders that don't exist. Bring them in line with what's built. | the files themselves | Sure | S | A | ready |
 
@@ -240,6 +239,15 @@ Answer in this file, dated, and the items unblock.
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
 
+- **2026-11-10, run 6 (unattended).** Ground: `main` at `ffd27d1`, CI green (Vercel not checked: no deploy status
+  reachable from here). Assessed theme U at last, reading fixture shots of Desk, book, Shelves and Notes (phone and
+  desktop, light and dark; 16 shots, nothing wider than its screen, no errors). Seen: on the phone Desk the progress
+  chart's first-point label ("13%") sits on the start of its line, small and unchanged by this run; the rest read
+  fine. Not read: the other 25 screens, so U assessment continues next run. Did B5 (class B), see §7. Verified:
+  lint clean, 272 tests (1 new; the function it tests didn't exist before), build and budget green (main chunk
+  618.0 kB), no fixture code in `dist/`. Not checked: the Desk on the real library. Local `git reset --hard` was
+  refused by the sandbox, so the run fast-forwarded `main` instead.
+
 - **2026-11-10, run 5 (unattended).** Ground: `main` at `48e6ebf`, CI green. Did B1 (class B, data-loss rule §3.1),
   see §7. Re-checked B5 against the code: still real (`Date.now()` at `convex/library.ts` `activity`, the `movedIn`
   call). Verified: the three new tests failed before the fix and pass after; lint clean, 271 tests, build and budget
@@ -284,6 +292,10 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
 ## 7. Done and dropped
 
 Move items here with the date and the commit or the reason. Keep the id so old log entries still make sense.
+
+- **B5** `activity` read the clock. Done 2026-11-10 (run 6, class B): the query uses `windowEnd(since)` (start of
+  tomorrow, `convex/lib/activity.ts`, tested) in place of `Date.now()`, so it is deterministic. Same totals: logs
+  later today still count, since the window already ends tomorrow.
 
 - **B1** Words written offline vanishing. Done 2026-11-10 (run 5, class B): `replay` takes an `onRefused(item, error)`;
   `useReplayOutbox` passes `sayReplayFailure` (`src/lib/quiet.ts`, `replayFailure` tested), so a queued note the

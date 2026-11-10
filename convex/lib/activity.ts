@@ -29,6 +29,16 @@ export const windowStart = (now: number) => {
   return d.getTime() - (WINDOW_DAYS - 1) * DAY
 }
 
+/**
+ * The end of the window that starts at `since`: the start of tomorrow. A query can't read the clock (it would stop being
+ * cacheable), and `windowStart` fixes the window to whole days, so its end is known from `since` alone.
+ */
+export const windowEnd = (since: number) => {
+  const d = new Date(since + (WINDOW_DAYS - 1) * DAY + DAY / 2)
+  d.setHours(24, 0, 0, 0)
+  return d.getTime()
+}
+
 /** How far a read moved in the window, as a share of the book (0 to 1), by the same rules as its line. */
 export function movedIn(logs: Logged[], since: number, now: number, startedAt: number | null) {
   const steps = progressSteps(logs, since, now, startedAt)

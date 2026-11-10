@@ -5,7 +5,7 @@ import { internal } from './_generated/api'
 import { mutation, query, type MutationCtx } from './_generated/server'
 import { datesFrom, edited, positionOf, progressAt, readingsAfter, readingsOf, toBook } from './lib/books'
 import { askForReflection, waitingPrompt } from './lib/reflection'
-import { movedIn } from './lib/activity'
+import { movedIn, windowEnd } from './lib/activity'
 import { GENRES, genresOf } from './lib/genres'
 import { enqueueRead } from './lib/outbox'
 import { checkMilestones, waitingNote } from './milestones'
@@ -63,10 +63,12 @@ export const activity = query({
       const before = await ctx.db.query('progressLog').withIndex('by_read', q => q.eq('readId', read._id).lt('at', since)).order('desc').first()
       return { read, logs: [...(before ? [before] : []), ...inside].map(l => ({ at: l.at, percent: l.percent })) }
     }))
+    // No clock in a query: the window's own end stands in for now.
+    const end = windowEnd(since)
     let pages = 0
     let audioSeconds = 0
     for (const { read, logs: mine } of logs) {
-      const moved = movedIn(mine, since, Date.now(), read.startedAt ?? null)
+      const moved = movedIn(mine, since, end, read.startedAt ?? null)
       if (!moved) continue
       const found = await ctx.db.get(read.workId)
       const work = found && edited(found, read)
