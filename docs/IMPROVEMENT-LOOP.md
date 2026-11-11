@@ -169,7 +169,6 @@ line numbers moving.
 | H2 | **A review cleared in Margin comes back.** `saveReview` deletes the review entry when the words are emptied, but the push only sends `review_raw` when there are words, so Hardcover keeps the old review and the next pull re-creates the entry. Fix needs care: sending `null` blindly could wipe a review written on Hardcover moments ago. Suggest a `reviewCleared` marker on the read, sent once. | `convex/library.ts` `saveReview`; `convex/hardcover.ts` `flush` (`review_raw`) and `saveBooks` (review block) | Sure from the code | M | D | ready |
 | H3 | **An edited review can be put back by the pull.** `saveBooks` skips a read's fields while Margin has a change waiting, but the review block below it doesn't check, so Hardcover's old text can overwrite Margin's new text before the push leaves, and then the old text is what's pushed. Most likely right after finishing a book, which is when reviews get written. | `convex/hardcover.ts` `saveBooks`: `waiting` guards the read patch, not the review | Fairly sure | S | D | ready |
 | H4 | **Sync trouble is only visible in Settings.** SPEC §3.4.1 says a failed push shows on the book's page; it doesn't. Add a small "not on Hardcover yet / couldn't send: why" line to the book page and a quiet mark on the Desk when the last sync failed or anything has waited more than an hour. | `syncStatus` is used only in `Settings.tsx` | Sure | M | C | ready |
-| H5 | **Say when the token has gone.** A 401 or 403 from Hardcover is stored as "Hardcover answered 401." and retried for ever. Recognise it, stop hammering, say "Hardcover's token has expired: put a new one in the Convex env", and send one push nudge. Check Hardcover's docs for when tokens expire. | `gql` in `convex/hardcover.ts` | Sure | S | B | ready |
 | H6 | **One pace for all callers, and honour `Retry-After`.** The pull, the hourly compare and the outbox each wait 4.5 s on their own, so together they can go three times the intended rate; a 429 always sleeps a flat 60 s. Check Hardcover's current published limits first (the "15" in SPEC was read from a header on 2026-11-02 with the window unknown) and write the real numbers into SPEC. | `pace`, `gql`, `syncAll`, `reconcile`, `flush` | Sure about the code; the limit itself needs checking | M | D | ready |
 | H7 | **Give up gracefully.** An outbox row that keeps failing retries hourly for ever with no way to see or drop it. After N tries, mark it stuck, show it in Settings with the error and "try again" / "discard". | `fail`, `retryDelayMs`; `syncStatus` counts at most 100 and shows one error | Sure | M | C | ready |
 | H8 | **Notes and books removed on Hardcover stay in Margin.** SPEC §3.5 records this as a known gap because deletions aren't reported. The hourly compare already reads the whole library; it could also list journal ids and offer (not silently apply) "3 notes were removed on Hardcover: remove here too?". | SPEC §3.5 "Not synced" | A design question | L | D | decided: see H17 |
@@ -286,6 +285,12 @@ Answer in this file, dated, and the items unblock.
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
 
+- **2026-11-11, run 26 (unattended; a normal pick).** Ground: `main` at `49353d5`, CI green (Vercel not checked, Q13).
+  Did H5 (class B), see §7: a refused token gets a message that says what to do. Verified: the new test failed
+  before the change and passes after; lint, tests, build and budget below. Not checked: against the real API (a
+  mutation-free 401 can't be provoked without a bad key), or the Settings wording by eye. Remaining safe supply: U1
+  (other surfaces), O3 (Motion), U7 (class C, small). Run 27 is a normal pick; run 28 a delight run.
+
 - **2026-11-11, run 25 (unattended; a normal pick).** Ground: `main` at `16399b9`, CI green (Vercel not checked, Q13).
   Re-checked H5 against the code: still real (`gql` in `convex/hardcover.ts` throws `Hardcover answered ${status}.` for
   any non-ok reply, 401 included). Did the pruning §8 asks for (class A, docs only): §6's runs 14 and older are one
@@ -380,6 +385,8 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
 ## 7. Done and dropped
 
 Move items here with the date and the commit or the reason. Keep the id so old log entries still make sense.
+
+- **H5 (token message)** Done 2026-11-11 (run 26, class B): a 401 or 403 from Hardcover now reads "Hardcover's token has been refused (401): put a new HARDCOVER_API_KEY in the Convex env." in Settings' sync line, instead of "Hardcover answered 401." (`gql`, `convex/hardcover.ts`; `convex/hardcoverToken.test.ts`, which failed before the change). Left out on purpose: the outbox already backs off to an hour (`retryDelayMs`) and the pull is two-minutely and cheap, so "stop hammering" and a push nudge were not built; say if you want either. Hardcover's token expiry is still unchecked.
 
 - **D16 (stamp)** Done 2026-11-11 (run 24, class C): the status stamp on a book's page now comes down turning (-12 to -5 deg), dips to 96% scale as the thunk, and an ink ring spreads from its edge and clears (`stamp-land`, `stamp-ink`, `app.css`). Plays when the status changes or the page opens, as before. No new tap or wait.
 

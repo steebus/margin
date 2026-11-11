@@ -45,6 +45,9 @@ async function gql<T>(query: string, variables: Record<string, unknown> = {}): P
     await sleep(5_000)
     res = await send()
   }
+  if (res.status === 401 || res.status === 403) {
+    throw new ConvexError(`Hardcover's token has been refused (${res.status}): put a new HARDCOVER_API_KEY in the Convex env.`)
+  }
   if (!res.ok) throw new ConvexError(`Hardcover answered ${res.status}.`)
   const json = await res.json()
   if (json.errors) throw new ConvexError(`Hardcover refused the request: ${String(json.errors[0]?.message ?? 'unknown').slice(0, 160)}`)
