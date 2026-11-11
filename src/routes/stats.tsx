@@ -1,8 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { z } from 'zod'
+import { statsSearch } from '../lib/searchSchemas'
 import { Stats } from '../components/stats/Stats'
 
 export const Route = createFileRoute('/stats')({
-  validateSearch: z.object({ range: z.string().optional().catch(undefined) }),
+  validateSearch: statsSearch,
   component: Stats,
 })

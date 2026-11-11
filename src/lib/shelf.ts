@@ -1,4 +1,5 @@
-import { z } from 'zod'
+import * as z from 'zod/mini'
+import { caught } from './searchSchemas'
 import type { Book, Status } from './books'
 
 const DAY = 86_400_000
@@ -142,18 +143,17 @@ export const genresIn = (books: Book[]) => [...new Set(books.flatMap(b => b.genr
 
 const sortIds = Object.keys(SORTS) as [SortId, ...SortId[]]
 const groupIds = Object.keys(GROUPS) as [GroupId, ...GroupId[]]
-const catching = <T extends z.ZodType>(schema: T) => schema.optional().catch(undefined)
 
 /** Search, sort and filter live in the URL, so any view can be bookmarked and reached with Back (SPEC 4). */
 export const shelfSearch = z.object({
-  q: catching(z.string()),
-  sort: catching(z.enum(sortIds)),
-  dir: catching(z.enum(['asc', 'desc'])),
-  format: catching(z.string()),
-  rating: catching(z.string()),
-  genre: catching(z.string()),
-  view: catching(z.enum(['catalog', 'table'])),
-  group: catching(z.enum([...groupIds, 'none'])),
+  q: caught(z.string()),
+  sort: caught(z.enum(sortIds)),
+  dir: caught(z.enum(['asc', 'desc'])),
+  format: caught(z.string()),
+  rating: caught(z.string()),
+  genre: caught(z.string()),
+  view: caught(z.enum(['catalog', 'table'])),
+  group: caught(z.enum([...groupIds, 'none'])),
 })
 export type ShelfSearch = z.infer<typeof shelfSearch>
 

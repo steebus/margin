@@ -194,7 +194,7 @@ line numbers moving.
 | Id | Item | Evidence | Sure? | Size | Class | Status |
 |---|---|---|---|---|---|---|
 | O2 | **The offline copy is kept in localStorage,** which holds about 5 MB and is written synchronously on every live update. A few thousand highlights will pass that, and the write fails silently, so offline reading quietly stops working. Measure the real sizes first; if they're near, move the copies to IndexedDB. | `remember` in `src/lib/offline.ts` swallows the quota error | A risk, unmeasured | M | B | ready (measure first; needs Steve's numbers or E1) |
-| O3 | **Main chunk is 620 kB (194 kB gzip).** By source share it's roughly react-dom 30%, Motion 26%, zod 18%, convex 9%, Margin's own code 9% (rough: measured on source, not output). Candidates: Motion's `LazyMotion` with the `m` components; zod only where a route validates search params, or `zod/mini`; check the Desk's route isn't dragging other screens in. Measure each change against E4's baseline. | build output; source-map estimate 2026-11-10 | Sure of the size; gains unmeasured | M | A | ready |
+| O3 | **Main chunk was 620 kB (194 kB gzip); zod half done 2026-11-11 (run 22), now 553 kB (173 kB gzip).** Left, by source share: react-dom ~30%, Motion ~26%, convex ~9%. Candidates: Motion's `LazyMotion` with the `m` components (watch that it can't cost any animation, §2); check the Desk's route isn't dragging other screens in. Measure each change against `npm run budget`. | build output; source-map estimate 2026-11-10 | Sure of the size; gains unmeasured | M | A | started |
 | O5 | **`myBooks` re-sends the whole library on any change to any read.** Fine at 600 books; watch it. If Shelves ever janks on a sync, split the hot fields (progress, status) from the cold ones. Measure before touching. | `convex/library.ts` `myBooks` | A watch item | L | B | ready (measure only) |
 | O6 | **Lighthouse pass** (PLAN Phase 7.3: 90+ for accessibility and performance on mobile; SPEC §6: LCP under 2.5 s on mid-range Android). Never run. Needs E1 to get past sign-in. | `PLAN.md` Phase 7 | n/a | M | A | ready |
 
@@ -285,6 +285,14 @@ Answer in this file, dated, and the items unblock.
 ## 6. Run log
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
+
+- **2026-11-11, run 22 (unattended; a normal pick).** Ground: `main` at `ac88604`, CI green (Vercel not checked, Q13).
+  Did the zod half of O3 (class A), see §7. Verified: lint, 295 tests (5 new, written and passed against full zod
+  first, then against `zod/mini`), build and budget green; main chunk 618.9 kB to 552.9 kB (gzip 191.3 to 173.4), budget
+  lowered to match; no fixture code in `dist/`; in fixture mode on a phone, seven routes opened with good, bad and
+  stale params (bad ones dropped from the address, as before), no page errors. No visible change, so no shots read.
+  Not checked: on a phone. Remaining safe supply: U1 (other surfaces), O3 (Motion). Run 23 is a normal pick; run 24 a
+  delight run.
 
 - **2026-11-11, run 21 (unattended; a normal pick).** Ground: `main` at `dfae340`, CI green (Vercel not checked, Q13).
   Did the first slice of U1 (class C), see §7: measured every link, button and field on the Desk and two book pages
@@ -462,6 +470,8 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
 ## 7. Done and dropped
 
 Move items here with the date and the commit or the reason. Keep the id so old log entries still make sense.
+
+- **O3 (zod)** Done 2026-11-11 (run 22, class A): every route's search schema uses `zod/mini` (`src/lib/searchSchemas.ts`, `shelfSearch` in `shelf.ts`, Settings' tab), which tree-shakes; the main chunk is 66 kB smaller raw, 18 kB gzip. `src/lib/searchSchemas.test.ts` pins what each schema accepts and drops. Server code (`convex/lib/guide.ts`) still uses full zod. Write new route schemas with `caught(...)` from that file.
 
 - **U1 (Desk targets)** Done 2026-11-11 (run 21, class C): the Desk's "Newly on the TBR" spines were 26 to 33 px tall; `miniHeight` (`src/lib/pile.ts`) keeps them at 48 px or more, still taller for a thicker book (48 to 74 px, was 15 to 68). The Pile page is unchanged.
 
