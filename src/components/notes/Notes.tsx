@@ -12,6 +12,7 @@ import { NOTE_KINDS } from '../book/BookNotes'
 import { entryLabel, EntryText } from '../book/EntryList'
 import { Reflection } from '../book/Reflection'
 import { Thumb } from '../thumb/Thumb'
+import { Opening } from '../opening/Opening'
 
 const LATEST = 2
 const STATUSES = [['reading', 'Reading'], ['paused', 'Paused'], ['read', 'Read'], ['tbr', 'TBR'], ['dnf', 'Stopped']] as const
@@ -140,7 +141,7 @@ export function Notes() {
         )}
       </div>
 
-      {entries === undefined && <p role="status">Opening your notes…</p>}
+      {entries === undefined && <Opening what="your notes" />}
       {entries?.length === 0 && <p>Nothing here yet. Your notes, excerpts and reflections will collect here.</p>}
       {entries && entries.length > 0 && nothing && (
         <div className="box stack">

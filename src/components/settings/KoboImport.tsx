@@ -8,6 +8,7 @@ import { sameBook } from '../../../convex/lib/match'
 import { errorText, type Book } from '../../lib/books'
 import { planKobo, readKoboFragment, type KoboPlan } from '../../lib/kobo'
 import { useBooks } from '../../lib/offline'
+import { Opening } from '../opening/Opening'
 
 type Hit = FunctionReturnType<typeof api.books.search>[number]
 type Adding = KoboPlan<Book>['add'][number]
@@ -67,7 +68,7 @@ export function KoboImport() {
       </div>
     )
   }
-  if (!plan) return <p role="status">Opening your shelves…</p>
+  if (!plan) return <Opening what="your shelves" />
 
   const apply = async () => {
     if (!found) return

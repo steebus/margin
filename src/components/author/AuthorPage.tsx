@@ -7,6 +7,7 @@ import { useBooks } from '../../lib/offline'
 import { sortBooks } from '../../lib/shelf'
 import { Catalog } from '../shelf/BookList'
 import { useCatalogSize } from '../shelf/ShelfTools'
+import { Opening } from '../opening/Opening'
 
 // In the order a reader wants them: what's in hand, what's done, what's waiting.
 const GROUPS: [string, Status[]][] = [['In hand', ['reading', 'paused']], ['Read', ['read']], ['To be read', ['tbr']], ['Put down', ['dnf']]]
@@ -19,7 +20,7 @@ export function AuthorPage() {
   const router = useRouter()
   const navigate = useNavigate()
 
-  if (books === undefined) return <p role="status">Opening your shelves…</p>
+  if (books === undefined) return <Opening what="your shelves" />
   const author = authorOf(books, slug)
   const back = (
     <button type="button" className="back" onClick={() => router.history.canGoBack() ? router.history.back() : void navigate({ to: '/stats' })}>

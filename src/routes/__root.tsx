@@ -6,6 +6,7 @@ import { OfflineLine } from '../components/offline/OfflineLine'
 import { SignIn } from '../components/settings/SignIn'
 import { FailureToast } from '../components/toast/FailureToast'
 import { hasSavedSignIn, useReplayOutbox } from '../lib/offline'
+import { Opening } from '../components/opening/Opening'
 
 export const Route = createRootRoute({ component: Root })
 
@@ -33,7 +34,7 @@ function Root() {
             </Link>
           )}
         </div>
-        {inside ? <BookActionsProvider><OfflineLine /><Outlet /><FailureToast /></BookActionsProvider> : isLoading ? <p role="status">Opening Margin…</p> : <SignIn />}
+        {inside ? <BookActionsProvider><OfflineLine /><Outlet /><FailureToast /></BookActionsProvider> : isLoading ? <Opening what="Margin" /> : <SignIn />}
       </main>
       {inside && <nav className="tabs" aria-label="Main">
         {tabs.map(({ to, label, Icon, match }) => (

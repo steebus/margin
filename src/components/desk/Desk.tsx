@@ -14,6 +14,7 @@ import { RecentPile } from './RecentPile'
 import { progressSteps, windowStart } from '../../../convex/lib/activity'
 import { formatClock } from '../../lib/progress'
 import { Typewriter } from '../typewriter/Typewriter'
+import { Opening } from '../opening/Opening'
 
 const TOAST_KEY = 'margin.drawerToastAt'
 
@@ -66,7 +67,7 @@ export function Desk() {
   }, [entries?.length])
 
   // The toast stays until it's dismissed or opened (Steve, 2026-11-06).
-  if (books === undefined) return <div className="desk"><Masthead /><p role="status">Opening your desk…</p></div>
+  if (books === undefined) return <div className="desk"><Masthead /><Opening what="your desk" /></div>
 
   if (books.length === 0) {
     return (

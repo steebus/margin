@@ -4,6 +4,7 @@ import { X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useEntries } from '../../lib/offline'
 import { nextCard } from '../../lib/drawer-rules'
+import { Opening } from '../opening/Opening'
 
 const kinds = [
   { id: undefined, label: 'All' },
@@ -68,7 +69,7 @@ function Drawer() {
 
       <hr className="rule" />
 
-      {all === undefined && <p role="status">Opening the drawer…</p>}
+      {all === undefined && <Opening what="the drawer" />}
 
       {entry && (
         <>

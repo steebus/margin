@@ -1158,3 +1158,11 @@ button.back { justify-self: start; padding: 0; border: 0; background: none; curs
 .genre-picks button { min-height: 40px; padding: 0 12px; border: 1.5px solid var(--ink); border-radius: 3px; background: transparent; color: var(--ink); font: 400 1.0625rem/1 var(--head); letter-spacing: 0.03em; text-transform: uppercase; cursor: pointer; }
 .genre-picks button[aria-pressed='true'] { background: var(--ink); color: var(--paper); }
 @media (hover: hover) { .genre-picks button[aria-pressed='false']:hover { background: var(--soft); } }
+
+/* The loading line (src/components/opening): typed dots, shown only if the wait is longer than a beat. */
+.opening { margin: 0; font-family: var(--buddy); font-size: 0.9375rem; color: var(--ink); opacity: 0; animation: opening-in 200ms 250ms forwards; }
+.opening-dots i { font-style: normal; opacity: 0; animation: opening-dot 1.2s steps(1) infinite; }
+.opening-dots i:nth-child(2) { animation-delay: 0.3s; }
+.opening-dots i:nth-child(3) { animation-delay: 0.6s; }
+@keyframes opening-in { to { opacity: 1; } }
+@keyframes opening-dot { 0% { opacity: 0; } 25%, 85% { opacity: 1; } 100% { opacity: 0; } }

@@ -10,6 +10,7 @@ import { ReadingStrip } from './ReadingStrip'
 import { SaveView } from './SaveView'
 import { ShelfTools, useCatalogSize } from './ShelfTools'
 import type { Book } from '../../lib/books'
+import { Opening } from '../opening/Opening'
 
 const PREVIEW = 12
 
@@ -47,7 +48,7 @@ export function Shelves() {
         <p>{books === undefined ? '' : `${shown.length} ${shown.length === 1 ? 'book' : 'books'}`}</p>
       </header>
 
-      {books === undefined && <p role="status">Opening your shelves…</p>}
+      {books === undefined && <Opening what="your shelves" />}
 
       {books?.length === 0 && (
         <div className="box stack">
@@ -123,7 +124,7 @@ export function Shelf() {
   const label = status?.label ?? list?.name ?? ''
   const onChange = (patch: Partial<ShelfSearch>) => navigate({ search: prev => ({ ...prev, ...patch }), replace: true })
 
-  if (!shelf && lists === undefined) return <p role="status">Opening your shelf…</p>
+  if (!shelf && lists === undefined) return <Opening what="your shelf" />
   if (!shelf) {
     return (
       <div className="narrow stack">
@@ -150,7 +151,7 @@ export function Shelf() {
         <p>{books === undefined ? '' : `${shown.length} ${shown.length === 1 ? 'book' : 'books'}`}</p>
       </header>
 
-      {books === undefined && <p role="status">Opening your shelf…</p>}
+      {books === undefined && <Opening what="your shelf" />}
 
       {books && (
         <>

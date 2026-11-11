@@ -7,6 +7,7 @@ import { useBooks } from '../../lib/offline'
 import { motion } from 'motion/react'
 import type { Book } from '../../lib/books'
 import { sendQuietly } from '../../lib/quiet'
+import { Opening } from '../opening/Opening'
 
 const KINDS = [
   { id: 'excerpt', label: 'Excerpt', prompt: 'The line, as the book has it' },
@@ -145,7 +146,7 @@ export function Capture() {
     <div className="narrow stack">
       <h1 className="title-head">Capture</h1>
       <hr className="rule" />
-      {books === undefined && <p role="status">Opening your shelves…</p>}
+      {books === undefined && <Opening what="your shelves" />}
       {books?.length === 0 && (
         <div className="box stack">
           <p>Add some books first, so there's somewhere to keep this.</p>

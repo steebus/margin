@@ -5,6 +5,7 @@ import { useBooks } from '../../lib/offline'
 import { sortBooks } from '../../lib/shelf'
 import { Catalog } from './BookList'
 import { useCatalogSize } from './ShelfTools'
+import { Opening } from '../opening/Opening'
 
 /** A recommender, or an account: what came from them, and how it landed (SPEC 3.1). */
 export function Person() {
@@ -12,7 +13,7 @@ export function Person() {
   const books = useBooks()
   const [size] = useCatalogSize()
 
-  if (books === undefined) return <p role="status">Opening your shelves…</p>
+  if (books === undefined) return <Opening what="your shelves" />
   const theirs = sortBooks(books.filter(b => b.recommendedBy && slugify(b.recommendedBy) === personSlug))
   const name = theirs[0]?.recommendedBy
   const rated = theirs.flatMap(b => (b.rating === null ? [] : [b.rating]))

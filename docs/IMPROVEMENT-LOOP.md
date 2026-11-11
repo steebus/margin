@@ -203,7 +203,7 @@ Every item here is class C unless it's a plain bug. Look at each in fixture mode
 | ~~U9~~ | **Closed 2026-11-10 (Steve: dim, don't invert; SPEC §3.11 corrected).** ~~Drawings in the dark theme.~~ In fixture mode a book with a drawing shows as a pale panel with black ink on Shelves at night, where SPEC §3.11 says `invert` plus `screen`. It may be the stand-in art (an SVG, not a WebP), a decision since the spec, or a bug. Check with Steve's eyes on a real drawing before touching it. | `fixture-shots/shelves.phone.dark.png` | S | closed |
 | U1 | **An accessibility sweep, one surface per run:** focus order and visible focus, names on icon buttons, contrast in both themes (WCAG AA is a brand commitment), 48dp targets, nothing hover-only, toasts announced once. Start with the Desk and the book page. **Targets and names swept on every screen by run 31, contrast of the tokens and every text opacity by run 34, focus rings and dialog focus read in code by run 35 (see §6). Left: a keyboard pass in a browser, contrast of text over covers and drawings.** | `PRODUCT.md` Accessibility; never audited | M each | started |
 | ~~U2~~ | **Dropped 2026-11-10 (Steve doesn't want motion reduced).** ~~A reduced-motion sweep.~~ Nine places mention reduced motion; `PLAN.md` wants a designed path for every animation. List every animation, tick the ones with a designed still version, fix the rest. | `grep prefers-reduced-motion` | M | ready |
-| U3 | **Loading and empty states.** Several screens show a bare "Opening…" line. DESIGN-DIRECTION asks for "something small and alive". Design one empty state and one loading state and use them everywhere. | `Desk.tsx`, `__root.tsx` | M | ready |
+| U3 | **Loading and empty states. Loading half done 2026-11-11 (run 38), see §7; left: one designed empty state.** Several screens showed a bare "Opening…" line. DESIGN-DIRECTION asks for "something small and alive". Design one empty state and one loading state and use them everywhere. | `Desk.tsx`, `__root.tsx` | M | started |
 | U4 | **The review queue is buttons "for now".** PLAN and DESIGN-DIRECTION describe an index-card stack to swipe. | `PLAN.md` Phase 5.2; `Review.tsx` | M | ready |
 | U5 | **The Pile, as Steve left it:** thinner books; on a phone, unfurl summaries only in the middle; "not loving the book style". | `PLAN.md` Held for after the build | M | needs Steve (what style instead?) |
 | U6 | **Grouping note, quote and progress** as one action, since they're similar. | `PLAN.md` Held for after the build | M | needs Steve |
@@ -281,6 +281,13 @@ Answer in this file, dated, and the items unblock.
 ## 6. Run log
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
+
+- **2026-11-11, run 38 (unattended; a normal pick).** Ground: `main` at `3133df2`, CI green (Vercel not checked, Q13).
+  Did the loading half of U3 (class C), see §7. Verified: lint, 317 tests, build and budget green (main chunk 481.7 kB,
+  +0.2); in fixture mode (`?fixture=slow`) at 390 px light and 1280 px dark the Desk's line shows in the typewriter face
+  with its dots, inside the screen, no page errors; shots read. Not checked: the other nine places by eye (same
+  component), the dots' rhythm in motion, or on a phone. Remaining safe supply: U3 (empty state), U1 (text over covers,
+  keyboard pass), O3 (Motion), D15/D6 (class C). Run 39 is a normal pick; run 40 a delight run.
 
 - **2026-11-11, run 37 (unattended; a normal pick).** Ground: `main` at `e43fd71`, CI green (Vercel not checked, Q13).
   Re-checked H3 against the code: real (`waiting` guarded the read patch only, the review block overwrote text). Did
@@ -411,6 +418,8 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
 ## 7. Done and dropped
 
 Move items here with the date and the commit or the reason. Keep the id so old log entries still make sense.
+
+- **U3 (loading line)** Done 2026-11-11 (run 38, class C): the ten bare "Opening …" lines (Desk, Shelves, Notes, Capture, drawer, author, person, Kobo import, app start) are one `Opening` component (`src/components/opening/`): typewriter face, dots typed one at a time, and it fades in after 250 ms so a quick answer never flashes it. Still `role="status"`. The empty-state half isn't built.
 
 - **H3 (review put back)** Done 2026-11-11 (run 37, class D): `saveBooks` now looks up the read's waiting outbox row once, before the read patch, and leaves an existing review's text alone while one is waiting, so Hardcover's old text can't overwrite Margin's new text before the push leaves. A review that doesn't exist yet is still created (that's H2's territory: a review *cleared* in Margin while waiting is not touched here). Test: `a review edited in Margin is not put back by a pull before it is sent` failed before the change. Writes nothing new to Hardcover.
 
