@@ -481,11 +481,13 @@ td a { display: inline-flex; align-items: center; min-height: 44px; color: inher
   font-size: clamp(1.5rem, 6.5vw, 2rem);
   rotate: -5deg;
   transform-origin: 30% 60%;
-  animation: stamp-land 380ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: stamp-land 380ms cubic-bezier(0.16, 1, 0.3, 1) both, stamp-ink 900ms ease-out both;
 }
 .stamp-status[data-status='read'] { background: var(--ink); color: var(--paper); border-color: var(--paper); outline: var(--line) solid var(--ink); }
 .stamp-status[data-status='dnf'] { text-decoration: line-through 3px; }
-@keyframes stamp-land { from { opacity: 0; scale: 1.8; } 60% { opacity: 1; } to { scale: 1; } }
+/* It comes down turning, presses a hair too far (the thunk), and the ink spreads at the edge as it soaks in. */
+@keyframes stamp-land { from { opacity: 0; scale: 1.8; rotate: -12deg; } 60% { opacity: 1; scale: 0.96; rotate: -4deg; } to { scale: 1; rotate: -5deg; } }
+@keyframes stamp-ink { 0%, 45% { box-shadow: 0 0 0 0 transparent; } 55% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--ink) 35%, transparent); } 100% { box-shadow: 0 0 0 7px transparent; } }
 @media (prefers-reduced-motion: reduce) { .stamp-status { animation: none; } }
 @media (min-width: 640px) {
   .book-head { grid-template-columns: 260px minmax(0, 1fr); grid-template-areas: 'cover name' 'cover state'; align-items: end; column-gap: 28px; }

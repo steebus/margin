@@ -226,7 +226,7 @@ never in the way": nothing here may add a tap or delay an input. Every fourth ru
 | D13 | **Ribbon bookmark** drapes and sways; logging progress drags it down. There is no ribbon element at all (progress is a bar and a percentage, per the Fair-catalog section). Needs Steve: does the ribbon still belong? | no `ribbon` in `src/components` | S | needs Steve |
 | D14 | **Spines lean on a fast scroll.** The Pile has an unfurl (clip-path), no lean. | `app.css` `.pile-row` | M | ready |
 | D15 | **Adding a book slides into its slot** and nudges neighbours (a `layout` animation on Shelves). Motion is used on Desk, book page, drawer, capture and toasts only. | `motion/react` importers | M | ready |
-| D16 | **Library card stamp for each event** (thunk, rotation, ink spread) beyond the status stamp. `stamp-land` scales in; there is no rotation or ink spread, and haptics fire only on finish. | `app.css` `stamp-land` | S | same as D6 |
+| D16 | **Library card stamp for each event** (thunk, rotation, ink spread) beyond the status stamp. `stamp-land` scales in; there is no rotation or ink spread, and haptics fire only on finish. | `app.css` `stamp-land` | S | **done 2026-11-11 (run 24)**, see §7; haptics beyond finish and other events' stamps left |
 
 **D1's audit (2026-11-10, by reading code, not the running app):**
 
@@ -285,6 +285,14 @@ Answer in this file, dated, and the items unblock.
 ## 6. Run log
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
+
+- **2026-11-11, run 24 (unattended; a delight run).** Ground: `main` at `9caf639`, CI green (Vercel not checked, Q13).
+  Did the stamp half of D16 (class C), see §7. Verified: lint, 296 tests, build and budget green (main chunk unchanged,
+  552.9 kB), no fixture code in `dist/`; book page read settled in fixture mode, phone light and desktop dark, no page
+  errors; the animation checked by stepping it (0 to 500 ms): turn -12 to -4 to -5 deg, scale 1.8 to 0.96 to 1, ink
+  ring blooms then clears. Not checked: it in motion by eye (shots capture the settled state), or on a phone. Remaining
+  safe supply: U1 (other surfaces), O3 (Motion), H5 (class B). Run 25 is a normal pick. Note: this file is past 400
+  lines (§8), so pruning §6 is a fair job for a quiet run.
 
 - **2026-11-11, run 23 (unattended; a normal pick).** Ground: `main` at `6385e97`, CI green (Vercel not checked, Q13).
   Did the test half of H12 (class A), see §7. Verified: lint, tests (1 new), build and budget green; the new test
@@ -476,6 +484,8 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
 ## 7. Done and dropped
 
 Move items here with the date and the commit or the reason. Keep the id so old log entries still make sense.
+
+- **D16 (stamp)** Done 2026-11-11 (run 24, class C): the status stamp on a book's page now comes down turning (-12 to -5 deg), dips to 96% scale as the thunk, and an ink ring spreads from its edge and clears (`stamp-land`, `stamp-ink`, `app.css`). Plays when the status changes or the page opens, as before. No new tap or wait.
 
 - **H12 (re-pull test)** Done 2026-11-11 (run 23, class A): `convex/hardcoverSync.test.ts` imports the recorded library, journals and lists (§1b) twice and checks the second pass adds no books, reads, notes or shelves and changes nothing on the shelf. Steve's half ("within 2 minutes") is still his to check.
 
