@@ -9,6 +9,7 @@ import { sayReplayFailure } from './quiet'
 const KEYS = {
   books: 'margin.cache.books.3',
   entries: 'margin.cache.entries.2',
+  entryDates: 'margin.cache.entryDates.1',
   activity: 'margin.cache.activity.2',
   waiting: 'margin.cache.waiting.2',
   graph: 'margin.cache.graph.2',
@@ -47,6 +48,7 @@ export function useLastKnown<T>(live: T | undefined, key: string, fresh = false)
 
 export const useBooks = (fresh = false) => useLastKnown(useQuery(api.library.myBooks), KEYS.books, fresh)
 export const useEntries = () => useLastKnown(useQuery(api.library.allEntries), KEYS.entries)
+export const useEntryDates = () => useLastKnown(useQuery(api.library.entryDates), KEYS.entryDates)
 export const useActivity = (since: number) => useLastKnown(useQuery(api.library.activity, { since }), KEYS.activity)
 export const useWaiting = () => useLastKnown(useQuery(api.reflect.waiting), KEYS.waiting)
 export const useGraph = () => useLastKnown(useQuery(api.topics.graph), KEYS.graph)

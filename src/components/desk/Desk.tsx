@@ -2,7 +2,9 @@ import { Link } from '@tanstack/react-router'
 import { AnimatePresence, motion } from 'motion/react'
 import { Plus } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { useActivity, useBooks, useEntries, useWaiting } from '../../lib/offline'
+import { useQuery } from 'convex-helpers/react/cache/hooks'
+import { api } from '../../../convex/_generated/api'
+import { useActivity, useBooks, useEntryDates, useWaiting } from '../../lib/offline'
 import { onThisDay, toastDue, yearsAgoToday } from '../../lib/drawer-rules'
 import { Reflection } from '../book/Reflection'
 import { Card } from '../shelf/ReadingStrip'
@@ -35,7 +37,7 @@ function Masthead({ reading }: { reading?: number }) {
 
 export function Desk() {
   const books = useBooks()
-  const entries = useEntries()
+  const entries = useEntryDates()
   const waiting = useWaiting()
   const [toast, setToast] = useState(false)
   const [pick] = useState(Math.random) // chosen once, so a data update doesn't swap the note while it shows
@@ -49,7 +51,9 @@ export function Desk() {
   const activity = useActivity(since)
   // A note written on this date in an earlier year is offered in preference to a random one.
   const anniversary = entries?.length ? onThisDay(entries, now, pick) : undefined
-  const shown = anniversary?.entry ?? (entries?.length ? entries[Math.floor(pick * entries.length)] : undefined)
+  const chosen = anniversary?.entry ?? (entries?.length ? entries[Math.floor(pick * entries.length)] : undefined)
+  // Only the dates came down with the Desk; the one note's words are asked for when its toast is due.
+  const shown = useQuery(api.entries.entry, toast && chosen ? { id: chosen.id } : 'skip')
 
   // Only once there's something in the drawer to offer.
   useEffect(() => {
@@ -126,7 +130,7 @@ export function Desk() {
       </aside>
 
       <AnimatePresence>
-        {toast && latest && (
+        {toast && latest && shown && (
           <motion.aside
             className="toast"
             role="status"
@@ -136,12 +140,10 @@ export function Desk() {
             transition={{ type: 'spring', stiffness: 420, damping: 30 }}
           >
             <p className="toast-head">{anniversary ? yearsAgoToday(anniversary.years) : 'From the drawer'}</p>
-            <p className="book-voice">{shown!.text}</p>
+            <p className="book-voice">{shown.text}</p>
             <div className="btn-row">
               {/* The note itself, in its book: the drawer only chose it. */}
-              {shown!.slug
-                ? <Link to="/books/$bookSlug/entries/$entryId" params={{ bookSlug: shown!.slug, entryId: shown!.id }} className="btn btn-solid">Open the note</Link>
-                : <Link to="/e/$entryId" params={{ entryId: shown!.id }} className="btn btn-solid">Open the note</Link>}
+              <Link to="/books/$bookSlug/entries/$entryId" params={{ bookSlug: shown.book.slug, entryId: shown.id }} className="btn btn-solid">Open the note</Link>
               <button type="button" className="btn" onClick={() => setToast(false)}>Dismiss</button>
             </div>
           </motion.aside>

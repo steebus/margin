@@ -33,6 +33,7 @@ test('the made-up library answers every query the screens ask', async () => {
     }
     const books: { readId: string; slug: string }[] = await ask(api.library.myBooks)
     const entries: { id: string }[] = await ask(api.library.allEntries)
+    await ask(api.library.entryDates)
     await ask(api.library.latestRead)
     await ask(api.library.activity, { since: windowStart(now) })
     await ask(api.books.myLists)

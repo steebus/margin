@@ -29,6 +29,19 @@ test('a saved entry appears on its book and in the drawer, with its place', asyn
   expect(await as.query(api.library.allEntries, {})).toMatchObject([{ text: 'A line I liked.', where: 'Book One, Page 41', slug: 'book-1' }])
 })
 
+test('the Desk gets when each entry was written, newest first, without the words', async () => {
+  const { t, as, readId } = await setup()
+  expect(await t.query(api.library.entryDates, {})).toEqual([])
+  const first = await as.mutation(api.entries.addEntry, { readId, kind: 'note', text: 'First.', page: 1 })
+  const second = await as.mutation(api.entries.addEntry, { readId, kind: 'note', text: 'Second.', page: 2 })
+  const dates = await as.query(api.library.entryDates, {})
+  expect(dates.map(d => d.id)).toEqual([second.id, first.id])
+  expect(Object.keys(dates[0]).sort()).toEqual(['createdAt', 'id'])
+  // A different reader's notes aren't in it.
+  const other = await t.run(ctx => ctx.db.insert('users', { name: 'Someone else' }))
+  expect(await t.withIdentity({ subject: `${other}|session` }).query(api.library.entryDates, {})).toEqual([])
+})
+
 test('saving the same words twice keeps one, but another page or kind is a new entry', async () => {
   const { as, readId } = await setup()
   const first = await as.mutation(api.entries.addEntry, { readId, kind: 'note', text: 'Same thought.', page: 5 })

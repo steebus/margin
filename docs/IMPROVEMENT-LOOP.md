@@ -193,7 +193,6 @@ line numbers moving.
 
 | Id | Item | Evidence | Sure? | Size | Class | Status |
 |---|---|---|---|---|---|---|
-| O1 | **The Desk downloads every note ever written** to show one toast and decide an empty state. `allEntries` returns the full text of every entry, and re-sends all of it whenever any entry changes. Give the Desk a small query (latest entry, a count, one random pick) and keep `allEntries` for Notes, the Drawer and the Pile. | `Desk.tsx` uses `useEntries`; `convex/library.ts` `allEntries` | Sure | M | B | ready |
 | O2 | **The offline copy is kept in localStorage,** which holds about 5 MB and is written synchronously on every live update. A few thousand highlights will pass that, and the write fails silently, so offline reading quietly stops working. Measure the real sizes first; if they're near, move the copies to IndexedDB. | `remember` in `src/lib/offline.ts` swallows the quota error | A risk, unmeasured | M | B | ready (measure first; needs Steve's numbers or E1) |
 | O3 | **Main chunk is 620 kB (194 kB gzip).** By source share it's roughly react-dom 30%, Motion 26%, zod 18%, convex 9%, Margin's own code 9% (rough: measured on source, not output). Candidates: Motion's `LazyMotion` with the `m` components; zod only where a route validates search params, or `zod/mini`; check the Desk's route isn't dragging other screens in. Measure each change against E4's baseline. | build output; source-map estimate 2026-11-10 | Sure of the size; gains unmeasured | M | A | ready |
 | O5 | **`myBooks` re-sends the whole library on any change to any read.** Fine at 600 books; watch it. If Shelves ever janks on a sync, split the hot fields (progress, status) from the cold ones. Measure before touching. | `convex/library.ts` `myBooks` | A watch item | L | B | ready (measure only) |
@@ -288,6 +287,15 @@ Answer in this file, dated, and the items unblock.
 ## 6. Run log
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
+
+- **2026-11-11, run 18 (unattended; a normal pick).** Ground: `main` at `b03826a`, CI green (Vercel not checked, Q13).
+  Re-checked O1 against the code: real (`Desk.tsx` used `useEntries`, the full text of every note). Did it (class B), see §7.
+  Verified: lint, 289 tests (1 new, for the new query), build and budget green (main chunk 618.9 kB, from 618.8), no
+  fixture code in `dist/`; in fixture mode the Desk shots (phone and desktop, dark and light) are unchanged and a
+  scripted check waited out the 1.5 s and found the "Two years ago today" toast with its text and a working link, no
+  errors. Not checked: on a phone, on the real library, or the toast offline (it now needs the connection for the
+  note's words; the dates are cached). Remaining safe supply: U1, O3, U10, D12. Run 19 is a normal pick; run 20 is a
+  delight run and the loop's tenth-run review (§8).
 
 - **2026-11-10, run 17 (unattended; a normal pick).** Ground: `main` at `78adf45`, CI green (Vercel not checked, Q13).
   Re-checked B2 against the code: real (no `errorComponent` or `notFoundComponent` anywhere). Did it (class C), see §7.
@@ -432,6 +440,10 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
 ## 7. Done and dropped
 
 Move items here with the date and the commit or the reason. Keep the id so old log entries still make sense.
+
+- **O1** The Desk no longer downloads every note. Done 2026-11-11 (run 18, class B): `library.entryDates` returns only
+  id and written-at for each entry; the Desk uses it for the empty state, "on this day" and the random pick, then asks
+  `entries.entry` for the one note's words when its toast is due. Notes, Drawer and Pile still use `allEntries`.
 
 - **B2** Error and not-found screens. Done 2026-11-10 (run 17, class C): `src/components/placeholder/Lost.tsx`, set as the router's `defaultNotFoundComponent` ("Nothing filed here", back to the Desk) and `defaultErrorComponent` ("That page slipped", Try again and Back to the Desk), both inside the shell so the tab bar stays. A route's own `NotFoundBook` is unchanged.
 

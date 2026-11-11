@@ -165,6 +165,21 @@ export const allEntries = query({
   },
 })
 
+/**
+ * When each entry was written, newest first, and nothing else. The Desk only needs to know whether there are notes,
+ * which was written on this date, and which one to offer; it then asks for that one note's words by id. So it no
+ * longer downloads every note ever written, or hears about every edit to one.
+ */
+export const entryDates = query({
+  args: {},
+  handler: async ctx => {
+    const userId = await getAuthUserId(ctx)
+    if (!userId) return []
+    const entries = await ctx.db.query('entries').withIndex('by_user', q => q.eq('userId', userId)).order('desc').collect()
+    return entries.map(e => ({ id: e._id, createdAt: e.createdAt }))
+  },
+})
+
 /** Everything of the reader's, to take away (SPEC 2). */
 export const exportAll = query({
   args: {},
