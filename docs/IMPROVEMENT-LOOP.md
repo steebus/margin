@@ -176,7 +176,7 @@ line numbers moving.
 | H9 | **Fields that only travel one way.** Owned, recommended-by and date added come in from Hardcover but a change in Margin never goes back; the push sends status, rating and review only. **Decided (Steve, 2026-11-10): any field Hardcover supports goes back to it.** First list what `UserBookUpdateInput` and the read and journal inputs accept (from Hardcover's docs or a read-only introspection fixture, E5), then send every one Margin holds, one field per run, each with a test and the same "a waiting change wins" rule. Margin-only corrections (`reads.edits`) stay Margin's. | `flush` `update_user_book` object vs `mapUserBook` | Sure | M, then S each | D | ready |
 | H10 | **Confirm the journal tag shape.** Tags are sent as `{category: 'general', spoiler: false, tag}`, marked unverified in the code. Half done 2026-11-11: `fixtures/hardcover/journals.json` has two real tagged notes, so the shape Hardcover *returns* (`taggings { tag { tag } }`) is recorded and tested. The shape it *accepts* on `insert_reading_journal` still isn't; check Hardcover's schema (introspection is a read) or ask Steve to tag one note from Margin and look on Hardcover. | `journalObject` in `convex/lib/hardcover.ts`; §1b | Open | S | D | ready (the write half) |
 | H11 | **Lighter hourly compare.** Every hour the whole library is fetched with full metadata to catch read-date changes. Split it: dates and read ids hourly, titles/tags/author facts daily. Fewer and smaller requests, and fewer reactive wake-ups. | `reconcile`, `LIBRARY_QUERY` | Sure it's heavier than needed; gain unmeasured | M | D | ready |
-| H12 | **Finish Phase 4's own checks.** `PLAN.md` still lists "progress logged on Hardcover appears in Margin within 2 minutes" and "a re-pull creates no duplicates" as not checked. Steve checks the first; a test can cover the second (import twice, compare counts). | `PLAN.md` Phase 4 | n/a | S | A | ready (the test half) |
+| H12 | **Finish Phase 4's own checks.** The test half is **done 2026-11-11 (run 23)**, see §7. Left for Steve: "progress logged on Hardcover appears in Margin within 2 minutes" (`PLAN.md` Phase 4). | `PLAN.md` Phase 4 | n/a | S | A | Steve's half only |
 | H13 | **Offline writes keep their own time.** A note or progress written offline is stamped when it's replayed, not when it was written, and a stale offline progress can move a book backwards over a newer place that arrived from Hardcover. Carry the written-at time in the queued write, and ignore a queued progress older than the read's latest log. | `src/lib/outbox.ts`; `logProgress` and `addEntry` use `Date.now()` | Sure | M | B | ready |
 | H14 | **Books Hardcover doesn't have.** SPEC §3.1 says search falls back to Open Library, then Google Books. Only Hardcover is searched, so a book it lacks can't be added. | `convex/books.ts` `search` | Sure | L | C | **dropped 2026-11-10: Steve doesn't need books Hardcover lacks.** Take the Open Library and Google Books fallback out of SPEC §3.1 and PLAN (B7) |
 | H15 | **Progress history from Hardcover's journal.** Hardcover keeps dated progress events; Margin's `progressLog` only starts when Margin did. Reading those in (read-only) would fill the Desk's chart and "pages by month" for years before Margin. Explore the journal's event types first. | `mapJournal` drops everything but quotes and notes; `fixtures/hardcover/journal-events.json` has a real `progress_updated` (`metadata.progress`, `progress_pages`, `progress_seconds`, `*_was`, `*_delta`, `user_book_read_id`) and read started/finished events | An idea | M | B | ready (fixtures in §1b) |
@@ -285,6 +285,12 @@ Answer in this file, dated, and the items unblock.
 ## 6. Run log
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
+
+- **2026-11-11, run 23 (unattended; a normal pick).** Ground: `main` at `6385e97`, CI green (Vercel not checked, Q13).
+  Did the test half of H12 (class A), see §7. Verified: lint, tests (1 new), build and budget green; the new test
+  fails when the works lookup in `saveBooks` is broken (7 tests fail then) and passes with it restored. No app code
+  changed, so no shots. Not checked: the "within 2 minutes" half, which is Steve's, or a re-pull against the real
+  account. Remaining safe supply: U1 (other surfaces), O3 (Motion), H5 (class B, small). Run 24 is a delight run.
 
 - **2026-11-11, run 22 (unattended; a normal pick).** Ground: `main` at `ac88604`, CI green (Vercel not checked, Q13).
   Did the zod half of O3 (class A), see §7. Verified: lint, 295 tests (5 new, written and passed against full zod
@@ -470,6 +476,8 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
 ## 7. Done and dropped
 
 Move items here with the date and the commit or the reason. Keep the id so old log entries still make sense.
+
+- **H12 (re-pull test)** Done 2026-11-11 (run 23, class A): `convex/hardcoverSync.test.ts` imports the recorded library, journals and lists (§1b) twice and checks the second pass adds no books, reads, notes or shelves and changes nothing on the shelf. Steve's half ("within 2 minutes") is still his to check.
 
 - **O3 (zod)** Done 2026-11-11 (run 22, class A): every route's search schema uses `zod/mini` (`src/lib/searchSchemas.ts`, `shelfSearch` in `shelf.ts`, Settings' tab), which tree-shakes; the main chunk is 66 kB smaller raw, 18 kB gzip. `src/lib/searchSchemas.test.ts` pins what each schema accepts and drops. Server code (`convex/lib/guide.ts`) still uses full zod. Write new route schemas with `caught(...)` from that file.
 

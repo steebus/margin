@@ -1,5 +1,6 @@
 // @vitest-environment edge-runtime
 import { convexTest } from 'convex-test'
+import { readFileSync } from 'node:fs'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { api, internal } from './_generated/api'
 import { journalObject, mapJournal, progressChanged, progressFields, readFields } from './lib/hardcover'
@@ -319,6 +320,38 @@ test('every read comes in with its dates, oldest first, and the import fills in 
     { hardcoverId: 1, startedAt: Date.UTC(2020, 0, 1), finishedAt: Date.UTC(2020, 2, 1) },
     { hardcoverId: 2, startedAt: Date.UTC(2023, 0, 1), finishedAt: Date.UTC(2023, 1, 1) },
   ])
+})
+
+const recorded = (name: string) => JSON.parse(readFileSync(new URL(`../fixtures/hardcover/${name}.json`, import.meta.url), 'utf8'))
+
+test('importing the recorded library twice adds nothing the second time (PLAN Phase 4: a re-pull creates no duplicates)', async () => {
+  fakeHardcover({
+    library: recorded('library').data.me[0].user_books,
+    journals: recorded('journals').data.reading_journals,
+    lists: recorded('lists').data.me[0].lists,
+  })
+  const { t, as, userId } = await setup()
+  const counts = () => t.run(async ctx => ({
+    works: (await ctx.db.query('works').collect()).length,
+    reads: (await ctx.db.query('reads').collect()).length,
+    entries: (await ctx.db.query('entries').collect()).length,
+    shelves: (await ctx.db.query('shelves').collect()).length,
+  }))
+  const shelf = async () => (await as.query(api.library.myBooks, {})).map(b => [b.readId, b.slug, b.status, b.readings.length, b.shelfIds.length])
+
+  const first = await flushTimers(t.action(internal.hardcover.importFor, { userId }))
+  const afterFirst = await counts()
+  const shelfFirst = await shelf()
+  // Something really came in, or "nothing new" proves nothing.
+  expect(first.added).toBeGreaterThan(5)
+  expect(afterFirst.entries).toBeGreaterThan(0)
+  expect(afterFirst.shelves).toBeGreaterThan(0)
+
+  const second = await flushTimers(t.action(internal.hardcover.importFor, { userId }))
+  expect(second.added).toBe(0)
+  expect(second.notes).toBe(0)
+  expect(await counts()).toEqual(afterFirst)
+  expect(await shelf()).toEqual(shelfFirst)
 })
 
 test('the hourly pull brings in a date changed on Hardcover, and one cleared there clears here', async () => {
