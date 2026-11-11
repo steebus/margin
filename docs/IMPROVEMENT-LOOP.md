@@ -244,7 +244,7 @@ never in the way": nothing here may add a tap or delay an input. Every fourth ru
 | Explore graph | exists: d3 force layout settles; spring physics and iron-filings focus not checked |
 | Empty states | missing (U3) |
 
-| D2 | **Shelf to book as one movement.** Only the router's default view transition is on. Name the thumbnail so it travels from the shelf cell to the book page header. | `main.tsx` `defaultViewTransition`; no `view-transition-name` on thumbs | M | ready |
+| ~~D2~~ | **Done 2026-11-11 (run 32), see §7.** ~~Shelf to book as one movement.~~ | | S | done |
 | D4 | **A year in the catalog.** A printable end-of-year sheet in the Fair-catalog look: the year's books as stamps, pages, the most-marked book, the line most returned to. December is close. | `stats.ts` has most of the numbers | L | needs Steve |
 | ~~D5~~ | **Done 2026-11-11 (run 28), see §7.** ~~Typewriter sound, off by default.~~ | | S | done |
 | D6 | **Finishing a book** beyond the stamp: the library card gets its date stamp with the thunk and slight turn the brief describes, and the book walks to the Pile. | `a3985b8` added stamps; compare with the brief | M | ready |
@@ -283,6 +283,14 @@ Answer in this file, dated, and the items unblock.
 ## 6. Run log
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
+
+- **2026-11-11, run 32 (unattended; a delight run).** Ground: `main` at `877b071`, CI green (Vercel not checked, Q13).
+  Did D2 (class C), see §7. Verified: lint, 312 tests (2 new), build and budget green (main chunk 555.2 kB, unchanged); in
+  fixture mode at 390 px light and 1280 px dark, a tap on a shelf cell starts a view transition whose animations include
+  `book-cover` group, old and new, so the cover is carried to the book page's header; the name is gone from the shelf
+  afterwards; settled page unchanged; no page errors. Not checked: the flight by eye (shots are settled), on a phone, or
+  the Back direction (the shelf cell isn't named, so it crossfades). Remaining safe supply: U1 (focus order, contrast),
+  O3 (Motion), D14/D15 (class C). Run 33 is a normal pick.
 
 - **2026-11-11, run 31 (unattended; a normal pick).** Ground: `main` at `d2fc715`, CI green (Vercel not checked, Q13).
   Did the next slice of U1 (class C), see §7: measured every link, button and field at 390 px, light and dark, on Capture
@@ -391,6 +399,8 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
 ## 7. Done and dropped
 
 Move items here with the date and the commit or the reason. Keep the id so old log entries still make sense.
+
+- **D2 (cover flight)** Done 2026-11-11 (run 32, class C): tapping a book on Shelves (grid) or a card in the Desk's reading strip carries its cover to the book page's header over 0.42 s (`flyCover`, `src/lib/coverFlight.ts`; `view-transition-name: book-cover` on the book page's cover, `app.css`). Only the tapped cover is named, and the name is removed after 0.8 s, since names must be unique and hundreds would slow every transition. Not covered: the table view, Notes and other entrances to a book (they crossfade as before), and going Back.
 
 - **U1 (Stats and Topics targets)** Done 2026-11-11 (run 31, class C): on a touch screen (`pointer: coarse`) Stats' bar rows are 44 px tall (were 32) and the topic page's "Topics" back link is 44 px tall (was 18). With a mouse the Stats chart keeps its denser rows. Capture, Review, Settings and the drawer measured fine.
 

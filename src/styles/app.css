@@ -465,6 +465,9 @@ td a { display: inline-flex; align-items: center; min-height: 44px; color: inher
   align-items: end;
 }
 .book-cover { grid-area: cover; }
+/* The cover a shelf cell or the Desk's strip names on tap (lib/coverFlight) flies into this one. */
+.book-cover .thumb { view-transition-name: book-cover; }
+::view-transition-group(book-cover) { animation-duration: 420ms; animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1); }
 .book-cover .thumb { border: var(--line) solid var(--ink); }
 .book-state { grid-area: state; display: grid; gap: 8px; justify-items: start; align-content: end; padding-bottom: 2px; }
 .book-name { grid-area: name; display: grid; gap: 10px; }

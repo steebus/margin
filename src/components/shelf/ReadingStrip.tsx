@@ -1,12 +1,13 @@
 import { Link } from '@tanstack/react-router'
 import type { Book } from '../../lib/books'
+import { flyCover } from '../../lib/coverFlight'
 import { useBookHold } from '../book/BookActions'
 import { Thumb } from '../thumb/Thumb'
 
 export function Card({ book }: { book: Book }) {
   const hold = useBookHold(book)
   return (
-    <Link to="/books/$bookSlug" params={{ bookSlug: book.slug }} className="strip-card" aria-label={`${book.title} by ${book.author}, ${book.percent}%`} {...hold}>
+    <Link to="/books/$bookSlug" params={{ bookSlug: book.slug }} className="strip-card" aria-label={`${book.title} by ${book.author}, ${book.percent}%`} {...hold} onClickCapture={e => { hold.onClickCapture(e); if (!e.defaultPrevented) flyCover(e.currentTarget) }}>
       <Thumb book={book} marks={false} />
       <span className="strip-foot" aria-hidden="true">
         <span className="strip-sub">{book.format === 'audio' ? 'Audiobook' : book.author}</span>

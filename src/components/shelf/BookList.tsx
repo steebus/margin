@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router'
 import { formatDate, type Book } from '../../lib/books'
 import { daysToRead, dateOf, SORTS, type Dir, type SortId } from '../../lib/shelf'
+import { flyCover } from '../../lib/coverFlight'
 import { useBookHold } from '../book/BookActions'
 import { Tick } from '../thumb/Marks'
 import { Thumb } from '../thumb/Thumb'
@@ -23,7 +24,7 @@ export function Catalog({ books, size }: { books: Book[]; size: Size }) {
 function Cell({ book }: { book: Book }) {
   const hold = useBookHold(book)
   return (
-    <Link to="/books/$bookSlug" params={{ bookSlug: book.slug }} className="cell" aria-label={`${book.title} by ${book.author}`} {...hold}>
+    <Link to="/books/$bookSlug" params={{ bookSlug: book.slug }} className="cell" aria-label={`${book.title} by ${book.author}`} {...hold} onClickCapture={e => { hold.onClickCapture(e); if (!e.defaultPrevented) flyCover(e.currentTarget) }}>
       <Thumb book={book} />
       {book.status === 'read' && <span className="cell-tick"><Tick /></span>}
     </Link>
