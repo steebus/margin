@@ -2,7 +2,7 @@ import { useConvex } from 'convex/react'
 import { useQuery } from 'convex-helpers/react/cache/hooks'
 import { useEffect, useState } from 'react'
 import { api } from '../../convex/_generated/api'
-import { clearOutbox, replay } from './outbox'
+import { clearOutbox, replay, replayArgs } from './outbox'
 import { sayReplayFailure } from './quiet'
 
 // Versioned: an answer saved by an older build can lack fields this one reads, so a new shape gets a new key.
@@ -86,8 +86,8 @@ export function useReplayOutbox(signedIn: boolean) {
   useEffect(() => {
     if (!signedIn || !online) return
     replay(item => (item.name === 'addEntry'
-      ? convex.mutation(api.entries.addEntry, item.args as never)
-      : convex.mutation(api.library.logProgress, item.args as never)), undefined, sayReplayFailure)
+      ? convex.mutation(api.entries.addEntry, replayArgs(item) as never)
+      : convex.mutation(api.library.logProgress, replayArgs(item) as never)), undefined, sayReplayFailure)
       .then(rejected => { if (rejected.length) console.error('Refused when replayed:', rejected) })
       .catch(e => console.error('Replay failed:', e))
   }, [signedIn, online, convex])

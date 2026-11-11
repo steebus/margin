@@ -62,8 +62,10 @@ export const addEntry = mutation({
     parentId: v.optional(v.id('entries')),
     // A note written with an excerpt, saved under it in the same write so it survives the offline outbox.
     note: v.optional(v.string()),
+    // When it was written, for an entry that waited offline. Never later than now.
+    writtenAt: v.optional(v.number()),
   },
-  handler: async (ctx, { readId, kind, text, page, percent, chapter, origin, parentId, note }) => {
+  handler: async (ctx, { readId, kind, text, page, percent, chapter, origin, parentId, note, writtenAt }) => {
     const userId = await getAuthUserId(ctx)
     if (!userId) throw new ConvexError('Sign in to save this')
     const read = await ctx.db.get(readId)
@@ -90,7 +92,7 @@ export const addEntry = mutation({
       const originKey = entryKey(read.workId, kind, words, { page, percent, chapter })
       const same = await ctx.db.query('entries').withIndex('by_user_origin_key', q => q.eq('userId', userId).eq('originKey', originKey)).first()
       if (same) return { id: same._id, duplicate: true }
-      const id = await ctx.db.insert('entries', { userId, readId, kind, text: words, parentId, pos, origin: origin ?? 'manual', originKey, createdAt: Date.now() })
+      const id = await ctx.db.insert('entries', { userId, readId, kind, text: words, parentId, pos, origin: origin ?? 'manual', originKey, createdAt: Math.min(writtenAt ?? Date.now(), Date.now()) })
       await enqueueEntry(ctx, userId, id, readId)
       return { id, duplicate: false }
     }

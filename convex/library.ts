@@ -240,15 +240,23 @@ async function changeStatus(ctx: MutationCtx, userId: Id<'users'>, read: Doc<'re
 
 /** Logs a place in the book: a page, a time in seconds, or a percent. The last page finishes it. */
 export const logProgress = mutation({
-  args: { readId: v.id('reads'), percent: v.optional(v.number()), page: v.optional(v.number()), seconds: v.optional(v.number()) },
-  handler: async (ctx, { readId, percent, page, seconds }) => {
+  args: {
+    readId: v.id('reads'), percent: v.optional(v.number()), page: v.optional(v.number()), seconds: v.optional(v.number()),
+    // When it was written, for a place that waited offline. Older than the book's latest log, it goes in the history
+    // but doesn't move the book.
+    writtenAt: v.optional(v.number()),
+  },
+  handler: async (ctx, { readId, percent, page, seconds, writtenAt }) => {
     const { userId, read } = await mine(ctx, readId)
     const found = await ctx.db.get(read.workId)
     const work = found && edited(found, read)
     const progress = progressAt({ percent, page, seconds }, work?.pages, work?.audioSeconds)
     if (!progress) throw new ConvexError('That place does not fit this book')
+    const at = Math.min(writtenAt ?? Date.now(), Date.now())
+    const latest = writtenAt === undefined ? null : await ctx.db.query('progressLog').withIndex('by_read', q => q.eq('readId', readId)).order('desc').first()
+    await ctx.db.insert('progressLog', { userId, readId, at, percent: progress.percent, page: progress.page, origin: 'manual' })
+    if (latest && latest.at > at) return { finished: false }
     await ctx.db.patch(readId, { progress })
-    await ctx.db.insert('progressLog', { userId, readId, at: Date.now(), percent: progress.percent, page: progress.page, origin: 'manual' })
     await checkMilestones(ctx, read, read.progress.percent, progress.percent)
     const next = progress.percent === 100 ? 'read' : read.status === 'tbr' || read.status === 'paused' ? 'reading' : read.status
     if (next !== read.status) await changeStatus(ctx, userId, { ...read, progress }, next)

@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { clearOutbox, keepThenSend, replay, sendOrKeep, type Queued, type Store } from './outbox'
+import { clearOutbox, keepThenSend, replay, replayArgs, sendOrKeep, type Queued, type Store } from './outbox'
 
 const memory = (items: Queued[] = []): Store & { items: Queued[] } => ({
   items,
@@ -144,4 +144,17 @@ test('forgetting the device empties the outbox', async () => {
   const store = memory([item('1'), item('2')])
   await clearOutbox(store)
   expect(store.items).toEqual([])
+})
+
+test('a kept write remembers when it was written, and a replay says so', async () => {
+  const store = memory()
+  const before = Date.now()
+  await sendOrKeep('logProgress', { percent: 40 }, never, { store, online: () => false })
+  await keepThenSend('addEntry', { text: 'b' }, async () => { throw new Error('offline') }, store)
+  const [progress, entry] = store.items
+  expect(entry.writtenAt).toBeGreaterThanOrEqual(before)
+  expect(progress.writtenAt).toBeGreaterThanOrEqual(before)
+  expect(replayArgs(progress)).toEqual({ percent: 40, writtenAt: progress.writtenAt })
+  // Writes queued before the stamp existed replay as they were.
+  expect(replayArgs(item('old'))).toEqual({ text: 'old' })
 })

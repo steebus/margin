@@ -313,3 +313,32 @@ test('a review keeps its words and stars, is found again by a sync, and waits fo
   found = await as.query(api.library.bookBySlug, { slug: 'book-2' })
   expect(found?.entries.filter(e => e.kind === 'review')).toHaveLength(1)
 })
+
+test('a place written offline an hour ago does not move a book back over a newer place', async () => {
+  const t = setup()
+  const { userId, as } = await reader(t)
+  await t.mutation(internal.hardcover.saveBooks, { userId, items: [item(1, { percent: 0 })] })
+  const [{ readId }] = await as.query(api.library.myBooks, {})
+  const hourAgo = Date.now() - 3_600_000
+
+  await as.mutation(api.library.logProgress, { readId, percent: 60 })
+  await as.mutation(api.library.logProgress, { readId, percent: 20, writtenAt: hourAgo })
+  expect((await as.query(api.library.myBooks, {}))[0].percent).toBe(60)
+
+  // The old place is still part of the history, stamped when it was written.
+  const log = await t.run(ctx => ctx.db.query('progressLog').collect())
+  expect(log.map(l => [l.percent, l.at === hourAgo])).toContainEqual([20, true])
+})
+
+test('a place written offline after the latest log still moves the book, and is stamped when it was written', async () => {
+  const t = setup()
+  const { userId, as } = await reader(t)
+  await t.mutation(internal.hardcover.saveBooks, { userId, items: [item(1, { percent: 0 })] })
+  const [{ readId }] = await as.query(api.library.myBooks, {})
+  const hourAgo = Date.now() - 3_600_000
+
+  await as.mutation(api.library.logProgress, { readId, percent: 20, writtenAt: hourAgo })
+  expect((await as.query(api.library.myBooks, {}))[0].percent).toBe(20)
+  const log = await t.run(ctx => ctx.db.query('progressLog').collect())
+  expect(log.map(l => l.at)).toEqual([hourAgo])
+})

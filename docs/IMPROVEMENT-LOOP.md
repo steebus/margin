@@ -176,7 +176,6 @@ line numbers moving.
 | H10 | **Confirm the journal tag shape.** Tags are sent as `{category: 'general', spoiler: false, tag}`, marked unverified in the code. Half done 2026-11-11: `fixtures/hardcover/journals.json` has two real tagged notes, so the shape Hardcover *returns* (`taggings { tag { tag } }`) is recorded and tested. The shape it *accepts* on `insert_reading_journal` still isn't; check Hardcover's schema (introspection is a read) or ask Steve to tag one note from Margin and look on Hardcover. | `journalObject` in `convex/lib/hardcover.ts`; §1b | Open | S | D | ready (the write half) |
 | H11 | **Lighter hourly compare.** Every hour the whole library is fetched with full metadata to catch read-date changes. Split it: dates and read ids hourly, titles/tags/author facts daily. Fewer and smaller requests, and fewer reactive wake-ups. | `reconcile`, `LIBRARY_QUERY` | Sure it's heavier than needed; gain unmeasured | M | D | ready |
 | H12 | **Finish Phase 4's own checks.** The test half is **done 2026-11-11 (run 23)**, see §7. Left for Steve: "progress logged on Hardcover appears in Margin within 2 minutes" (`PLAN.md` Phase 4). | `PLAN.md` Phase 4 | n/a | S | A | Steve's half only |
-| H13 | **Offline writes keep their own time.** A note or progress written offline is stamped when it's replayed, not when it was written, and a stale offline progress can move a book backwards over a newer place that arrived from Hardcover. Carry the written-at time in the queued write, and ignore a queued progress older than the read's latest log. | `src/lib/outbox.ts`; `logProgress` and `addEntry` use `Date.now()` | Sure | M | B | ready |
 | H14 | **Books Hardcover doesn't have.** SPEC §3.1 says search falls back to Open Library, then Google Books. Only Hardcover is searched, so a book it lacks can't be added. | `convex/books.ts` `search` | Sure | L | C | **dropped 2026-11-10: Steve doesn't need books Hardcover lacks.** Take the Open Library and Google Books fallback out of SPEC §3.1 and PLAN (B7) |
 | H15 | **Progress history from Hardcover's journal.** Hardcover keeps dated progress events; Margin's `progressLog` only starts when Margin did. Reading those in (read-only) would fill the Desk's chart and "pages by month" for years before Margin. Explore the journal's event types first. | `mapJournal` drops everything but quotes and notes; `fixtures/hardcover/journal-events.json` has a real `progress_updated` (`metadata.progress`, `progress_pages`, `progress_seconds`, `*_was`, `*_delta`, `user_book_read_id`) and read started/finished events | An idea | M | B | ready (fixtures in §1b) |
 | H16 | **Series from Hardcover.** On finishing a book that's in a series, offer the next one for the TBR. Needs Hardcover's series fields in the library query. | not built | An idea | M | C | needs Steve |
@@ -285,6 +284,14 @@ Answer in this file, dated, and the items unblock.
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
 
+- **2026-11-11, run 27 (unattended; a normal pick).** Ground: `main` at `830461e`, CI green (Vercel not checked, Q13).
+  Re-checked H13 against the code: real (`logProgress` and `addEntry` stamped `Date.now()`; the outbox kept no time).
+  Did it (class B), see §7. Verified: the three new server tests failed before the change (`writtenAt` unknown) and pass
+  after, plus one outbox test; lint, 303 tests, build and budget green (main chunk 553.0 kB, +0.1), no fixture code in
+  `dist/`. No visible change, so no shots. Not checked: a real offline round trip on a phone, or an old queued write
+  from before the stamp (covered by a unit test only). Remaining safe supply: U1 (other surfaces), O3 (Motion), U7
+  (class C, small). Run 28 is a delight run.
+
 - **2026-11-11, run 26 (unattended; a normal pick).** Ground: `main` at `49353d5`, CI green (Vercel not checked, Q13).
   Did H5 (class B), see §7: a refused token gets a message that says what to do. Verified: the new test failed
   before the change and passes after; lint, tests, build and budget below. Not checked: against the real API (a
@@ -385,6 +392,8 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
 ## 7. Done and dropped
 
 Move items here with the date and the commit or the reason. Keep the id so old log entries still make sense.
+
+- **H13 (offline writes keep their time)** Done 2026-11-11 (run 27, class B): a queued write carries `writtenAt` (`Queued`, `src/lib/outbox.ts`), sent on replay as an optional argument. `addEntry` stamps the note with it (never later than now); `logProgress` logs the place at that time, and if the book already has a later log, the old place stays in the history but doesn't move the book. Writes queued before this have no stamp and replay as before. Tests: `convex/library.test.ts`, `convex/entries.test.ts`, `src/lib/outbox.test.ts`. Still open: a status change or other write made offline isn't queued at all (only notes and progress are), so nothing else is affected.
 
 - **H5 (token message)** Done 2026-11-11 (run 26, class B): a 401 or 403 from Hardcover now reads "Hardcover's token has been refused (401): put a new HARDCOVER_API_KEY in the Convex env." in Settings' sync line, instead of "Hardcover answered 401." (`gql`, `convex/hardcover.ts`; `convex/hardcoverToken.test.ts`, which failed before the change). Left out on purpose: the outbox already backs off to an hour (`retryDelayMs`) and the pull is two-minutely and cheap, so "stop hammering" and a push nudge were not built; say if you want either. Hardcover's token expiry is still unchecked.
 

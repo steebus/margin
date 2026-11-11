@@ -189,3 +189,14 @@ test('the latest book is the one being read that was last written on', async () 
   await as.mutation(api.entries.addEntry, { readId: other, kind: 'note', text: 'Later.' })
   expect(await as.query(api.library.latestRead, {})).toBe(other)
 })
+
+test('a note written offline keeps the time it was written, never a time in the future', async () => {
+  const { t, as, readId } = await setup()
+  const hourAgo = Date.now() - 3_600_000
+
+  await as.mutation(api.entries.addEntry, { readId, kind: 'note', text: 'Written on the train', writtenAt: hourAgo })
+  await as.mutation(api.entries.addEntry, { readId, kind: 'note', text: 'Clock was wrong', writtenAt: Date.now() + 86_400_000 })
+  const made = await t.run(ctx => ctx.db.query('entries').collect())
+  expect(made.find(e => e.text === 'Written on the train')?.createdAt).toBe(hourAgo)
+  expect(made.find(e => e.text === 'Clock was wrong')!.createdAt).toBeLessThanOrEqual(Date.now())
+})

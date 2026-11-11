@@ -1,7 +1,8 @@
 // Writes made with no connection wait here, on the device, and go when it returns (SPEC 4). Only entries and
 // progress: everything else needs a connection. Replaying is safe, because entries dedupe on their key and progress
 // is simply set again.
-export type Queued = { id: string; name: 'addEntry' | 'logProgress'; args: Record<string, unknown> }
+// writtenAt is when the reader made the write (absent on writes queued before it existed), so a replay can say so.
+export type Queued = { id: string; name: 'addEntry' | 'logProgress'; args: Record<string, unknown>; writtenAt?: number }
 
 export type Store = {
   all: () => Promise<Queued[]>
@@ -63,6 +64,9 @@ export async function replay(send: (item: Queued) => Promise<unknown>, store: St
   return rejected
 }
 
+/** What a replay sends: the write's own arguments, plus when it was written if that's known. */
+export const replayArgs = (item: Queued) => (item.writtenAt === undefined ? item.args : { ...item.args, writtenAt: item.writtenAt })
+
 const WAIT_MS = 8000
 
 /**
@@ -76,8 +80,9 @@ export async function sendOrKeep<T>(
   { store = deviceStore, online = () => navigator.onLine, waitMs = WAIT_MS }: { store?: Store; online?: () => boolean; waitMs?: number } = {},
 ): Promise<{ kept: true } | { kept: false; result: T }> {
   const keep = async (original?: Promise<unknown>) => {
-    const id = `${Date.now().toString().padStart(15, '0')}-${Math.random().toString(36).slice(2)}`
-    await store.put({ id, name, args })
+    const now = Date.now()
+    const id = `${now.toString().padStart(15, '0')}-${Math.random().toString(36).slice(2)}`
+    await store.put({ id, name, args, writtenAt: now })
     if (original) {
       // The original is still out and may land: until it settles, a replay must not send the kept copy too.
       sending.add(id)
@@ -106,8 +111,9 @@ export async function sendOrKeep<T>(
  * Landed or refused, it's taken off the device; a refusal is thrown for the reader to hear about.
  */
 export async function keepThenSend(name: Queued['name'], args: Record<string, unknown>, send: () => Promise<unknown>, store: Store = deviceStore) {
-  const id = `${Date.now().toString().padStart(15, '0')}-${Math.random().toString(36).slice(2)}`
-  await store.put({ id, name, args }).catch(() => { /* no IndexedDB: it simply isn't kept */ })
+  const now = Date.now()
+  const id = `${now.toString().padStart(15, '0')}-${Math.random().toString(36).slice(2)}`
+  await store.put({ id, name, args, writtenAt: now }).catch(() => { /* no IndexedDB: it simply isn't kept */ })
   sending.add(id)
   try {
     try {
