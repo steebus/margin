@@ -286,6 +286,13 @@ Answer in this file, dated, and the items unblock.
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
 
+- **2026-11-11, run 25 (unattended; a normal pick).** Ground: `main` at `16399b9`, CI green (Vercel not checked, Q13).
+  Re-checked H5 against the code: still real (`gql` in `convex/hardcover.ts` throws `Hardcover answered ${status}.` for
+  any non-ok reply, 401 included). Did the pruning §8 asks for (class A, docs only): §6's runs 14 and older are one
+  line each, 581 to 469 lines; still over 400 because §4 and §7 are long, which is fine while they hold live items and
+  the record. No code changed, so lint, tests and build were not rerun. Remaining safe supply: U1 (other surfaces),
+  O3 (Motion), H5 (class B, small), U7 (class C, small). Run 26 is a normal pick; run 28 a delight run.
+
 - **2026-11-11, run 24 (unattended; a delight run).** Ground: `main` at `9caf639`, CI green (Vercel not checked, Q13).
   Did the stamp half of D16 (class C), see §7. Verified: lint, 296 tests, build and budget green (main chunk unchanged,
   552.9 kB), no fixture code in `dist/`; book page read settled in fixture mode, phone light and desktop dark, no page
@@ -361,125 +368,14 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
   one-line CSS fix, read before and after on Review (phone dark, desktop light). Not checked: the other three radio
   lists (same class, same fix) by eye, or on a phone. Remaining safe supply: O1, U1, O3, U10. Run 16 is a delight run.
 
-- **2026-11-11 (with Steve).** Did E5 (class A), see §7 and §1b: recorded real read-only Hardcover replies with
-  `scripts/hardcover-record.mjs`, scrubbed, into `fixtures/hardcover/`, with a test. Q11 answered. Verified: lint,
-  285 tests and build green; grepped the fixtures for the username and user id (nothing). H10 is down to its write
-  half; H15 has its fixtures.
-
-- **2026-11-10, run 14 (unattended; a normal pick).** Ground: `main` at `74a1524`, CI green (Vercel not checked, Q13).
-  Assessed Stats, Review, Capture and Settings by reading fixture shots (phone and desktop, light and dark; 16 shots,
-  nothing wider than its screen, no errors). Seen, filed as U10 and U11. Did B7 (class A), see §7. Verified: lint clean,
-  278 tests, build and budget green (main chunk 617.9 kB, unchanged); docs only, so no visible change. Remaining safe
-  supply: O1, U1, O3, U10, U11. Run 15 is a normal pick; run 16 a delight run.
-
-- **2026-11-10, run 13 (unattended; a normal pick).** Ground: `main` at `1d5a6d1`, CI green (Vercel not checked, Q13).
-  Did O7 (class A), see §7. Verified: 278 tests pass with `isolate: false`, also with shuffled files and tests (3
-  runs) and with stubs undone per test; lint, build and budget green (main chunk 617.9 kB, unchanged). Wall time
-  about 5.6 s to 2.2-4.4 s. No browser pass this run (test config only), so theme U's four-unread-screens rule
-  carries to run 14. Remaining safe supply: O1, B7, U1 (O3 too). Run 14 is a normal pick.
-
-- **2026-11-10, run 12 (unattended; a delight run).** Ground: `main` at `fd9ee84`, CI green (Vercel not checked, Q13).
-  Assessed by reading book, Desk, Shelves and Notes fixture shots (phone and desktop, light and dark; 16 shots,
-  nothing wider than its screen, no errors); nothing new to file. Did D10 (class C), see §7. Verified: lint clean, tests
-  and build and budget green (main chunk unchanged at 617.9 kB), no fixture code in `dist/`, settled highlight identical
-  to before in the shots. Not checked: the sweep itself in motion (shots capture the settled state), or on a phone.
-  Run 13 is a normal pick.
-
-- **2026-11-10, run 11 (unattended; a normal pick).** Ground: `main` at `5666a35`, CI green (Vercel not checked, Q13).
-  Re-checked O4 against the code: half stale. The Pile faces are already Latin-only imports, and the Desk's
-  `RecentPile` really does draw spines with them, so keeping them out of first paint would change what the Desk
-  shows: dropped. The Source Serif half was real: done (class A), see §7. Verified: lint clean, 278 tests, build and
-  budget green (main chunk 617.9 kB, was 620.6), two Source Serif woff2 files in `dist/assets` instead of six, no
-  fixture code in `dist/`. Not checked: a screenshot (same Latin files, same face), or text in Cyrillic, Greek or
-  Vietnamese, which now falls back to Georgia. No theme-U browser pass again; run 12 is a delight run and should
-  start by reading four unread fixture screens. Vitest still says `isolate: false` saves ~2.1 s (O7).
-
-- **2026-11-10, after run 10 (with Steve).** Answers recorded in §5: hourly stays, CI alone checks the deploy, the
-  guide route is gone (file, route tree and SPEC §4.1 line), drawings dim and never invert (SPEC §3.11). Build green
-  (`npm run build`); lint and tests also green.
-
-- **2026-11-10, run 10 (unattended; the review of the loop, §8).** Ground: `main` at `c9ba531`, CI green; Vercel
-  unreachable (403, see Q13). Docs only (class A), so lint, tests and build were not rerun. Findings:
-  (1) the job runs hourly, not four-hourly (Q12): nine runs in seven hours, so the "one commit a day of class D"
-  and "every fourth run" counts pass quickly; (2) there are no pull requests, so §8's "share merged unchanged"
-  can't be measured; every run's commit is on `main` and none has been reverted or edited by hand since (git log),
-  so the proxy used now is reverts and hand-edits of loop commits; (3) the scoring picks small safe items and the
-  theme-U assessment has slipped five runs running because it needs a browser pass: from now on the assessment
-  step is **run `fixture-shots.mjs` and read at least four screens not yet read**, and runs 2 to 9 only ever
-  read four; (4) every `ready` item left in H is class D (one per day, never two in a row) or C, so after B8 the
-  safe supply is O1, O4, O7, B7 and U1: pick from those until Steve answers Q6/Q10/Q11. Changed: schedule note,
-  Q12, Q13. Not changed: §2's limits, the scoring. Next run (11th) is a normal pick; the 12th is a delight run.
-
-- **2026-11-10, run 9 (unattended).** Ground: `main` at `01bdef6`, CI green (Vercel not checked: no deploy status
-  reachable from here). Re-checked B8 against the code: real. Did it (class B), see §7. Verified: the two tests that
-  exercise the bug failed before the fix, all pass after (a third pins the failure path). No theme-U assessment this run
-  (the fix is invisible), so it continues next run. Next run (10th) is the review of the loop itself (§8), then a
-  delight run at 12. Not checked: a real slow connection on a phone.
-
-- **2026-11-10, run 8 (unattended; a delight run, §3.4).** Ground: `main` at `eb6a82c`, CI green (Vercel not checked:
-  no deploy status reachable from here). Did the D1 audit (class A, docs only): the motion table checked against the
-  code, seven missing or partial moments filed as D10 to D16 (§4 D). No app code changed, so lint, tests and build
-  were not rerun. Not checked: the audit is from reading code, not from the running app; Explore's spring physics
-  unverified. Theme U assessment still outstanding beyond run 6's four screens. Next run (9th) is a normal pick; B8 or
-  D10 are good candidates.
-
-- **2026-11-10, run 7 (unattended).** Ground: `main` at `73973ff`, CI green (Vercel not checked: no deploy status
-  reachable from here). Did B4 and B3 (class B, same file), see §7. Re-checked B4 against the code: real. Assessed
-  no new theme-U screens (no browser pass: the outbox fix is invisible), so U assessment continues next run, and
-  next run (8th) is a delight item (§3.4). Verified: the three new tests failed before the fix and pass after; lint
-  clean, 275 tests, build and budget green (main chunk 618.2 kB), no fixture code in `dist/`. Not checked: a real
-  flapping connection, or sign-out on a phone. Not covered: `sendOrKeep`'s "late" path can still land after its
-  copy was kept, so a slow write is sent twice (progress would log twice); entries dedupe, progress doesn't.
-
-- **2026-11-10, run 6 (unattended).** Ground: `main` at `ffd27d1`, CI green (Vercel not checked: no deploy status
-  reachable from here). Assessed theme U at last, reading fixture shots of Desk, book, Shelves and Notes (phone and
-  desktop, light and dark; 16 shots, nothing wider than its screen, no errors). Seen: on the phone Desk the progress
-  chart's first-point label ("13%") sits on the start of its line, small and unchanged by this run; the rest read
-  fine. Not read: the other 25 screens, so U assessment continues next run. Did B5 (class B), see §7. Verified:
-  lint clean, 272 tests (1 new; the function it tests didn't exist before), build and budget green (main chunk
-  618.0 kB), no fixture code in `dist/`. Not checked: the Desk on the real library. Local `git reset --hard` was
-  refused by the sandbox, so the run fast-forwarded `main` instead.
-
-- **2026-11-10, run 5 (unattended).** Ground: `main` at `48e6ebf`, CI green. Did B1 (class B, data-loss rule §3.1),
-  see §7. Re-checked B5 against the code: still real (`Date.now()` at `convex/library.ts` `activity`, the `movedIn`
-  call). Verified: the three new tests failed before the fix and pass after; lint clean, 271 tests, build and budget
-  green (main chunk 618.0 kB, slightly under budget); no fixture code in `dist/`. Not checked: a refusal on replay
-  in a real browser (no way to make the server refuse in fixture mode), and the toast wording on a phone.
-  Assessment of the run-1 shots (theme U) **still not done, a fourth run in a row**: next run does it first, before
-  choosing anything.
-
-- **2026-11-10, run 4 (unattended; a delight run, §3.4).** Ground: `main` at `8294a89`, CI green. Did D3 (class C),
-  see §7. Verified: lint clean, 268 tests (3 new), build and budget green (main chunk unchanged); fixture-mode Desk
-  read by eye on phone and desktop, light and dark: the toast says "Two years ago today", fits the screen, no page
-  errors. Not checked: on Steve's real library (the toast shows weekly, so it appears on the first Desk open after
-  the deploy only if a note shares today's date). Assessment of the run-1 shots (theme U) **still not done**: the
-  next run starts there. `docs/IMPROVEMENT-LOOP.md` said `drawer-rules.ts` "weights by age"; it never did (fixed in §7).
-
-- **2026-11-10, run 3 (unattended).** Ground: `main` at `d272047`, CI green. Did E4 (class A): `npm run budget`
-  (`scripts/bundle-budget.mjs`, rule in `src/lib/bundleBudget.ts` with tests, numbers in `bundle-budget.json`) runs
-  in CI after the build and fails if the main chunk grows more than 5% over its recorded size, raw or gzip. Checked
-  it fails when the budget is lowered, then restored. Verified: lint clean, 265 tests, build green. Assessment (the
-  run-1 shots, theme U) **still not done**: this run had no browser pass either, so the next run starts there.
-  Seen in passing: Vitest still says `isolate: false` would save ~2.8 s (O7).
-
-- **2026-11-10, run 2 (unattended).** Ground: `main` at `436f12c`, CI green. Did E3 (class A): lint now covers
-  `convex/` and `scripts/`; one warning fixed (`endsWith`, same behaviour). Verified: lint clean, 261 tests,
-  build green. Assessment (reading the run-1 shots, theme U) not done: this run had no browser pass, so **the
-  next run still starts there**. Pushed to the session branch `ccr-8f1e003b-tnfzh4`, not `main` (see report).
-
-- **2026-11-10, run 1 (fixture mode, with Steve).** Built E1 and most of E2: `fixtures/` (the made-up library and
-  the generator that runs Margin's real queries over it), `src/fixtures/backend.tsx` (the stand-in client),
-  `npm run fixtures`, `scripts/fixture-shots.mjs`. Checked: 116 shots (29 screens, two widths, two themes), no
-  page errors but the blocked Google script, nothing wider than its screen; Desk, book page and Shelves read by
-  eye; lint, tests (261) and build green; no fixture code in `dist/`. Recorded Steve's answers in §5 and changed
-  §1 to §3 to match (push to `main`, four-hourly, motion never reduced). Found U9. Not checked: the `empty` and
-  `slow` variants beyond loading, and most shots weren't read by eye, so **the next run's assessment is to read
-  them, theme U first**, and file what it sees.
-- **2026-11-10, run 0 (the audit).** Read every doc, the Hardcover sync, the server library and entries
-  code, the offline layer, the shell and the Desk; grepped the rest. `lint`, `test` (260 pass) and `build` green
-  at `5e210e8`. Wrote this file. Changed no code. Not looked at closely yet, so start assessments here: the buddy
-  and guide (`convex/buddy*.ts`, `guide*.ts`), Explore's layout cost on a phone, Shelves at 2,000 books, the Kobo
-  and Play Books imports, `app.css` (1,144 lines) for dead rules. 
+- **2026-11-11 (with Steve).** E5 done: recorded, scrubbed Hardcover replies in `fixtures/hardcover/` (§1b); Q11 answered.
+- **2026-11-10, run 14.** Assessed Stats, Review, Capture, Settings; filed U10, U11; did B7 (docs drift).
+- **Run 13.** O7: tests share workers (`isolate: false`). **Run 12.** D10 highlighter dries; read four more screens.
+- **Run 11.** O4 fonts: Source Serif Latin faces only; the Pile-faces half dropped.
+- **2026-11-10, after run 10 (with Steve).** Answers recorded in §5: hourly stays, CI alone checks the deploy, guide route gone, drawings dim and never invert.
+- **Run 10 (the first loop review).** The job runs hourly, not four-hourly; no pull requests exist, so reverts and hand-edits of loop commits are the proxy; assessment must read at least four unread fixture screens each run; every `ready` H item is class D or C.
+- **Runs 9 to 3.** B8, B4 and B3, B5, B1, D3, E4 (bundle budget in CI), each as in §7. The theme U assessment slipped for several runs because it needs a browser pass; run 6 did the first four screens.
+- **Run 2.** E3: lint covers `convex/` and `scripts/`. **Run 1 (with Steve).** Built fixture mode (E1, most of E2), recorded Steve's answers. **Run 0 (the audit).** Read the docs and most of the code; wrote this file at `5e210e8`. Not yet looked at closely: the buddy (`convex/buddy*.ts`), Explore's cost on a phone, Shelves at 2,000 books, the Kobo and Play Books imports, `app.css` for dead rules.
 
 ## 7. Done and dropped
 
