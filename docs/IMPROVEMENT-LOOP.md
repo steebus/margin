@@ -201,7 +201,7 @@ Every item here is class C unless it's a plain bug. Look at each in fixture mode
 | Id | Item | Evidence | Size | Status |
 |---|---|---|---|---|
 | ~~U9~~ | **Closed 2026-11-10 (Steve: dim, don't invert; SPEC §3.11 corrected).** ~~Drawings in the dark theme.~~ In fixture mode a book with a drawing shows as a pale panel with black ink on Shelves at night, where SPEC §3.11 says `invert` plus `screen`. It may be the stand-in art (an SVG, not a WebP), a decision since the spec, or a bug. Check with Steve's eyes on a real drawing before touching it. | `fixture-shots/shelves.phone.dark.png` | S | closed |
-| U1 | **An accessibility sweep, one surface per run:** focus order and visible focus, names on icon buttons, contrast in both themes (WCAG AA is a brand commitment), 48dp targets, nothing hover-only, toasts announced once. Start with the Desk and the book page. **Targets and names swept on every screen by run 31, see §7. Left: focus order, contrast by measurement.** | `PRODUCT.md` Accessibility; never audited | M each | started |
+| U1 | **An accessibility sweep, one surface per run:** focus order and visible focus, names on icon buttons, contrast in both themes (WCAG AA is a brand commitment), 48dp targets, nothing hover-only, toasts announced once. Start with the Desk and the book page. **Targets and names swept on every screen by run 31, contrast of the tokens and every text opacity by run 34, see §7. Left: focus order, contrast of text over covers and drawings.** | `PRODUCT.md` Accessibility; never audited | M each | started |
 | ~~U2~~ | **Dropped 2026-11-10 (Steve doesn't want motion reduced).** ~~A reduced-motion sweep.~~ Nine places mention reduced motion; `PLAN.md` wants a designed path for every animation. List every animation, tick the ones with a designed still version, fix the rest. | `grep prefers-reduced-motion` | M | ready |
 | U3 | **Loading and empty states.** Several screens show a bare "Opening…" line. DESIGN-DIRECTION asks for "something small and alive". Design one empty state and one loading state and use them everywhere. | `Desk.tsx`, `__root.tsx` | M | ready |
 | U4 | **The review queue is buttons "for now".** PLAN and DESIGN-DIRECTION describe an index-card stack to swipe. | `PLAN.md` Phase 5.2; `Review.tsx` | M | ready |
@@ -281,6 +281,15 @@ Answer in this file, dated, and the items unblock.
 ## 6. Run log
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
+
+- **2026-11-11, run 34 (unattended; a normal pick).** Ground: `main` at `881364e`, CI green (Vercel not checked, Q13).
+  Did the contrast slice of U1 (class C), see §7: computed WCAG ratios for ink, biro, rule and grey on paper in both
+  themes, and for every `opacity` on text in `app.css`. Two fell short of AA 4.5:1 and were fixed. Verified: lint, 312
+  tests, build and budget green (main chunk unchanged, 481.5 kB); in fixture mode the computed colours are the ones the
+  ratios assume, light and dark, no page errors. No screenshot read (a colour tweak on a count badge and placeholder
+  text; the badge only appears with a filter on, which fixtures can't set by hand). Not checked: focus order, text over
+  covers, or on a phone. Remaining safe supply: U1 (focus order), O3 (Motion), U3 (class C). Run 35 is a normal pick; run
+  36 a delight run.
 
 - **2026-11-11, run 33 (unattended; a normal pick).** Ground: `main` at `68da7be`, CI green (Vercel not checked, Q13).
   Did B6 (class C), see §7. Verified: lint, 312 tests, build and budget green (`npm run budget` reports the main chunk at 481.5 kB raw,
@@ -405,6 +414,8 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
 ## 7. Done and dropped
 
 Move items here with the date and the commit or the reason. Keep the id so old log entries still make sense.
+
+- **U1 (contrast)** Done 2026-11-11 (run 34, class C): token ratios on paper, light/dark: ink 12.9/13.4, biro 5.2/7.7, rule 2.8/5.4, grey 2.4/3.3. Ink, biro are fine as text; rule and grey are never used as text colour except the filter-count badge, whose number was paper on magenta (2.8:1 in light), now `--cover-ink` (4.6 light, 5.7 dark). Form placeholders at 0.6 opacity were 4.3:1 in light, now 0.65 (5.0). Other text opacities (0.7 and up) pass in both themes; 0.45 on disabled outline buttons and 0.6 on `.choice[data-off]` and disabled quiet links are inactive controls, exempt. `--grey` is only for spines and strokes, which need 3:1 only where meaning depends on them: not measured. Rule: keep text at or above 0.65 ink opacity in light.
 
 - **B6 (placeholders)** Done 2026-11-11 (run 33, class C): `/imports/:jobId` is removed (no import-job table or code existed; it now shows "Nothing filed here"), and an unknown `/settings/integrations/:provider` is a not-found instead of "This page isn't built yet"; only `kobo` has a page. The `Placeholder` component and its CSS are gone; SPEC §4.1 matches.
 

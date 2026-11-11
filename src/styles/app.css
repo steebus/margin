@@ -640,7 +640,7 @@ td a { display: inline-flex; align-items: center; min-height: 44px; color: inher
 .field select option, .field select optgroup { background: var(--paper); color: var(--ink); }
 .field textarea { resize: vertical; }
 .field textarea.hand { color: var(--biro); }
-.field textarea::placeholder { color: var(--ink); opacity: 0.6; font: 400 1.0625rem/1.4 var(--book); }
+.field textarea::placeholder { color: var(--ink); opacity: 0.65; font: 400 1.0625rem/1.4 var(--book); }
 .field-short input { width: 8em; }
 .field input { min-width: 0; min-height: 48px; padding: 8px 12px; border: var(--line) solid var(--ink); border-radius: 3px; background: transparent; color: var(--ink); font: inherit; }
 .field input::placeholder { color: var(--ink); opacity: 0.7; }
@@ -971,7 +971,7 @@ td a { display: inline-flex; align-items: center; min-height: 44px; color: inher
 .tools-top { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
 .tools-view { position: relative; gap: 6px; }
 .tools-view[aria-expanded='true'] { background: var(--ink); color: var(--paper); }
-.tools-badge { display: grid; place-items: center; min-width: 22px; height: 22px; padding-inline: 4px; border-radius: 11px; background: var(--rule); color: var(--paper); font: 400 0.9375rem/1 var(--head); }
+.tools-badge { display: grid; place-items: center; min-width: 22px; height: 22px; padding-inline: 4px; border-radius: 11px; background: var(--rule); color: var(--cover-ink); font: 400 0.9375rem/1 var(--head); }
 .tools-panel { display: grid; gap: 12px; padding: 12px; border: var(--line) solid var(--ink); border-radius: 3px; }
 
 /* ---------- Notes you can open ---------- */
