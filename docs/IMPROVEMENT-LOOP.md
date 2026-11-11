@@ -203,7 +203,7 @@ Every item here is class C unless it's a plain bug. Look at each in fixture mode
 | Id | Item | Evidence | Size | Status |
 |---|---|---|---|---|
 | ~~U9~~ | **Closed 2026-11-10 (Steve: dim, don't invert; SPEC §3.11 corrected).** ~~Drawings in the dark theme.~~ In fixture mode a book with a drawing shows as a pale panel with black ink on Shelves at night, where SPEC §3.11 says `invert` plus `screen`. It may be the stand-in art (an SVG, not a WebP), a decision since the spec, or a bug. Check with Steve's eyes on a real drawing before touching it. | `fixture-shots/shelves.phone.dark.png` | S | closed |
-| U1 | **An accessibility sweep, one surface per run:** focus order and visible focus, names on icon buttons, contrast in both themes (WCAG AA is a brand commitment), 48dp targets, nothing hover-only, toasts announced once. Start with the Desk and the book page. **Desk targets and names swept 2026-11-11 (run 21), see §7; the book page's targets and names measured fine. Left: focus order, contrast by measurement, the other surfaces.** | `PRODUCT.md` Accessibility; never audited | M each | started |
+| U1 | **An accessibility sweep, one surface per run:** focus order and visible focus, names on icon buttons, contrast in both themes (WCAG AA is a brand commitment), 48dp targets, nothing hover-only, toasts announced once. Start with the Desk and the book page. **Targets and names swept on every screen by run 31, see §7. Left: focus order, contrast by measurement.** | `PRODUCT.md` Accessibility; never audited | M each | started |
 | ~~U2~~ | **Dropped 2026-11-10 (Steve doesn't want motion reduced).** ~~A reduced-motion sweep.~~ Nine places mention reduced motion; `PLAN.md` wants a designed path for every animation. List every animation, tick the ones with a designed still version, fix the rest. | `grep prefers-reduced-motion` | M | ready |
 | U3 | **Loading and empty states.** Several screens show a bare "Opening…" line. DESIGN-DIRECTION asks for "something small and alive". Design one empty state and one loading state and use them everywhere. | `Desk.tsx`, `__root.tsx` | M | ready |
 | U4 | **The review queue is buttons "for now".** PLAN and DESIGN-DIRECTION describe an index-card stack to swipe. | `PLAN.md` Phase 5.2; `Review.tsx` | M | ready |
@@ -283,6 +283,16 @@ Answer in this file, dated, and the items unblock.
 ## 6. Run log
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
+
+- **2026-11-11, run 31 (unattended; a normal pick).** Ground: `main` at `d2fc715`, CI green (Vercel not checked, Q13).
+  Did the next slice of U1 (class C), see §7: measured every link, button and field at 390 px, light and dark, on Capture
+  (three pages), Review, Settings (two tabs), Stats, Topics, a topic and the drawer in fixture mode. Found 45 Stats bar
+  rows 32 px tall and the topic page's "Topics" back link 18 px tall; fixed both. Everything else was named and 44 px or
+  more (inline links and a one-line link under a sentence exempt). Verified: lint, tests, build and budget below;
+  Stats and a topic read in fixture mode, phone and desktop, light and dark, before and after: rows 44 px on a touch
+  screen and 32 px with a mouse, nothing wider than its screen, no page errors. Not checked: focus order, contrast by
+  measurement, a screen reader, the book-page sub-screens beyond run 21's, or on a phone. Remaining safe supply: U1
+  (focus order, contrast), O3 (Motion). Run 32 is a delight run.
 
 - **2026-11-11, run 30 (unattended; a normal pick).** Ground: `main` at `4fe4eca`, CI green (Vercel not checked, Q13).
   Did the next slice of U1 (class A, docs only): measured every link, button and field at 390 px, light and dark, on
@@ -381,6 +391,8 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
 ## 7. Done and dropped
 
 Move items here with the date and the commit or the reason. Keep the id so old log entries still make sense.
+
+- **U1 (Stats and Topics targets)** Done 2026-11-11 (run 31, class C): on a touch screen (`pointer: coarse`) Stats' bar rows are 44 px tall (were 32) and the topic page's "Topics" back link is 44 px tall (was 18). With a mouse the Stats chart keeps its denser rows. Capture, Review, Settings and the drawer measured fine.
 
 - **U7 (offline line)** Done 2026-11-11 (run 29, class C): a small typewriter-face line above every page (`OfflineLine`, `src/components/offline/`) says "Offline: showing your last visit." when the browser is offline, and "N notes and places waiting to send." when the device's outbox holds writes (counted on connection change and every 4 s). Nothing shows when online with nothing waiting. Wording in `src/lib/offlineLine.ts`, tested.
 

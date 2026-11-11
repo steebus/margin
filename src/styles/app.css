@@ -675,6 +675,8 @@ td a { display: inline-flex; align-items: center; min-height: 44px; color: inher
 .bars { display: grid; gap: 0; }
 .bar-row { display: grid; grid-template-columns: minmax(0, 38%) minmax(0, 1fr); gap: 8px; align-items: center; min-height: 32px; padding: 2px 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .bar-row:disabled { cursor: default; }
+/* 44 px to tap on a touch screen; the mouse keeps the denser chart. */
+@media (pointer: coarse) { .bar-row { min-height: 44px; } }
 .bar-row[aria-pressed='true'], .column[aria-pressed='true'] .column-track { background: var(--soft); }
 @media (hover: hover) { .bar-row:not(:disabled):hover { background: var(--soft); } }
 .bar-label { font-size: 0.9375rem; line-height: 1.15; }
@@ -1051,7 +1053,7 @@ button.back { justify-self: start; padding: 0; border: 0; background: none; curs
 .tag-add input { flex: 1; min-width: 0; min-height: 48px; padding: 8px 12px; border: var(--line) solid var(--ink); border-radius: 3px; background: transparent; color: var(--ink); font: inherit; }
 
 /* ---------- Topic pages: a timeline down a single ink rule, years in the magenta rule ---------- */
-.topic-up { justify-self: start; font: 400 1.125rem/1 var(--head); letter-spacing: 0.04em; text-transform: uppercase; text-decoration: none; color: inherit; }
+.topic-up { justify-self: start; display: inline-flex; align-items: center; min-height: 44px; font: 400 1.125rem/1 var(--head); letter-spacing: 0.04em; text-transform: uppercase; text-decoration: none; color: inherit; }
 .topic-up::before { content: '\2190\00a0'; }
 .topic-page .title-head { overflow-wrap: anywhere; }
 .topic-page .title-head[data-size='long'] { font-size: clamp(2.25rem, 10vw, 3.75rem); }
