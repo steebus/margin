@@ -221,7 +221,7 @@ never in the way": nothing here may add a tap or delay an input. Every fourth ru
 | D10 | ~~**Highlighter dries.** The mustard swipe on a marked line should follow the finger, then desaturate a touch. Neither exists: the highlight in the margin block (`app.css` ~523) is static. Cheapest: a one-off colour transition on first render.~~ | `app.css` "In the margin on its book's page" | S | **done 2026-11-10** (§7) |
 | D13 | **Ribbon bookmark** drapes and sways; logging progress drags it down. There is no ribbon element at all (progress is a bar and a percentage, per the Fair-catalog section). Needs Steve: does the ribbon still belong? | no `ribbon` in `src/components` | S | needs Steve |
 | ~~D14~~ | **Done 2026-11-11 (run 36), see §7.** ~~Spines lean on a fast scroll.~~ | | M | done |
-| D15 | **Adding a book slides into its slot** and nudges neighbours (a `layout` animation on Shelves). Motion is used on Desk, book page, drawer, capture and toasts only. | `motion/react` importers | M | ready |
+| ~~D15~~ | **Done 2026-11-11 (run 40), see §7.** ~~Adding a book slides into its slot.~~ | | M | done |
 | D16 | **Library card stamp for each event** (thunk, rotation, ink spread) beyond the status stamp. `stamp-land` scales in; there is no rotation or ink spread, and haptics fire only on finish. | `app.css` `stamp-land` | S | **done 2026-11-11 (run 24)**, see §7; haptics beyond finish and other events' stamps left |
 
 **D1's audit (2026-11-10, by reading code, not the running app):**
@@ -281,6 +281,13 @@ Answer in this file, dated, and the items unblock.
 ## 6. Run log
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
+
+- **2026-11-11, run 40 (unattended; a delight run).** Ground: `main` at `1452fb9`, CI green (run 38's commit still showed
+  queued, as before; Vercel not checked, Q13). Did D15 (class C), see §7. Verified: lint, 322 tests (5 new), build and budget
+  green (main chunk 481.7 kB, unchanged); Shelves read in fixture mode at 390 px light, plus the other three shots: layout
+  unchanged, nothing wider than its screen, no page errors. Not checked: the slide itself, by eye or on a phone (fixture
+  writes are forgotten, so no book can be added there), or how it behaves on a very long shelf. Remaining safe supply: U1
+  (text over covers, keyboard pass), O3 (Motion), D6 (class C), H4 (class C). Run 41 is a normal pick.
 
 - **2026-11-11, run 39 (unattended; a normal pick).** Ground: `main` at `ffd26e1`, CI for run 38's commit still queued when
   checked, the one before green (Vercel not checked, Q13). Did the empty-state half of U3 (class C), see §7. Verified: lint,
@@ -425,6 +432,8 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
 ## 7. Done and dropped
 
 Move items here with the date and the commit or the reason. Keep the id so old log entries still make sense.
+
+- **D15 (slide into slot)** Done 2026-11-11 (run 40, class C): a book added to the shelf grid while Shelves is open drops in (0.42 s, slight overshoot) and the cells it displaces glide to their new places (0.38 s), a FLIP with the Web Animations API in `useSlotIn` (`BookList.tsx`; `arrivals` in `src/lib/slotIn.ts`, tested). Only one to three added books and none removed count, so the first render, sorts, filters and big sync batches don't shuffle. The table view and the Desk's strip are unchanged. Adds no tap or wait.
 
 - **U3 (empty state)** Done 2026-11-11 (run 39, class C): one `Empty` component (`src/components/empty/`): a small line-drawn shelf (one book leans in once, 0.7 s), a heading, one line and the way forward. The Desk and Shelves' "Your shelves are empty" use it. Other bare "Nothing …" lines (Review, Notes search, topic, author) are search or filter results, not first-run emptiness, and were left as they are.
 

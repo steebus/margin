@@ -1,6 +1,8 @@
+import { useLayoutEffect, useRef } from 'react'
 import { Link } from '@tanstack/react-router'
 import { formatDate, type Book } from '../../lib/books'
 import { daysToRead, dateOf, SORTS, type Dir, type SortId } from '../../lib/shelf'
+import { arrivals } from '../../lib/slotIn'
 import { flyCover } from '../../lib/coverFlight'
 import { useBookHold } from '../book/BookActions'
 import { Tick } from '../thumb/Marks'
@@ -13,9 +15,44 @@ export const SIZES = [
 ] as const
 export type Size = (typeof SIZES)[number]['id']
 
+/** A book added while the shelf is open slides into its slot, and the cells it displaces glide to their new places
+ *  (a FLIP with the Web Animations API). Anything else that changes the list stays as it was. */
+function useSlotIn(books: Book[], size: Size) {
+  const ref = useRef<HTMLDivElement>(null)
+  const seen = useRef<{ slugs: string[]; size: Size; rects: Map<string, DOMRect>; scroll: number } | null>(null)
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const slugs = books.map(b => b.slug)
+    const before = seen.current
+    const cells = [...el.querySelectorAll<HTMLElement>('.cell[data-slug]')]
+    if (before && before.size === size && typeof el.animate === 'function') {
+      const fresh = new Set(arrivals(before.slugs, slugs))
+      if (fresh.size > 0) {
+        for (const cell of cells) {
+          const slug = cell.dataset.slug!
+          if (fresh.has(slug)) {
+            cell.animate([{ opacity: 0, transform: 'translateY(-14px) scale(0.92)' }, { opacity: 1, transform: 'none' }], { duration: 420, easing: 'cubic-bezier(0.2, 0.9, 0.3, 1.2)' })
+            continue
+          }
+          const was = before.rects.get(slug)
+          if (!was) continue
+          const now = cell.getBoundingClientRect()
+          const dx = was.left - now.left
+          const dy = was.top - now.top + before.scroll - window.scrollY
+          if (dx || dy) cell.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }], { duration: 380, easing: 'cubic-bezier(0.3, 0.9, 0.3, 1)' })
+        }
+      }
+    }
+    seen.current = { slugs, size, rects: new Map(cells.map(c => [c.dataset.slug!, c.getBoundingClientRect()])), scroll: window.scrollY }
+  }, [books, size])
+  return ref
+}
+
 export function Catalog({ books, size }: { books: Book[]; size: Size }) {
+  const ref = useSlotIn(books, size)
   return (
-    <div className="catalog" data-size={size} style={{ '--cell': `${SIZES.find(s => s.id === size)!.px}px` } as React.CSSProperties}>
+    <div ref={ref} className="catalog" data-size={size} style={{ '--cell': `${SIZES.find(s => s.id === size)!.px}px` } as React.CSSProperties}>
       {books.map(b => <Cell key={b.slug} book={b} />)}
     </div>
   )
@@ -24,7 +61,7 @@ export function Catalog({ books, size }: { books: Book[]; size: Size }) {
 function Cell({ book }: { book: Book }) {
   const hold = useBookHold(book)
   return (
-    <Link to="/books/$bookSlug" params={{ bookSlug: book.slug }} className="cell" aria-label={`${book.title} by ${book.author}`} {...hold} onClickCapture={e => { hold.onClickCapture(e); if (!e.defaultPrevented) flyCover(e.currentTarget) }}>
+    <Link to="/books/$bookSlug" params={{ bookSlug: book.slug }} className="cell" data-slug={book.slug} aria-label={`${book.title} by ${book.author}`} {...hold} onClickCapture={e => { hold.onClickCapture(e); if (!e.defaultPrevented) flyCover(e.currentTarget) }}>
       <Thumb book={book} />
       {book.status === 'read' && <span className="cell-tick"><Tick /></span>}
     </Link>
