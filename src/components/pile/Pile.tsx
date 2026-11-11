@@ -9,6 +9,7 @@ import { ArrowLeft } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useBooks, useEntries } from '../../lib/offline'
 import { formatDate } from '../../lib/books'
+import { leanFor } from '../../lib/scrollLean'
 import { faceOf, pileNotes, pileOf, spineOf, spineTitle, stackHeight } from '../../lib/pile'
 
 /**
@@ -34,6 +35,31 @@ function useMiddleRow(list: React.RefObject<HTMLOListElement | null>, count: num
   return open
 }
 
+/**
+ * A fast scroll jostles the stack: spines tip a little with the speed, alternate ways, and settle when it stops. Written
+ * straight to a CSS variable on the list, so a scroll costs no React render.
+ */
+function useSpineLean(list: React.RefObject<HTMLOListElement | null>) {
+  useEffect(() => {
+    const el = list.current
+    if (!el) return
+    let lastY = window.scrollY
+    let lastT = performance.now()
+    let settle = 0
+    const onScroll = () => {
+      const now = performance.now()
+      const dt = now - lastT
+      if (dt > 0) el.style.setProperty('--lean', leanFor(((window.scrollY - lastY) / dt) * 1000).toFixed(3))
+      lastY = window.scrollY
+      lastT = now
+      clearTimeout(settle)
+      settle = window.setTimeout(() => el.style.setProperty('--lean', '0'), 90)
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => { window.removeEventListener('scroll', onScroll); clearTimeout(settle) }
+  }, [list])
+}
+
 /** Every book read, lying flat in the order they were finished, with what you made of each down the side. */
 export function Pile() {
   const books = useBooks()
@@ -42,6 +68,7 @@ export function Pile() {
   const rows = pileOf(books ?? [])
   const list = useRef<HTMLOListElement>(null)
   const middle = useMiddleRow(list, rows.length)
+  useSpineLean(list)
   // With a mouse, the book under the pointer unfurls; on a touch screen, the one crossing the middle (Steve, 2026-11-04).
   const [mouse] = useState(() => matchMedia('(hover: hover) and (pointer: fine)').matches)
   const [hovered, setHovered] = useState<string | null>(null)

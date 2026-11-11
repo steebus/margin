@@ -220,7 +220,7 @@ never in the way": nothing here may add a tap or delay an input. Every fourth ru
 | D1 | **Check the motion table.** Audit done 2026-11-10 (run 8), see the table below. Build the missing moments one at a time, cheapest first (D10 to D16). | `docs/DESIGN-DIRECTION.md` Motion table | S each | audit **done**; builds ready |
 | D10 | ~~**Highlighter dries.** The mustard swipe on a marked line should follow the finger, then desaturate a touch. Neither exists: the highlight in the margin block (`app.css` ~523) is static. Cheapest: a one-off colour transition on first render.~~ | `app.css` "In the margin on its book's page" | S | **done 2026-11-10** (§7) |
 | D13 | **Ribbon bookmark** drapes and sways; logging progress drags it down. There is no ribbon element at all (progress is a bar and a percentage, per the Fair-catalog section). Needs Steve: does the ribbon still belong? | no `ribbon` in `src/components` | S | needs Steve |
-| D14 | **Spines lean on a fast scroll.** The Pile has an unfurl (clip-path), no lean. | `app.css` `.pile-row` | M | ready |
+| ~~D14~~ | **Done 2026-11-11 (run 36), see §7.** ~~Spines lean on a fast scroll.~~ | | M | done |
 | D15 | **Adding a book slides into its slot** and nudges neighbours (a `layout` animation on Shelves). Motion is used on Desk, book page, drawer, capture and toasts only. | `motion/react` importers | M | ready |
 | D16 | **Library card stamp for each event** (thunk, rotation, ink spread) beyond the status stamp. `stamp-land` scales in; there is no rotation or ink spread, and haptics fire only on finish. | `app.css` `stamp-land` | S | **done 2026-11-11 (run 24)**, see §7; haptics beyond finish and other events' stamps left |
 
@@ -281,6 +281,14 @@ Answer in this file, dated, and the items unblock.
 ## 6. Run log
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
+
+- **2026-11-11, run 36 (unattended; a delight run).** Ground: `main` at `bc205ff`, CI green (Vercel not checked, Q13).
+  Did D14 (class C), see §7. Verified: lint, 316 tests (4 new), build and budget green (main chunk 481.5 kB, unchanged); in
+  fixture mode at 390 px light and 1280 px dark, scrolling the Pile with the wheel sets `--lean` on the list (small in
+  headless, where the wheel is smooth), spines rotate, and after 0.9 s every spine is back at 0deg; no page errors; the
+  mid-scroll phone shot read, layout unchanged. Not checked: how a real finger flick feels or whether the thresholds
+  (`LEAN_FROM`, `LEAN_FULL` in `src/lib/scrollLean.ts`) suit it, or on a phone. Remaining safe supply: U1 (text over
+  covers, keyboard pass), O3 (Motion), D15/D6 (class C). Run 37 is a normal pick.
 
 - **2026-11-11, run 35 (unattended; a normal pick).** Ground: `main` at `a527fb8`, CI green (Vercel not checked, Q13).
   Did the focus-order slice of U1 (class A, docs only): read the code instead of changing it. Focus rings are global
@@ -395,6 +403,8 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
 ## 7. Done and dropped
 
 Move items here with the date and the commit or the reason. Keep the id so old log entries still make sense.
+
+- **D14 (spines lean)** Done 2026-11-11 (run 36, class C): scrolling the Pile fast tips its spines up to about 1 degree, alternate rows opposite ways, and they spring back (420 ms, slight overshoot) when the scroll slows. `useSpineLean` in `Pile.tsx` writes `--lean` to the list from the scroll speed (`leanFor`, `src/lib/scrollLean.ts`, tested); `.spine` uses the `rotate` property, so hover's slide is untouched. Reading-pace scrolling doesn't move anything. Tune `LEAN_FROM` and `LEAN_FULL` if it's too shy or too much.
 
 - **U1 (contrast)** Done 2026-11-11 (run 34, class C): token ratios on paper, light/dark: ink 12.9/13.4, biro 5.2/7.7, rule 2.8/5.4, grey 2.4/3.3. Ink, biro are fine as text; rule and grey are never used as text colour except the filter-count badge, whose number was paper on magenta (2.8:1 in light), now `--cover-ink` (4.6 light, 5.7 dark). Form placeholders at 0.6 opacity were 4.3:1 in light, now 0.65 (5.0). Other text opacities (0.7 and up) pass in both themes; 0.45 on disabled outline buttons and 0.6 on `.choice[data-off]` and disabled quiet links are inactive controls, exempt. `--grey` is only for spines and strokes, which need 3:1 only where meaning depends on them: not measured. Rule: keep text at or above 0.65 ink opacity in light.
 

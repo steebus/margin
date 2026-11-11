@@ -722,8 +722,11 @@ td a { display: inline-flex; align-items: center; min-height: 44px; color: inher
   background: var(--paper);
   color: var(--ink);
   text-decoration: none;
-  transition: translate 160ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: translate 160ms cubic-bezier(0.22, 1, 0.36, 1), rotate 420ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* A fast scroll tips the spines (--lean, set by Pile.tsx); they alternate ways and spring back. */
+  rotate: calc(var(--lean, 0) * 1.1deg);
 }
+.pile-row:nth-child(even) .spine { rotate: calc(var(--lean, 0) * -0.8deg); }
 /* What each end of the spine carries. */
 .spine::before, .spine::after { content: ''; position: absolute; top: 0; bottom: 0; }
 .spine::before { left: 7px; }
