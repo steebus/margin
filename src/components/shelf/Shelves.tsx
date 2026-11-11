@@ -10,6 +10,7 @@ import { ReadingStrip } from './ReadingStrip'
 import { SaveView } from './SaveView'
 import { ShelfTools, useCatalogSize } from './ShelfTools'
 import type { Book } from '../../lib/books'
+import { Empty } from '../empty/Empty'
 import { Opening } from '../opening/Opening'
 
 const PREVIEW = 12
@@ -51,10 +52,12 @@ export function Shelves() {
       {books === undefined && <Opening what="your shelves" />}
 
       {books?.length === 0 && (
-        <div className="box stack">
-          <p>Your shelves are empty. Bring your books in from Hardcover to start.</p>
-          <div className="btn-row"><Link to="/settings" search={{ tab: 'integrations' }} className="btn btn-solid">Go to Settings</Link></div>
-        </div>
+        <Empty
+          title="Your shelves are empty"
+          action={<Link to="/settings" search={{ tab: 'integrations' }} className="btn btn-solid">Go to Settings</Link>}
+        >
+          Bring your books in from Hardcover to start.
+        </Empty>
       )}
 
       {books && books.length > 0 && (

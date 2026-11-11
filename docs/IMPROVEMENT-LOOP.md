@@ -203,7 +203,7 @@ Every item here is class C unless it's a plain bug. Look at each in fixture mode
 | ~~U9~~ | **Closed 2026-11-10 (Steve: dim, don't invert; SPEC §3.11 corrected).** ~~Drawings in the dark theme.~~ In fixture mode a book with a drawing shows as a pale panel with black ink on Shelves at night, where SPEC §3.11 says `invert` plus `screen`. It may be the stand-in art (an SVG, not a WebP), a decision since the spec, or a bug. Check with Steve's eyes on a real drawing before touching it. | `fixture-shots/shelves.phone.dark.png` | S | closed |
 | U1 | **An accessibility sweep, one surface per run:** focus order and visible focus, names on icon buttons, contrast in both themes (WCAG AA is a brand commitment), 48dp targets, nothing hover-only, toasts announced once. Start with the Desk and the book page. **Targets and names swept on every screen by run 31, contrast of the tokens and every text opacity by run 34, focus rings and dialog focus read in code by run 35 (see §6). Left: a keyboard pass in a browser, contrast of text over covers and drawings.** | `PRODUCT.md` Accessibility; never audited | M each | started |
 | ~~U2~~ | **Dropped 2026-11-10 (Steve doesn't want motion reduced).** ~~A reduced-motion sweep.~~ Nine places mention reduced motion; `PLAN.md` wants a designed path for every animation. List every animation, tick the ones with a designed still version, fix the rest. | `grep prefers-reduced-motion` | M | ready |
-| U3 | **Loading and empty states. Loading half done 2026-11-11 (run 38), see §7; left: one designed empty state.** Several screens showed a bare "Opening…" line. DESIGN-DIRECTION asks for "something small and alive". Design one empty state and one loading state and use them everywhere. | `Desk.tsx`, `__root.tsx` | M | started |
+| ~~U3~~ | **Done 2026-11-11 (runs 38 and 39), see §7.** ~~Loading and empty states.~~ Several screens showed a bare "Opening…" line. DESIGN-DIRECTION asks for "something small and alive". Design one empty state and one loading state and use them everywhere. | `Desk.tsx`, `__root.tsx` | M | done |
 | U4 | **The review queue is buttons "for now".** PLAN and DESIGN-DIRECTION describe an index-card stack to swipe. | `PLAN.md` Phase 5.2; `Review.tsx` | M | ready |
 | U5 | **The Pile, as Steve left it:** thinner books; on a phone, unfurl summaries only in the middle; "not loving the book style". | `PLAN.md` Held for after the build | M | needs Steve (what style instead?) |
 | U6 | **Grouping note, quote and progress** as one action, since they're similar. | `PLAN.md` Held for after the build | M | needs Steve |
@@ -281,6 +281,13 @@ Answer in this file, dated, and the items unblock.
 ## 6. Run log
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
+
+- **2026-11-11, run 39 (unattended; a normal pick).** Ground: `main` at `ffd26e1`, CI for run 38's commit still queued when
+  checked, the one before green (Vercel not checked, Q13). Did the empty-state half of U3 (class C), see §7. Verified: lint,
+  317 tests, build and budget green (main chunk 481.7 kB, unchanged); in fixture mode (`?fixture=empty`) the Desk and
+  Shelves read at 390 px light and 1280 px dark (and the other two combinations shot): shelf drawing, heading, line,
+  button, nothing wider than its screen, no page errors. Not checked: the lean's motion by eye, or on a phone. Remaining
+  safe supply: U1 (text over covers, keyboard pass), O3 (Motion), D15/D6 (class C), H4 (class C). Run 40 is a delight run.
 
 - **2026-11-11, run 38 (unattended; a normal pick).** Ground: `main` at `3133df2`, CI green (Vercel not checked, Q13).
   Did the loading half of U3 (class C), see §7. Verified: lint, 317 tests, build and budget green (main chunk 481.7 kB,
@@ -418,6 +425,8 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
 ## 7. Done and dropped
 
 Move items here with the date and the commit or the reason. Keep the id so old log entries still make sense.
+
+- **U3 (empty state)** Done 2026-11-11 (run 39, class C): one `Empty` component (`src/components/empty/`): a small line-drawn shelf (one book leans in once, 0.7 s), a heading, one line and the way forward. The Desk and Shelves' "Your shelves are empty" use it. Other bare "Nothing …" lines (Review, Notes search, topic, author) are search or filter results, not first-run emptiness, and were left as they are.
 
 - **U3 (loading line)** Done 2026-11-11 (run 38, class C): the ten bare "Opening …" lines (Desk, Shelves, Notes, Capture, drawer, author, person, Kobo import, app start) are one `Opening` component (`src/components/opening/`): typewriter face, dots typed one at a time, and it fades in after 250 ms so a quick answer never flashes it. Still `role="status"`. The empty-state half isn't built.
 
