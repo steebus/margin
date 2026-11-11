@@ -201,7 +201,7 @@ Every item here is class C unless it's a plain bug. Look at each in fixture mode
 | Id | Item | Evidence | Size | Status |
 |---|---|---|---|---|
 | ~~U9~~ | **Closed 2026-11-10 (Steve: dim, don't invert; SPEC §3.11 corrected).** ~~Drawings in the dark theme.~~ In fixture mode a book with a drawing shows as a pale panel with black ink on Shelves at night, where SPEC §3.11 says `invert` plus `screen`. It may be the stand-in art (an SVG, not a WebP), a decision since the spec, or a bug. Check with Steve's eyes on a real drawing before touching it. | `fixture-shots/shelves.phone.dark.png` | S | closed |
-| U1 | **An accessibility sweep, one surface per run:** focus order and visible focus, names on icon buttons, contrast in both themes (WCAG AA is a brand commitment), 48dp targets, nothing hover-only, toasts announced once. Start with the Desk and the book page. **Targets and names swept on every screen by run 31, contrast of the tokens and every text opacity by run 34, see §7. Left: focus order, contrast of text over covers and drawings.** | `PRODUCT.md` Accessibility; never audited | M each | started |
+| U1 | **An accessibility sweep, one surface per run:** focus order and visible focus, names on icon buttons, contrast in both themes (WCAG AA is a brand commitment), 48dp targets, nothing hover-only, toasts announced once. Start with the Desk and the book page. **Targets and names swept on every screen by run 31, contrast of the tokens and every text opacity by run 34, focus rings and dialog focus read in code by run 35 (see §6). Left: a keyboard pass in a browser, contrast of text over covers and drawings.** | `PRODUCT.md` Accessibility; never audited | M each | started |
 | ~~U2~~ | **Dropped 2026-11-10 (Steve doesn't want motion reduced).** ~~A reduced-motion sweep.~~ Nine places mention reduced motion; `PLAN.md` wants a designed path for every animation. List every animation, tick the ones with a designed still version, fix the rest. | `grep prefers-reduced-motion` | M | ready |
 | U3 | **Loading and empty states.** Several screens show a bare "Opening…" line. DESIGN-DIRECTION asks for "something small and alive". Design one empty state and one loading state and use them everywhere. | `Desk.tsx`, `__root.tsx` | M | ready |
 | U4 | **The review queue is buttons "for now".** PLAN and DESIGN-DIRECTION describe an index-card stack to swipe. | `PLAN.md` Phase 5.2; `Review.tsx` | M | ready |
@@ -282,6 +282,15 @@ Answer in this file, dated, and the items unblock.
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
 
+- **2026-11-11, run 35 (unattended; a normal pick).** Ground: `main` at `a527fb8`, CI green (Vercel not checked, Q13).
+  Did the focus-order slice of U1 (class A, docs only): read the code instead of changing it. Focus rings are global
+  (`.app :focus-visible`, 3 px biro, and `.tools-search:focus-within` for the one field that hides its own); the
+  drawer is a native modal `<dialog>` (`showModal`, Escape routed to `onClose`), so the browser traps focus and returns
+  it; `autoFocus` is only on fields the reader has just asked to type in (progress, reply, search, shelf name); the
+  Pile's closed unfurl links are `tabIndex=-1` and `aria-hidden`. Found nothing to fix. No code changed, so lint, tests
+  and build were not rerun. Not checked: tab order by keyboard in a browser, a screen reader, or text over covers.
+  Remaining safe supply: U1 (text over covers, keyboard pass), O3 (Motion), U3 (class C). Run 36 is a delight run.
+
 - **2026-11-11, run 34 (unattended; a normal pick).** Ground: `main` at `881364e`, CI green (Vercel not checked, Q13).
   Did the contrast slice of U1 (class C), see §7: computed WCAG ratios for ink, biro, rule and grey on paper in both
   themes, and for every `opacity` on text in `app.css`. Two fell short of AA 4.5:1 and were fixed. Verified: lint, 312
@@ -361,35 +370,7 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
   the record. No code changed, so lint, tests and build were not rerun. Remaining safe supply: U1 (other surfaces),
   O3 (Motion), H5 (class B, small), U7 (class C, small). Run 26 is a normal pick; run 28 a delight run.
 
-- **2026-11-11, run 24 (unattended; a delight run).** Ground: `main` at `9caf639`, CI green (Vercel not checked, Q13).
-  Did the stamp half of D16 (class C), see §7. Verified: lint, 296 tests, build and budget green (main chunk unchanged,
-  552.9 kB), no fixture code in `dist/`; book page read settled in fixture mode, phone light and desktop dark, no page
-  errors; the animation checked by stepping it (0 to 500 ms): turn -12 to -4 to -5 deg, scale 1.8 to 0.96 to 1, ink
-  ring blooms then clears. Not checked: it in motion by eye (shots capture the settled state), or on a phone. Remaining
-  safe supply: U1 (other surfaces), O3 (Motion), H5 (class B). Run 25 is a normal pick. Note: this file is past 400
-  lines (§8), so pruning §6 is a fair job for a quiet run.
-
-- **2026-11-11, run 23 (unattended; a normal pick).** Ground: `main` at `6385e97`, CI green (Vercel not checked, Q13).
-  Did the test half of H12 (class A), see §7. Verified: lint, tests (1 new), build and budget green; the new test
-  fails when the works lookup in `saveBooks` is broken (7 tests fail then) and passes with it restored. No app code
-  changed, so no shots. Not checked: the "within 2 minutes" half, which is Steve's, or a re-pull against the real
-  account. Remaining safe supply: U1 (other surfaces), O3 (Motion), H5 (class B, small). Run 24 is a delight run.
-
-- **2026-11-11, run 22 (unattended; a normal pick).** Ground: `main` at `ac88604`, CI green (Vercel not checked, Q13).
-  Did the zod half of O3 (class A), see §7. Verified: lint, 295 tests (5 new, written and passed against full zod
-  first, then against `zod/mini`), build and budget green; main chunk 618.9 kB to 552.9 kB (gzip 191.3 to 173.4), budget
-  lowered to match; no fixture code in `dist/`; in fixture mode on a phone, seven routes opened with good, bad and
-  stale params (bad ones dropped from the address, as before), no page errors. No visible change, so no shots read.
-  Not checked: on a phone. Remaining safe supply: U1 (other surfaces), O3 (Motion). Run 23 is a normal pick; run 24 a
-  delight run.
-
-- **2026-11-11, run 21 (unattended; a normal pick).** Ground: `main` at `dfae340`, CI green (Vercel not checked, Q13).
-  Did the first slice of U1 (class C), see §7: measured every link, button and field on the Desk and two book pages
-  at 390 px, both themes, for size under 44 px and for a missing name. Only the Desk's small pile failed (spines 26 to
-  33 px tall); fixed. An inline link inside a sentence ("You finished …") is 21 px tall and left, as WCAG 2.5.8 exempts
-  inline text. Verified: lint, tests (1 new), build and budget green; Desk pile read in fixture mode, phone and desktop,
-  light and dark, before and after, no page errors. Not checked: focus order, contrast by measurement, a screen
-  reader, or on a phone. Remaining safe supply: U1 (other surfaces), O3. Run 22 is a normal pick.
+- **Run 24.** D16 stamp turns and inks (§7). **Run 23.** H12 re-pull test (§7). **Run 22.** O3 zod half, main chunk 619 to 553 kB (§7). **Run 21.** U1 Desk targets (§7).
 
 - **2026-11-11, run 20 (unattended; a delight run, and the tenth-run review of §8).** Ground: `main` at `b8d0193`, CI
   green (Vercel not checked, Q13). **Review:** since run 10, 10 loop commits on `main`, none reverted or hand-edited
