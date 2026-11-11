@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest'
 import type { Book } from './books'
-import { faceOf, LOOKS, pileNote, pileNotes, pileOf, spineOf, spineTitle, stackHeight } from './pile'
+import { faceOf, LOOKS, miniHeight, MINI_SPINE_MIN, pileNote, pileNotes, pileOf, spineOf, spineTitle, stackHeight } from './pile'
 
 const book = (slug: string, readings: Book['readings'], status = 'read') => ({ slug, title: slug, status, readings }) as Book
 
@@ -69,4 +69,11 @@ test('a stack says centimetres under a metre, metres above', () => {
   expect(stackHeight(600, 2)).toBe('about 4 cm tall')
   expect(stackHeight(100_000, 300)).toBe('about 6.2 metres tall')
   expect(stackHeight(19_200, 20)).toBe('about 1 metre tall')
+})
+
+test('a spine on the Desk\'s small pile is always a tap target tall, and a thicker book is still taller', () => {
+  const heights = [10, 22, 40, 60, 97].map(miniHeight)
+  expect(Math.min(...heights)).toBeGreaterThanOrEqual(MINI_SPINE_MIN)
+  expect(heights).toEqual([...heights].sort((a, b) => a - b))
+  expect(miniHeight(97)).toBeGreaterThan(miniHeight(40))
 })

@@ -205,7 +205,7 @@ Every item here is class C unless it's a plain bug. Look at each in fixture mode
 | Id | Item | Evidence | Size | Status |
 |---|---|---|---|---|
 | ~~U9~~ | **Closed 2026-11-10 (Steve: dim, don't invert; SPEC §3.11 corrected).** ~~Drawings in the dark theme.~~ In fixture mode a book with a drawing shows as a pale panel with black ink on Shelves at night, where SPEC §3.11 says `invert` plus `screen`. It may be the stand-in art (an SVG, not a WebP), a decision since the spec, or a bug. Check with Steve's eyes on a real drawing before touching it. | `fixture-shots/shelves.phone.dark.png` | S | closed |
-| U1 | **An accessibility sweep, one surface per run:** focus order and visible focus, names on icon buttons, contrast in both themes (WCAG AA is a brand commitment), 48dp targets, nothing hover-only, toasts announced once. Start with the Desk and the book page. | `PRODUCT.md` Accessibility; never audited | M each | ready |
+| U1 | **An accessibility sweep, one surface per run:** focus order and visible focus, names on icon buttons, contrast in both themes (WCAG AA is a brand commitment), 48dp targets, nothing hover-only, toasts announced once. Start with the Desk and the book page. **Desk targets and names swept 2026-11-11 (run 21), see §7; the book page's targets and names measured fine. Left: focus order, contrast by measurement, the other surfaces.** | `PRODUCT.md` Accessibility; never audited | M each | started |
 | ~~U2~~ | **Dropped 2026-11-10 (Steve doesn't want motion reduced).** ~~A reduced-motion sweep.~~ Nine places mention reduced motion; `PLAN.md` wants a designed path for every animation. List every animation, tick the ones with a designed still version, fix the rest. | `grep prefers-reduced-motion` | M | ready |
 | U3 | **Loading and empty states.** Several screens show a bare "Opening…" line. DESIGN-DIRECTION asks for "something small and alive". Design one empty state and one loading state and use them everywhere. | `Desk.tsx`, `__root.tsx` | M | ready |
 | U4 | **The review queue is buttons "for now".** PLAN and DESIGN-DIRECTION describe an index-card stack to swipe. | `PLAN.md` Phase 5.2; `Review.tsx` | M | ready |
@@ -285,6 +285,14 @@ Answer in this file, dated, and the items unblock.
 ## 6. Run log
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
+
+- **2026-11-11, run 21 (unattended; a normal pick).** Ground: `main` at `dfae340`, CI green (Vercel not checked, Q13).
+  Did the first slice of U1 (class C), see §7: measured every link, button and field on the Desk and two book pages
+  at 390 px, both themes, for size under 44 px and for a missing name. Only the Desk's small pile failed (spines 26 to
+  33 px tall); fixed. An inline link inside a sentence ("You finished …") is 21 px tall and left, as WCAG 2.5.8 exempts
+  inline text. Verified: lint, tests (1 new), build and budget green; Desk pile read in fixture mode, phone and desktop,
+  light and dark, before and after, no page errors. Not checked: focus order, contrast by measurement, a screen
+  reader, or on a phone. Remaining safe supply: U1 (other surfaces), O3. Run 22 is a normal pick.
 
 - **2026-11-11, run 20 (unattended; a delight run, and the tenth-run review of §8).** Ground: `main` at `b8d0193`, CI
   green (Vercel not checked, Q13). **Review:** since run 10, 10 loop commits on `main`, none reverted or hand-edited
@@ -454,6 +462,8 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
 ## 7. Done and dropped
 
 Move items here with the date and the commit or the reason. Keep the id so old log entries still make sense.
+
+- **U1 (Desk targets)** Done 2026-11-11 (run 21, class C): the Desk's "Newly on the TBR" spines were 26 to 33 px tall; `miniHeight` (`src/lib/pile.ts`) keeps them at 48 px or more, still taller for a thicker book (48 to 74 px, was 15 to 68). The Pile page is unchanged.
 
 - **D12** Tags swing on their string. Done 2026-11-11 (run 20, class C): a tag added to a note while its page is open
   (`landedSince`, as D11) swings once from its top-left over 0.7 s (`tag-swing`, `app.css`) and settles. Tags already

@@ -54,6 +54,12 @@ export function spineOf(slug: string, pages: number | null) {
   }
 }
 
+/** A spine on the Desk's small pile: never under 48 px (a tap target), still taller for a thicker book. */
+export const MINI_SPINE_MIN = 48
+export function miniHeight(height: number) {
+  return Math.round(MINI_SPINE_MIN + Math.max(0, height - 22) * 0.35)
+}
+
 // Which typeface prints a book's spine. The first of its genres, most popular first, that means something here.
 const FACES: [RegExp, string][] = [
   [/horror|gothic|ghost|vampire/i, 'horror'],

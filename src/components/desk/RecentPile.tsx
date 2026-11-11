@@ -5,7 +5,7 @@ import '@fontsource/playfair-display/latin-700.css'
 import '@fontsource/special-elite/latin-400.css'
 
 import { Link } from '@tanstack/react-router'
-import { faceOf, spineOf, spineTitle } from '../../lib/pile'
+import { faceOf, miniHeight, spineOf, spineTitle } from '../../lib/pile'
 
 type Added = { slug: string; title: string; author: string; pages: number | null; subjects: string[]; genres: string[] }
 
@@ -16,7 +16,7 @@ export function RecentPile({ books }: { books: Added[] }) {
       {books.map(book => {
         const spine = spineOf(book.slug, book.pages)
         return (
-          <li key={book.slug} style={{ height: Math.round(spine.height * 0.7) }}>
+          <li key={book.slug} style={{ height: miniHeight(spine.height) }}>
             <Link
               to="/books/$bookSlug"
               params={{ bookSlug: book.slug }}
