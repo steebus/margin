@@ -246,7 +246,7 @@ never in the way": nothing here may add a tap or delay an input. Every fourth ru
 
 | D2 | **Shelf to book as one movement.** Only the router's default view transition is on. Name the thumbnail so it travels from the shelf cell to the book page header. | `main.tsx` `defaultViewTransition`; no `view-transition-name` on thumbs | M | ready |
 | D4 | **A year in the catalog.** A printable end-of-year sheet in the Fair-catalog look: the year's books as stamps, pages, the most-marked book, the line most returned to. December is close. | `stats.ts` has most of the numbers | L | needs Steve |
-| D5 | **Typewriter sound,** off by default, as the brief always described. | `Typewriter.tsx` has no audio | S | ready |
+| ~~D5~~ | **Done 2026-11-11 (run 28), see §7.** ~~Typewriter sound, off by default.~~ | | S | done |
 | D6 | **Finishing a book** beyond the stamp: the library card gets its date stamp with the thunk and slight turn the brief describes, and the book walks to the Pile. | `a3985b8` added stamps; compare with the brief | M | ready |
 | D7 | **Citation cards in the buddy's replies** (SPEC §3.8: a cited entry renders as a clickable index card). Not built. | `Buddy.tsx` | M | ready |
 | D8 | **New books get drawn on their own.** SPEC §3.11 says a book being read is drawn straight away; today nothing is drawn until the bulk script runs. Costs money per book, so it needs a yes and a cap. | SPEC §3.11 "When it runs" | M | **dropped 2026-11-10: Steve doesn't want books drawn automatically.** SPEC §3.11 should say so (B7) |
@@ -283,6 +283,13 @@ Answer in this file, dated, and the items unblock.
 ## 6. Run log
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
+
+- **2026-11-11, run 28 (unattended; a delight run).** Ground: `main` at `e4e8760`, CI green (Vercel not checked, Q13).
+  Did D5 (class C), see §7. Verified: lint, 307 tests (4 new), build and budget green (main chunk 554.6 kB, +1.6, budget
+  raised to match), no fixture code in `dist/`; Settings read in fixture mode, phone light and desktop dark: checkbox
+  sits under the theme buttons, nothing wider than its screen, no errors. Not checked: how it sounds (no audio here),
+  a phone's autoplay rules (the context is made on the first typed key and resumed if suspended), or the checkbox by
+  hand. Remaining safe supply: U1 (other surfaces), O3 (Motion), U7 (class C, small). Run 29 is a normal pick.
 
 - **2026-11-11, run 27 (unattended; a normal pick).** Ground: `main` at `830461e`, CI green (Vercel not checked, Q13).
   Re-checked H13 against the code: real (`logProgress` and `addEntry` stamped `Date.now()`; the outbox kept no time).
@@ -392,6 +399,8 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
 ## 7. Done and dropped
 
 Move items here with the date and the commit or the reason. Keep the id so old log entries still make sense.
+
+- **D5 (typewriter sound)** Done 2026-11-11 (run 28, class C): Settings > Account > Appearance has "Typewriter sound", off unless turned on and kept on this device (`localStorage`, `margin.typeSound`). On, the buddy's and the Desk's typewriter clicks for each letter, thuds on a space and rings a bell at the end of a line, synthesised with Web Audio (no files). `src/lib/typeSound.ts` (`strikeFor` is tested). Adds no tap or wait.
 
 - **H13 (offline writes keep their time)** Done 2026-11-11 (run 27, class B): a queued write carries `writtenAt` (`Queued`, `src/lib/outbox.ts`), sent on replay as an optional argument. `addEntry` stamps the note with it (never later than now); `logProgress` logs the place at that time, and if the book already has a later log, the old place stays in the history but doesn't move the book. Writes queued before this have no stamp and replay as before. Tests: `convex/library.test.ts`, `convex/entries.test.ts`, `src/lib/outbox.test.ts`. Still open: a status change or other write made offline isn't queued at all (only notes and progress are), so nothing else is affected.
 

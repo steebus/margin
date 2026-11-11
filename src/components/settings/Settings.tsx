@@ -10,6 +10,7 @@ import { api } from '../../../convex/_generated/api'
 import { errorText } from '../../lib/books'
 import { download, toMarkdown } from '../../lib/export'
 import { forgetDevice } from '../../lib/offline'
+import { setTypeSound, useTypeSound } from '../../lib/typeSound'
 import { setTheme, useThemeChoice, type ThemeChoice } from '../../lib/theme'
 import { useAuthActions } from '../../lib/auth'
 
@@ -124,12 +125,17 @@ const THEMES: { id: ThemeChoice; label: string }[] = [
 
 function Appearance() {
   const choice = useThemeChoice()
+  const sound = useTypeSound()
   return (
     <div className="box stack">
       <div className="segments" role="group" aria-label="Theme">
         {THEMES.map(t => <button key={t.id} type="button" aria-pressed={choice === t.id} onClick={() => setTheme(t.id)}>{t.label}</button>)}
       </div>
       <p className="where">System follows your phone or computer's light and dark setting.</p>
+      <label className="check">
+        <input type="checkbox" checked={sound} onChange={e => setTypeSound(e.target.checked)} />
+        <span>Typewriter sound: a click for each key and a bell at the end of a line. Off unless you turn it on.</span>
+      </label>
     </div>
   )
 }

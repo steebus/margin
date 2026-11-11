@@ -1,5 +1,6 @@
 ﻿import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { delayAfter, inkFor, wrapLines } from '../../lib/typing'
+import { play, strikeFor } from '../../lib/typeSound'
 
 // ponytail: one span per glyph, not the plan's one text node per line, because the
 // brief wants per-glyph ink. Notes are short. Render lines to canvas if a throttled trace complains.
@@ -81,6 +82,7 @@ export function Typewriter({ text, onDone }: { text: string; onDone?: () => void
     const char = lines[current][column - 1] ?? ''
     const atLineEnd = column === lines[current].length
     const wait = delayAfter(char, typed) + (atLineEnd ? 260 : 0)
+    if (char) play(strikeFor(char, typed, atLineEnd))
     const timer = setTimeout(() => setTyped((n) => n + 1), wait)
     return () => clearTimeout(timer)
   }, [started, typed, cols, done, lines, current, column])
