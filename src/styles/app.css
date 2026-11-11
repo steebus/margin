@@ -57,6 +57,8 @@ svg { flex: none; }
 .book-voice { font: 400 1.25rem/1.4 var(--book); }
 .hand { color: var(--biro); font: 400 1.25rem/1.35 var(--reader); }
 .where { font-size: 0.9375rem; }
+.sync-note { font-family: var(--buddy); opacity: 0.8; }
+.sync-note[data-failed="true"] { opacity: 1; font-weight: 700; }
 .pct { display: block; font: 600 clamp(1.5rem, 7.8vw, 2.75rem)/1 var(--book); font-variant-numeric: lining-nums; white-space: nowrap; }
 p a { color: inherit; text-underline-offset: 3px; }
 .pct-large { font-size: clamp(3rem, 14vw, 4.5rem); }

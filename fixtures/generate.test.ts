@@ -55,6 +55,7 @@ test('the made-up library answers every query the screens ask', async () => {
     for (const { readId, slug } of books) {
       await ask(api.library.bookBySlug, { slug })
       await ask(api.topics.forBook, { readId })
+      await ask(api.hardcover.bookSync, { readId })
       await ask(api.buddy.thread, { readId })
       await ask(api.buddy.guideSoFar, { readId })
     }

@@ -729,6 +729,21 @@ export const flush = internalAction({
   },
 })
 
+/** For one book's page: changes to it still waiting for Hardcover, since when, and why the last try failed. */
+export const bookSync = query({
+  args: { readId: v.id('reads') },
+  handler: async (ctx, { readId }) => {
+    const userId = await getAuthUserId(ctx)
+    if (!userId) return null
+    const rows = (await ctx.db.query('hardcoverOutbox').withIndex('by_read', q => q.eq('readId', readId)).take(20)).filter(r => r.userId === userId)
+    if (rows.length === 0) return null
+    return {
+      since: Math.min(...rows.map(r => r._creationTime)),
+      lastError: rows.find(r => r.lastError)?.lastError ?? null,
+    }
+  },
+})
+
 /** For Settings: when it last checked, what's waiting, and anything wrong. */
 export const syncStatus = query({
   args: {},

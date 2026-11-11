@@ -104,6 +104,14 @@ test('status and rating changes go to Hardcover, and finishing a book sends its 
   expect(read.finished_at).toMatch(/^\d{4}-\d{2}-\d{2}$/)
 })
 
+test("a book's page hears of its own waiting change, and of nobody else's", async () => {
+  fakeHardcover()
+  const { as, readId } = await setup()
+  expect(await as.query(api.hardcover.bookSync, { readId })).toBeNull()
+  await as.mutation(api.library.logProgress, { readId, percent: 20 })
+  expect(await as.query(api.hardcover.bookSync, { readId })).toMatchObject({ lastError: null })
+})
+
 test('several quick changes to one book become one row, with the latest state', async () => {
   const calls = fakeHardcover()
   const { t, as, readId, outbox } = await setup()
@@ -124,6 +132,7 @@ test('a failure keeps the change and backs off instead of losing it', async () =
   expect(row.lastError).toContain('nope')
   expect(row.nextAt).toBeGreaterThan(Date.now())
   expect((await as.query(api.hardcover.syncStatus, {}))?.pending).toBe(1)
+  expect(await as.query(api.hardcover.bookSync, { readId })).toMatchObject({ lastError: expect.stringContaining('nope') })
   expect(retryDelayMs(1)).toBe(120_000)
   expect(retryDelayMs(20)).toBe(3_600_000)
 })

@@ -168,7 +168,7 @@ line numbers moving.
 | H1 | **The two-minute pull can stall for good.** When a page comes back full (100 books or 100 journal rows changed since the cursor), the cursor is kept where it was, so the next run asks the same question and gets the same 100. The comment says "only move as far as what was actually seen"; the code doesn't move at all. Fix: ask for `updated_at`, and move the cursor to the newest one seen (or page with an offset until short). Triggered by a bulk change on Hardcover, or a long outage followed by a backlog. | `convex/hardcover.ts` `syncAll`, the `full` branch | Sure from the code; never seen live | M | D | ready |
 | H2 | **A review cleared in Margin comes back.** `saveReview` deletes the review entry when the words are emptied, but the push only sends `review_raw` when there are words, so Hardcover keeps the old review and the next pull re-creates the entry. Fix needs care: sending `null` blindly could wipe a review written on Hardcover moments ago. Suggest a `reviewCleared` marker on the read, sent once. | `convex/library.ts` `saveReview`; `convex/hardcover.ts` `flush` (`review_raw`) and `saveBooks` (review block) | Sure from the code | M | D | ready |
 | ~~H3~~ | **Done 2026-11-11 (run 37), see §7.** ~~An edited review can be put back by the pull.~~ | | | | | done |
-| H4 | **Sync trouble is only visible in Settings.** SPEC §3.4.1 says a failed push shows on the book's page; it doesn't. Add a small "not on Hardcover yet / couldn't send: why" line to the book page and a quiet mark on the Desk when the last sync failed or anything has waited more than an hour. | `syncStatus` is used only in `Settings.tsx` | Sure | M | C | ready |
+| H4 | **Half done 2026-11-11 (run 41): the book page now says it, see §7. Left: a quiet mark on the Desk.** ~~Sync trouble is only visible in Settings.~~ SPEC §3.4.1 says a failed push shows on the book's page; it doesn't. Add a small "not on Hardcover yet / couldn't send: why" line to the book page and a quiet mark on the Desk when the last sync failed or anything has waited more than an hour. | `syncStatus` is used only in `Settings.tsx` | Sure | M | C | started |
 | H6 | **One pace for all callers, and honour `Retry-After`.** The pull, the hourly compare and the outbox each wait 4.5 s on their own, so together they can go three times the intended rate; a 429 always sleeps a flat 60 s. Check Hardcover's current published limits first (the "15" in SPEC was read from a header on 2026-11-02 with the window unknown) and write the real numbers into SPEC. | `pace`, `gql`, `syncAll`, `reconcile`, `flush` | Sure about the code; the limit itself needs checking | M | D | ready |
 | H7 | **Give up gracefully.** An outbox row that keeps failing retries hourly for ever with no way to see or drop it. After N tries, mark it stuck, show it in Settings with the error and "try again" / "discard". | `fail`, `retryDelayMs`; `syncStatus` counts at most 100 and shows one error | Sure | M | C | ready |
 | H8 | **Notes and books removed on Hardcover stay in Margin.** SPEC §3.5 records this as a known gap because deletions aren't reported. The hourly compare already reads the whole library; it could also list journal ids and offer (not silently apply) "3 notes were removed on Hardcover: remove here too?". | SPEC §3.5 "Not synced" | A design question | L | D | decided: see H17 |
@@ -281,6 +281,13 @@ Answer in this file, dated, and the items unblock.
 ## 6. Run log
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
+
+- **2026-11-11, run 41 (unattended; a normal pick).** Ground: `main` at `0461010`, CI green (Vercel not checked, Q13). Did the
+  book-page half of H4 (class C), see §7. Verified: lint, 327 tests (2 new server, 4 new lib), build and budget green (main
+  chunk 481.7 kB, unchanged); in fixture mode the book page read at 390 px light and 1280 px dark (all four shot): the
+  line sits under the progress, in the typewriter face, nothing wider than its screen, no page errors. Not checked: the
+  "waited a while" wording (fixtures hold only a failed row), the Desk mark (not built), or on a phone. Remaining safe supply:
+  H4 (Desk mark), U1 (text over covers, keyboard pass), O3 (Motion), D6 (class C). Run 42 is a normal pick.
 
 - **2026-11-11, run 40 (unattended; a delight run).** Ground: `main` at `1452fb9`, CI green (run 38's commit still showed
   queued, as before; Vercel not checked, Q13). Did D15 (class C), see §7. Verified: lint, 322 tests (5 new), build and budget
@@ -432,6 +439,8 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
 ## 7. Done and dropped
 
 Move items here with the date and the commit or the reason. Keep the id so old log entries still make sense.
+
+- **H4 (book page sync line)** Done 2026-11-11 (run 41, class C): `hardcover.bookSync` (by the outbox's `by_read` index) gives a read's waiting change, since when and the last error; the book page shows a typewriter-face line under the progress (`SyncNote`, wording in `src/lib/syncNote.ts`, tested): the reason at once after a failed try, "Not yet on Hardcover" after 10 minutes, nothing otherwise. The Desk's quiet mark isn't built.
 
 - **D15 (slide into slot)** Done 2026-11-11 (run 40, class C): a book added to the shelf grid while Shelves is open drops in (0.42 s, slight overshoot) and the cells it displaces glide to their new places (0.38 s), a FLIP with the Web Animations API in `useSlotIn` (`BookList.tsx`; `arrivals` in `src/lib/slotIn.ts`, tested). Only one to three added books and none removed count, so the first render, sorts, filters and big sync batches don't shuffle. The table view and the Desk's strip are unchanged. Adds no tap or wait.
 

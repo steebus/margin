@@ -10,6 +10,7 @@ import { authorSlug } from '../../lib/authors'
 import { formatDate, type Book, type Status } from '../../lib/books'
 import { formatClock, pagesPerDay } from '../../lib/progress'
 import { daysToRead } from '../../lib/shelf'
+import { syncNote } from '../../lib/syncNote'
 import { DeleteBook } from './BookActions'
 import { CoverControls } from './CoverControls'
 import { GuideControls } from './GuideControls'
@@ -34,6 +35,20 @@ export function NotFoundBook() {
       <div className="btn-row"><Link to="/shelves" className="btn btn-solid">Go to Shelves</Link></div>
     </div>
   )
+}
+
+/** A small line when this book's changes haven't reached Hardcover, and why (SPEC §3.4.1). Silent otherwise. */
+function SyncNote({ readId }: { readId: Book['readId'] }) {
+  const sync = useQuery(api.hardcover.bookSync, { readId })
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    if (!sync) return
+    const timer = setInterval(() => setNow(Date.now()), 60_000)
+    return () => clearInterval(timer)
+  }, [sync])
+  const note = syncNote(sync, now)
+  if (!note) return null
+  return <p className="where sync-note" role="status" data-failed={note.failed}>{note.text}</p>
 }
 
 /** Everything known about the book, leaving out what isn't. */
@@ -166,6 +181,7 @@ export function BookPage() {
           )}
           {book.status === 'read' && <p><Link to="/books/$bookSlug/review" params={{ bookSlug: book.slug }}>{entries.some(e => e.kind === 'review') ? 'Your review' : 'Write a review'}</Link></p>}
           {book.status === 'read' && book.finishedAt && <p className="where">Finished {formatDate(book.finishedAt)}</p>}
+          <SyncNote readId={book.readId} />
         </div>
         <div className="book-name">
           <BookTitle title={book.title} />
