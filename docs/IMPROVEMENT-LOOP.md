@@ -223,7 +223,6 @@ never in the way": nothing here may add a tap or delay an input. Every fourth ru
 |---|---|---|---|---|
 | D1 | **Check the motion table.** Audit done 2026-11-10 (run 8), see the table below. Build the missing moments one at a time, cheapest first (D10 to D16). | `docs/DESIGN-DIRECTION.md` Motion table | S each | audit **done**; builds ready |
 | D10 | ~~**Highlighter dries.** The mustard swipe on a marked line should follow the finger, then desaturate a touch. Neither exists: the highlight in the margin block (`app.css` ~523) is static. Cheapest: a one-off colour transition on first render.~~ | `app.css` "In the margin on its book's page" | S | **done 2026-11-10** (§7) |
-| D12 | **Tags swing on their string** when added and flutter when filtered. No tag animation exists. | grep `swing`: no match | S | ready |
 | D13 | **Ribbon bookmark** drapes and sways; logging progress drags it down. There is no ribbon element at all (progress is a bar and a percentage, per the Fair-catalog section). Needs Steve: does the ribbon still belong? | no `ribbon` in `src/components` | S | needs Steve |
 | D14 | **Spines lean on a fast scroll.** The Pile has an unfurl (clip-path), no lean. | `app.css` `.pile-row` | M | ready |
 | D15 | **Adding a book slides into its slot** and nudges neighbours (a `layout` animation on Shelves). Motion is used on Desk, book page, drawer, capture and toasts only. | `motion/react` importers | M | ready |
@@ -286,6 +285,15 @@ Answer in this file, dated, and the items unblock.
 ## 6. Run log
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
+
+- **2026-11-11, run 20 (unattended; a delight run, and the tenth-run review of §8).** Ground: `main` at `b8d0193`, CI
+  green (Vercel not checked, Q13). **Review:** since run 10, 10 loop commits on `main`, none reverted or hand-edited
+  (git log: no Revert, no non-loop author), so by the only proxy there is, Steve left them alone; the scoring has
+  picked small safe class A/B/C items as intended and the safe supply is thinning (left: U1, O3; every `ready` H item
+  is class D). No change to §1 to §3. Did D12 (class C), see §7. Verified: lint, 289 tests, build and budget green
+  (main chunk 618.9 kB, unchanged), no fixture code in `dist/`; Entry page read in fixture mode on phone, light:
+  settled tag identical, nothing wider than its screen, no errors. Not checked: the swing itself in motion (fixture
+  writes are forgotten, so a tag can't land there), or on a phone. Next is a normal pick, from U1, O3 or class D.
 
 - **2026-11-11, run 19 (unattended; a normal pick).** Ground: `main` at `1f331ff`, CI green (Vercel not checked, Q13).
   Re-checked U10 against the code: real (`.btn:disabled` at 0.45 gave 2.8:1 for a solid button's label in light, 3.7:1 in
@@ -446,6 +454,10 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
 ## 7. Done and dropped
 
 Move items here with the date and the commit or the reason. Keep the id so old log entries still make sense.
+
+- **D12** Tags swing on their string. Done 2026-11-11 (run 20, class C): a tag added to a note while its page is open
+  (`landedSince`, as D11) swings once from its top-left over 0.7 s (`tag-swing`, `app.css`) and settles. Tags already
+  there don't move. The "flutter when filtered" half isn't built: filtering has no tag UI of its own to flutter.
 
 - **U10** Disabled solid buttons. Done 2026-11-11 (run 19, class C): `.btn-solid:disabled` is at 65% opacity (was 45%), so "Save excerpt" and the other solid buttons keep their label at about 5:1 in light and 6:1 in dark, and still read as off beside an enabled one. Outline buttons stay at 45%. Part of U1's contrast pass.
 

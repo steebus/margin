@@ -1037,6 +1037,10 @@ button.back { justify-self: start; padding: 0; border: 0; background: none; curs
 .tag-chip a:hover { text-decoration: underline; text-underline-offset: 3px; }
 /* A label only sorts notes, so it's drawn lighter than a topic, which leads somewhere. */
 .tag-chip[data-reserved] { border-style: dashed; }
+.tag-chip { transform-origin: 14px 0; }
+/* A tag added while the note is open swings on its string once and settles. */
+@keyframes tag-swing { 0% { transform: rotate(-14deg); opacity: 0; } 25% { opacity: 1; } 45% { transform: rotate(7deg); } 70% { transform: rotate(-3deg); } 100% { transform: rotate(0); } }
+.tag-chip[data-landed] { animation: tag-swing 0.7s ease-out both; }
 .tag-chip button { display: grid; place-items: center; width: 34px; height: 34px; border: 0; background: none; color: inherit; cursor: pointer; }
 .tag-chip button svg { width: 16px; height: 16px; }
 .tag-add { display: flex; gap: 8px; }

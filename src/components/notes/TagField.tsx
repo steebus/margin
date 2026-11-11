@@ -2,12 +2,13 @@ import { Link } from '@tanstack/react-router'
 import { useMutation } from 'convex/react'
 import { useQuery } from 'convex-helpers/react/cache/hooks'
 import { X } from 'lucide-react'
-import { useId, useState } from 'react'
+import { useId, useRef, useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { isReserved, topicKey } from '../../../convex/lib/topics'
 import { slugify } from '../../../convex/lib/hardcover'
 import { errorText } from '../../lib/books'
+import { landedSince } from '../../lib/newEntries'
 
 /**
  * A note's tags. Topics link to their page; reserved labels (Theme, Chapter summary…) only sort notes. Typing suggests
@@ -19,6 +20,10 @@ export function TagField({ entryId, tags }: { entryId: Id<'entries'>; tags: stri
   const [words, setWords] = useState('')
   const [error, setError] = useState<string | null>(null)
   const listId = useId()
+  // A tag that arrives while the note is open swings in on its string; the ones already there don't move.
+  const first = useRef<Set<string> | null>(null)
+  if (first.current === null) first.current = new Set(tags)
+  const landed = landedSince(first.current, tags)
 
   const save = async (next: string[]) => {
     setError(null)
@@ -43,7 +48,7 @@ export function TagField({ entryId, tags }: { entryId: Id<'entries'>; tags: stri
       {tags.length > 0 && (
         <ul className="tags" aria-label="Tags">
           {tags.map(tag => (
-            <li key={tag} className="tag tag-chip" data-reserved={isReserved(tag) ? '' : undefined}>
+            <li key={tag} className="tag tag-chip" data-reserved={isReserved(tag) ? '' : undefined} data-landed={landed.has(tag) || undefined}>
               {isReserved(tag) ? tag : <Link to="/topics/$topicSlug" params={{ topicSlug: slugify(topicKey(tag)) }}>{tag}</Link>}
               <button type="button" aria-label={`Remove the tag ${tag}`} onClick={() => void save(tags.filter(t => t !== tag))}>
                 <X aria-hidden="true" strokeWidth={2.5} />
