@@ -284,6 +284,14 @@ Answer in this file, dated, and the items unblock.
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
 
+- **2026-11-11, run 30 (unattended; a normal pick).** Ground: `main` at `4fe4eca`, CI green (Vercel not checked, Q13).
+  Did the next slice of U1 (class A, docs only): measured every link, button and field at 390 px, light and dark, on
+  Shelves, the table view, Notes, the Pile and Explore in fixture mode (pages confirmed rendered: 53 and 97 controls
+  on Shelves and Notes). Found no control without a name and none under 44 px (inline text links exempt, as run 21).
+  No code changed, so lint, tests and build were not rerun. Not checked: focus order, contrast by measurement, a screen
+  reader, the other surfaces (Capture, Review, Settings, Stats, Topics, the drawer), or on a phone. Remaining safe
+  supply: U1 (those surfaces, focus order, contrast), O3 (Motion). Run 31 is a normal pick; run 32 a delight run.
+
 - **2026-11-11, run 29 (unattended; a normal pick).** Ground: `main` at `ae072e8`, CI green (Vercel not checked, Q13).
   Did U7 (class C), see §7. Verified: lint, tests (3 new), build and budget green (main chunk 555.2 kB, +0.6, budget
   raised to match), no fixture code in `dist/`; in fixture mode with the browser set offline, desktop dark shows the line
@@ -359,41 +367,7 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
   settled tag identical, nothing wider than its screen, no errors. Not checked: the swing itself in motion (fixture
   writes are forgotten, so a tag can't land there), or on a phone. Next is a normal pick, from U1, O3 or class D.
 
-- **2026-11-11, run 19 (unattended; a normal pick).** Ground: `main` at `1f331ff`, CI green (Vercel not checked, Q13).
-  Re-checked U10 against the code: real (`.btn:disabled` at 0.45 gave 2.8:1 for a solid button's label in light, 3.7:1 in
-  dark). Did it (class C), see §7. Verified: lint, tests, build and budget green; Capture read in fixture mode on phone
-  and desktop, light and dark: label readable, still clearly off, nothing wider than its screen, no errors. Not checked:
-  on a phone, or the other disabled solid buttons by eye (same rule). Remaining safe supply: U1, O3, D12. Run 20 is a
-  delight run and the loop's tenth-run review (§8).
-
-- **2026-11-11, run 18 (unattended; a normal pick).** Ground: `main` at `b03826a`, CI green (Vercel not checked, Q13).
-  Re-checked O1 against the code: real (`Desk.tsx` used `useEntries`, the full text of every note). Did it (class B), see §7.
-  Verified: lint, 289 tests (1 new, for the new query), build and budget green (main chunk 618.9 kB, from 618.8), no
-  fixture code in `dist/`; in fixture mode the Desk shots (phone and desktop, dark and light) are unchanged and a
-  scripted check waited out the 1.5 s and found the "Two years ago today" toast with its text and a working link, no
-  errors. Not checked: on a phone, on the real library, or the toast offline (it now needs the connection for the
-  note's words; the dates are cached). Remaining safe supply: U1, O3, U10, D12. Run 19 is a normal pick; run 20 is a
-  delight run and the loop's tenth-run review (§8).
-
-- **2026-11-10, run 17 (unattended; a normal pick).** Ground: `main` at `78adf45`, CI green (Vercel not checked, Q13).
-  Re-checked B2 against the code: real (no `errorComponent` or `notFoundComponent` anywhere). Did it (class C), see §7.
-  Verified: lint, 288 tests, build and budget green (main chunk 618.8 kB, from 617.9), no fixture code in `dist/`; read in fixture mode on phone (light, dark) and desktop (light, dark): the
-  not-found page at a bad address, and the error page by forcing a throw in a route (reverted, not committed);
-  nothing wider than its screen, no page errors. Not checked: on a phone, a real chunk-load or Convex failure,
-  or what "Try again" does after a data error (it re-renders the route). Remaining safe supply: O1, U1, O3, U10, D12.
-
-- **2026-11-10, run 16 (unattended; a delight run).** Ground: `main` at `7932922`, CI green (Vercel not checked, Q13).
-  Did D11 (class C), see §7. Verified: lint clean, 288 tests (3 new), build and budget green (main chunk 617.9 kB,
-  unchanged), no fixture code in `dist/`; Book page read in fixture mode (phone light, desktop dark): settled
-  notes identical to before, nothing wider than its screen, no errors. Not checked: the reveal itself in motion
-  (fixture writes are forgotten, so a note can't land there; shots capture the settled state), or on a phone.
-  Run 17 is a normal pick. Remaining safe supply: O1, U1, O3, U10, D12.
-
-- **2026-11-10, run 15 (unattended; a normal pick).** Ground: `main` at `abe50bf`, CI green (Vercel not checked, Q13).
-  Assessed Capture, Review, Explore and Stats by reading fixture shots (phone and desktop, light and dark; 16 shots,
-  nothing wider than its screen, no errors); U10 and U11 re-confirmed, nothing new. Did U11 (class C), see §7: a
-  one-line CSS fix, read before and after on Review (phone dark, desktop light). Not checked: the other three radio
-  lists (same class, same fix) by eye, or on a phone. Remaining safe supply: O1, U1, O3, U10. Run 16 is a delight run.
+- **Run 19.** U10 disabled solid buttons readable (§7). **Run 18.** O1 the Desk stops downloading every note (§7). **Run 17.** B2 error and not-found screens (§7). **Run 16.** D11 handwriting reveal (§7). **Run 15.** Assessed Capture, Review, Explore, Stats; U11 radio dots (§7).
 
 - **2026-11-11 (with Steve).** E5 done: recorded, scrubbed Hardcover replies in `fixtures/hardcover/` (§1b); Q11 answered.
 - **2026-11-10, run 14.** Assessed Stats, Review, Capture, Settings; filed U10, U11; did B7 (docs drift).
