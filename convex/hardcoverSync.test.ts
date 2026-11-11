@@ -193,6 +193,23 @@ test('a change waiting to send beats what Hardcover says', async () => {
   expect((await as.query(api.library.myBooks, {}))[0]).toMatchObject({ percent: 40, status: 'reading' })
 })
 
+test('a review edited in Margin is not put back by a pull before it is sent', async () => {
+  fakeHardcover()
+  const { t, as, userId, readId } = await setup()
+  const item = (review: string) => ({
+    work: { hardcoverId: 1, slug: 'book-1', title: 'Book One', authors: [], isbns: [], subjects: [] },
+    read: { hardcoverUserBookId: 10, status: 'read' as const, percent: 100, progressKnown: true, format: 'print' as const, owned: false, review: { text: review } },
+  })
+  await t.mutation(internal.hardcover.saveBooks, { userId, update: true, items: [item('Old words.')] })
+  const reviews = () => t.run(async ctx => (await ctx.db.query('entries').collect()).filter(e => e.kind === 'review').map(e => e.text))
+  expect(await reviews()).toEqual(['Old words.'])
+  // Margin edits it; the change waits in the outbox, and Hardcover still has the old text.
+  await as.mutation(api.library.saveReview, { readId, text: 'New words.', rating: null })
+  expect(await reviews()).toEqual(['New words.'])
+  await t.mutation(internal.hardcover.saveBooks, { userId, update: true, items: [item('Old words.')] })
+  expect(await reviews()).toEqual(['New words.'])
+})
+
 test('rounding differences and missing progress never change what Margin knows', async () => {
   fakeHardcover()
   const { t, as, userId } = await setup()

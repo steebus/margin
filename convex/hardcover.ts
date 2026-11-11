@@ -130,9 +130,10 @@ export const saveBooks = internalMutation({
 
       const mine = await ctx.db.query('reads').withIndex('by_user_work', q => q.eq('userId', userId).eq('workId', workId)).first()
       let readId = mine?._id
+      // A change of Margin's still waiting to send wins over what Hardcover says, for the review too.
+      const waiting = mine ? await ctx.db.query('hardcoverOutbox').withIndex('by_read', q => q.eq('readId', mine._id)).first() : null
       if (mine) {
         existing++
-        const waiting = await ctx.db.query('hardcoverOutbox').withIndex('by_read', q => q.eq('readId', mine._id)).first()
         if (update && !waiting) {
           // A new edition keeps the reader's place in the story, but a page or a time from the old one means nothing in
           // the new one, and Hardcover's percent is that old place measured against the new length. Margin's percent
@@ -193,7 +194,7 @@ export const saveBooks = internalMutation({
         const review = await ctx.db.query('entries').withIndex('by_user_origin_key', q => q.eq('userId', userId).eq('originKey', originKey)).first()
           ?? (await ctx.db.query('entries').withIndex('by_read', q => q.eq('readId', readId!)).collect()).find(e => e.kind === 'review')
         if (review) {
-          if (review.text !== read.review.text) await ctx.db.patch(review._id, { text: read.review.text })
+          if (!waiting && review.text !== read.review.text) await ctx.db.patch(review._id, { text: read.review.text })
         } else {
           await ctx.db.insert('entries', {
             userId, readId, kind: 'review', text: read.review.text, pos: {}, origin: 'hardcover', originKey, createdAt: read.review.at ?? Date.now(),

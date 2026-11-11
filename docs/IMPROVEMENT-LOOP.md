@@ -167,7 +167,7 @@ line numbers moving.
 |---|---|---|---|---|---|---|
 | H1 | **The two-minute pull can stall for good.** When a page comes back full (100 books or 100 journal rows changed since the cursor), the cursor is kept where it was, so the next run asks the same question and gets the same 100. The comment says "only move as far as what was actually seen"; the code doesn't move at all. Fix: ask for `updated_at`, and move the cursor to the newest one seen (or page with an offset until short). Triggered by a bulk change on Hardcover, or a long outage followed by a backlog. | `convex/hardcover.ts` `syncAll`, the `full` branch | Sure from the code; never seen live | M | D | ready |
 | H2 | **A review cleared in Margin comes back.** `saveReview` deletes the review entry when the words are emptied, but the push only sends `review_raw` when there are words, so Hardcover keeps the old review and the next pull re-creates the entry. Fix needs care: sending `null` blindly could wipe a review written on Hardcover moments ago. Suggest a `reviewCleared` marker on the read, sent once. | `convex/library.ts` `saveReview`; `convex/hardcover.ts` `flush` (`review_raw`) and `saveBooks` (review block) | Sure from the code | M | D | ready |
-| H3 | **An edited review can be put back by the pull.** `saveBooks` skips a read's fields while Margin has a change waiting, but the review block below it doesn't check, so Hardcover's old text can overwrite Margin's new text before the push leaves, and then the old text is what's pushed. Most likely right after finishing a book, which is when reviews get written. | `convex/hardcover.ts` `saveBooks`: `waiting` guards the read patch, not the review | Fairly sure | S | D | ready |
+| ~~H3~~ | **Done 2026-11-11 (run 37), see §7.** ~~An edited review can be put back by the pull.~~ | | | | | done |
 | H4 | **Sync trouble is only visible in Settings.** SPEC §3.4.1 says a failed push shows on the book's page; it doesn't. Add a small "not on Hardcover yet / couldn't send: why" line to the book page and a quiet mark on the Desk when the last sync failed or anything has waited more than an hour. | `syncStatus` is used only in `Settings.tsx` | Sure | M | C | ready |
 | H6 | **One pace for all callers, and honour `Retry-After`.** The pull, the hourly compare and the outbox each wait 4.5 s on their own, so together they can go three times the intended rate; a 429 always sleeps a flat 60 s. Check Hardcover's current published limits first (the "15" in SPEC was read from a header on 2026-11-02 with the window unknown) and write the real numbers into SPEC. | `pace`, `gql`, `syncAll`, `reconcile`, `flush` | Sure about the code; the limit itself needs checking | M | D | ready |
 | H7 | **Give up gracefully.** An outbox row that keeps failing retries hourly for ever with no way to see or drop it. After N tries, mark it stuck, show it in Settings with the error and "try again" / "discard". | `fail`, `retryDelayMs`; `syncStatus` counts at most 100 and shows one error | Sure | M | C | ready |
@@ -281,6 +281,14 @@ Answer in this file, dated, and the items unblock.
 ## 6. Run log
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
+
+- **2026-11-11, run 37 (unattended; a normal pick).** Ground: `main` at `e43fd71`, CI green (Vercel not checked, Q13).
+  Re-checked H3 against the code: real (`waiting` guarded the read patch only, the review block overwrote text). Did
+  it (class D, the only one today; it adds no write to Hardcover, it removes a chance of sending stale text), see §7.
+  Verified: the new test failed before the change and passes after; lint, 317 tests, build and budget green (main
+  chunk 481.5 kB, unchanged). No visible change, so no shots. Not checked: against the real account, or the exact
+  timing of a pull landing between an edit and a push (covered by the test as an ordering only). Remaining safe supply:
+  U1 (text over covers, keyboard pass), O3 (Motion), D15/D6/U3 (class C). Run 38 is a normal pick; run 40 a delight run.
 
 - **2026-11-11, run 36 (unattended; a delight run).** Ground: `main` at `bc205ff`, CI green (Vercel not checked, Q13).
   Did D14 (class C), see §7. Verified: lint, 316 tests (4 new), build and budget green (main chunk 481.5 kB, unchanged); in
@@ -403,6 +411,8 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
 ## 7. Done and dropped
 
 Move items here with the date and the commit or the reason. Keep the id so old log entries still make sense.
+
+- **H3 (review put back)** Done 2026-11-11 (run 37, class D): `saveBooks` now looks up the read's waiting outbox row once, before the read patch, and leaves an existing review's text alone while one is waiting, so Hardcover's old text can't overwrite Margin's new text before the push leaves. A review that doesn't exist yet is still created (that's H2's territory: a review *cleared* in Margin while waiting is not touched here). Test: `a review edited in Margin is not put back by a pull before it is sent` failed before the change. Writes nothing new to Hardcover.
 
 - **D14 (spines lean)** Done 2026-11-11 (run 36, class C): scrolling the Pile fast tips its spines up to about 1 degree, alternate rows opposite ways, and they spring back (420 ms, slight overshoot) when the scroll slows. `useSpineLean` in `Pile.tsx` writes `--lean` to the list from the scroll speed (`leanFor`, `src/lib/scrollLean.ts`, tested); `.spine` uses the `rotate` property, so hover's slide is untouched. Reading-pace scrolling doesn't move anything. Tune `LEAN_FROM` and `LEAN_FULL` if it's too shy or too much.
 
