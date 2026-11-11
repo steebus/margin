@@ -205,7 +205,6 @@ Every item here is class C unless it's a plain bug. Look at each in fixture mode
 | Id | Item | Evidence | Size | Status |
 |---|---|---|---|---|
 | ~~U9~~ | **Closed 2026-11-10 (Steve: dim, don't invert; SPEC §3.11 corrected).** ~~Drawings in the dark theme.~~ In fixture mode a book with a drawing shows as a pale panel with black ink on Shelves at night, where SPEC §3.11 says `invert` plus `screen`. It may be the stand-in art (an SVG, not a WebP), a decision since the spec, or a bug. Check with Steve's eyes on a real drawing before touching it. | `fixture-shots/shelves.phone.dark.png` | S | closed |
-| U10 | **Disabled "Save excerpt" is grey on grey** on Capture (light theme), low contrast against the page; check it reaches AA or reads as disabled without losing the label. Part of U1's contrast pass. | `capture.phone.light.png` | S | ready |
 | U1 | **An accessibility sweep, one surface per run:** focus order and visible focus, names on icon buttons, contrast in both themes (WCAG AA is a brand commitment), 48dp targets, nothing hover-only, toasts announced once. Start with the Desk and the book page. | `PRODUCT.md` Accessibility; never audited | M each | ready |
 | ~~U2~~ | **Dropped 2026-11-10 (Steve doesn't want motion reduced).** ~~A reduced-motion sweep.~~ Nine places mention reduced motion; `PLAN.md` wants a designed path for every animation. List every animation, tick the ones with a designed still version, fix the rest. | `grep prefers-reduced-motion` | M | ready |
 | U3 | **Loading and empty states.** Several screens show a bare "Opening…" line. DESIGN-DIRECTION asks for "something small and alive". Design one empty state and one loading state and use them everywhere. | `Desk.tsx`, `__root.tsx` | M | ready |
@@ -287,6 +286,13 @@ Answer in this file, dated, and the items unblock.
 ## 6. Run log
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
+
+- **2026-11-11, run 19 (unattended; a normal pick).** Ground: `main` at `1f331ff`, CI green (Vercel not checked, Q13).
+  Re-checked U10 against the code: real (`.btn:disabled` at 0.45 gave 2.8:1 for a solid button's label in light, 3.7:1 in
+  dark). Did it (class C), see §7. Verified: lint, tests, build and budget green; Capture read in fixture mode on phone
+  and desktop, light and dark: label readable, still clearly off, nothing wider than its screen, no errors. Not checked:
+  on a phone, or the other disabled solid buttons by eye (same rule). Remaining safe supply: U1, O3, D12. Run 20 is a
+  delight run and the loop's tenth-run review (§8).
 
 - **2026-11-11, run 18 (unattended; a normal pick).** Ground: `main` at `b03826a`, CI green (Vercel not checked, Q13).
   Re-checked O1 against the code: real (`Desk.tsx` used `useEntries`, the full text of every note). Did it (class B), see §7.
@@ -440,6 +446,8 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
 ## 7. Done and dropped
 
 Move items here with the date and the commit or the reason. Keep the id so old log entries still make sense.
+
+- **U10** Disabled solid buttons. Done 2026-11-11 (run 19, class C): `.btn-solid:disabled` is at 65% opacity (was 45%), so "Save excerpt" and the other solid buttons keep their label at about 5:1 in light and 6:1 in dark, and still read as off beside an enabled one. Outline buttons stay at 45%. Part of U1's contrast pass.
 
 - **O1** The Desk no longer downloads every note. Done 2026-11-11 (run 18, class B): `library.entryDates` returns only
   id and written-at for each entry; the Desk uses it for the empty state, "on this day" and the random pick, then asks
