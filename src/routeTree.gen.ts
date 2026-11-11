@@ -21,7 +21,6 @@ import { Route as CaptureIndexRouteImport } from './routes/capture.index'
 import { Route as CaptureAddRouteImport } from './routes/capture.add'
 import { Route as CaptureShareRouteImport } from './routes/capture.share'
 import { Route as EEntryIdRouteImport } from './routes/e.$entryId'
-import { Route as ImportsJobIdRouteImport } from './routes/imports.$jobId'
 import { Route as PeoplePersonSlugRouteImport } from './routes/people.$personSlug'
 import { Route as SettingsIndexRouteImport } from './routes/settings.index'
 import { Route as ShelvesIndexRouteImport } from './routes/shelves.index'
@@ -95,11 +94,6 @@ const CaptureShareRoute = CaptureShareRouteImport.update({
 const EEntryIdRoute = EEntryIdRouteImport.update({
   id: '/e/$entryId',
   path: '/e/$entryId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ImportsJobIdRoute = ImportsJobIdRouteImport.update({
-  id: '/imports/$jobId',
-  path: '/imports/$jobId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PeoplePersonSlugRoute = PeoplePersonSlugRouteImport.update({
@@ -188,7 +182,6 @@ export interface FileRoutesByFullPath {
   '/capture/add': typeof CaptureAddRoute
   '/capture/share': typeof CaptureShareRoute
   '/e/$entryId': typeof EEntryIdRoute
-  '/imports/$jobId': typeof ImportsJobIdRoute
   '/people/$personSlug': typeof PeoplePersonSlugRoute
   '/shelves/$shelfSlug': typeof ShelvesShelfSlugRoute
   '/topics/$topicSlug': typeof TopicsTopicSlugRoute
@@ -217,7 +210,6 @@ export interface FileRoutesByTo {
   '/capture/add': typeof CaptureAddRoute
   '/capture/share': typeof CaptureShareRoute
   '/e/$entryId': typeof EEntryIdRoute
-  '/imports/$jobId': typeof ImportsJobIdRoute
   '/people/$personSlug': typeof PeoplePersonSlugRoute
   '/shelves/$shelfSlug': typeof ShelvesShelfSlugRoute
   '/topics/$topicSlug': typeof TopicsTopicSlugRoute
@@ -247,7 +239,6 @@ export interface FileRoutesById {
   '/capture/add': typeof CaptureAddRoute
   '/capture/share': typeof CaptureShareRoute
   '/e/$entryId': typeof EEntryIdRoute
-  '/imports/$jobId': typeof ImportsJobIdRoute
   '/people/$personSlug': typeof PeoplePersonSlugRoute
   '/shelves/$shelfSlug': typeof ShelvesShelfSlugRoute
   '/topics/$topicSlug': typeof TopicsTopicSlugRoute
@@ -278,7 +269,6 @@ export interface FileRouteTypes {
     | '/capture/add'
     | '/capture/share'
     | '/e/$entryId'
-    | '/imports/$jobId'
     | '/people/$personSlug'
     | '/shelves/$shelfSlug'
     | '/topics/$topicSlug'
@@ -307,7 +297,6 @@ export interface FileRouteTypes {
     | '/capture/add'
     | '/capture/share'
     | '/e/$entryId'
-    | '/imports/$jobId'
     | '/people/$personSlug'
     | '/shelves/$shelfSlug'
     | '/topics/$topicSlug'
@@ -336,7 +325,6 @@ export interface FileRouteTypes {
     | '/capture/add'
     | '/capture/share'
     | '/e/$entryId'
-    | '/imports/$jobId'
     | '/people/$personSlug'
     | '/shelves/$shelfSlug'
     | '/topics/$topicSlug'
@@ -366,7 +354,6 @@ export interface RootRouteChildren {
   CaptureAddRoute: typeof CaptureAddRoute
   CaptureShareRoute: typeof CaptureShareRoute
   EEntryIdRoute: typeof EEntryIdRoute
-  ImportsJobIdRoute: typeof ImportsJobIdRoute
   PeoplePersonSlugRoute: typeof PeoplePersonSlugRoute
   ShelvesShelfSlugRoute: typeof ShelvesShelfSlugRoute
   TopicsTopicSlugRoute: typeof TopicsTopicSlugRoute
@@ -468,13 +455,6 @@ declare module '@tanstack/react-router' {
       path: '/e/$entryId'
       fullPath: '/e/$entryId'
       preLoaderRoute: typeof EEntryIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/imports/$jobId': {
-      id: '/imports/$jobId'
-      path: '/imports/$jobId'
-      fullPath: '/imports/$jobId'
-      preLoaderRoute: typeof ImportsJobIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/people/$personSlug': {
@@ -590,7 +570,6 @@ const rootRouteChildren: RootRouteChildren = {
   CaptureAddRoute: CaptureAddRoute,
   CaptureShareRoute: CaptureShareRoute,
   EEntryIdRoute: EEntryIdRoute,
-  ImportsJobIdRoute: ImportsJobIdRoute,
   PeoplePersonSlugRoute: PeoplePersonSlugRoute,
   ShelvesShelfSlugRoute: ShelvesShelfSlugRoute,
   TopicsTopicSlugRoute: TopicsTopicSlugRoute,

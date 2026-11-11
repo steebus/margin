@@ -183,9 +183,7 @@ line numbers moving.
 
 ### B: bugs and correctness
 
-| Id | Item | Evidence | Sure? | Size | Class | Status |
-|---|---|---|---|---|---|---|
-| B6 | **Two routes are still placeholders:** `/books/:slug/guide`, `/imports/:jobId`, `/settings/integrations/:provider`. Build, redirect or remove each, and make SPEC §4.1 match. **`/guide` removed 2026-11-10 (Steve).** | `src/routes/*` importing `Placeholder` | Sure | S each | C | two left, ready |
+No open items (B6 done, §7).
 
 ### O: optimisation
 
@@ -283,6 +281,14 @@ Answer in this file, dated, and the items unblock.
 ## 6. Run log
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
+
+- **2026-11-11, run 33 (unattended; a normal pick).** Ground: `main` at `68da7be`, CI green (Vercel not checked, Q13).
+  Did B6 (class C), see §7. Verified: lint, 312 tests, build and budget green (`npm run budget` reports the main chunk at 481.5 kB raw,
+  154.7 gzip, well under the 555.3 budget; run 32 logged 555.2 by another measure, so the gap is unexplained and unchanged by
+  this edit's size; budget not touched); in fixture mode at 390 px, `/settings/integrations/kobo`
+  still shows the Kobo page, `/settings/integrations/nope` and `/imports/5` show the not-found screen, no page errors. No
+  screenshots read. Not checked: on a phone, or desktop/dark (the not-found screen is run 17's, unchanged). Remaining safe
+  supply: U1 (focus order, contrast), O3 (Motion), U3 (class C). Run 34 is a normal pick; run 36 a delight run.
 
 - **2026-11-11, run 32 (unattended; a delight run).** Ground: `main` at `877b071`, CI green (Vercel not checked, Q13).
   Did D2 (class C), see §7. Verified: lint, 312 tests (2 new), build and budget green (main chunk 555.2 kB, unchanged); in
@@ -399,6 +405,8 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
 ## 7. Done and dropped
 
 Move items here with the date and the commit or the reason. Keep the id so old log entries still make sense.
+
+- **B6 (placeholders)** Done 2026-11-11 (run 33, class C): `/imports/:jobId` is removed (no import-job table or code existed; it now shows "Nothing filed here"), and an unknown `/settings/integrations/:provider` is a not-found instead of "This page isn't built yet"; only `kobo` has a page. The `Placeholder` component and its CSS are gone; SPEC §4.1 matches.
 
 - **D2 (cover flight)** Done 2026-11-11 (run 32, class C): tapping a book on Shelves (grid) or a card in the Desk's reading strip carries its cover to the book page's header over 0.42 s (`flyCover`, `src/lib/coverFlight.ts`; `view-transition-name: book-cover` on the book page's cover, `app.css`). Only the tapped cover is named, and the name is removed after 0.8 s, since names must be unique and hundreds would slow every transition. Not covered: the table view, Notes and other entrances to a book (they crossfade as before), and going Back.
 

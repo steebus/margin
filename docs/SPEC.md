@@ -447,7 +447,6 @@ they open over their parent, and Back closes them.
 /stats                              ?range=year
 /capture  /capture/add  /capture/share   capture flows (share_target posts here)
 /review                             import match queue
-/imports/:jobId                     import job report
 /settings  /settings/integrations/:provider
 ```
 Slugs are stable once minted; renaming a book adds a redirect.

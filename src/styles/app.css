@@ -902,14 +902,6 @@ td a { display: inline-flex; align-items: center; min-height: 44px; color: inher
 .spine[data-look='stitched']::before, .spine[data-look='stitched']::after { border-color: var(--grey); }
 .spine[data-look='hatch'] { background: repeating-linear-gradient(45deg, var(--grey) 0 1px, transparent 1px 4px), repeating-linear-gradient(-45deg, var(--ink) 0 1px, transparent 1px 4px); }
 
-/* ---------- Placeholder and exploration ---------- */
-.placeholder { display: grid; gap: 16px; justify-items: start; padding-block: 24px; }
-.placeholder h1 {
-  font: 400 clamp(3rem, 15vw, 5rem)/1 var(--head);
-  letter-spacing: 0.015em;
-  text-transform: uppercase;
-}
-
 /* ---------- Holding a book: a sheet of what you can do with it ---------- */
 /* No callout or text selection on a long press, so the hold reaches the sheet. */
 .cell, .strip-card { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
