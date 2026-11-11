@@ -2,6 +2,7 @@ import { createRootRoute, Link, Outlet, useRouterState } from '@tanstack/react-r
 import { useConvexAuth } from 'convex/react'
 import { LampDesk, Library, NotebookPen, PenLine, UserRound, Waypoints } from 'lucide-react'
 import { BookActionsProvider } from '../components/book/BookActions'
+import { OfflineLine } from '../components/offline/OfflineLine'
 import { SignIn } from '../components/settings/SignIn'
 import { FailureToast } from '../components/toast/FailureToast'
 import { hasSavedSignIn, useReplayOutbox } from '../lib/offline'
@@ -32,7 +33,7 @@ function Root() {
             </Link>
           )}
         </div>
-        {inside ? <BookActionsProvider><Outlet /><FailureToast /></BookActionsProvider> : isLoading ? <p role="status">Opening Margin…</p> : <SignIn />}
+        {inside ? <BookActionsProvider><OfflineLine /><Outlet /><FailureToast /></BookActionsProvider> : isLoading ? <p role="status">Opening Margin…</p> : <SignIn />}
       </main>
       {inside && <nav className="tabs" aria-label="Main">
         {tabs.map(({ to, label, Icon, match }) => (

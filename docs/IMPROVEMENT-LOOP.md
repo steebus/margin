@@ -209,7 +209,7 @@ Every item here is class C unless it's a plain bug. Look at each in fixture mode
 | U4 | **The review queue is buttons "for now".** PLAN and DESIGN-DIRECTION describe an index-card stack to swipe. | `PLAN.md` Phase 5.2; `Review.tsx` | M | ready |
 | U5 | **The Pile, as Steve left it:** thinner books; on a phone, unfurl summaries only in the middle; "not loving the book style". | `PLAN.md` Held for after the build | M | needs Steve (what style instead?) |
 | U6 | **Grouping note, quote and progress** as one action, since they're similar. | `PLAN.md` Held for after the build | M | needs Steve |
-| U7 | **Offline is invisible.** Nothing says "you're offline: showing your last visit" or "2 notes waiting to send". A small, quiet line when either is true. | `useOnline`, `deviceStore.all` exist; nothing renders them | S | ready |
+| ~~U7~~ | **Done 2026-11-11 (run 29), see §7.** ~~Offline is invisible.~~ | | S | done |
 | U8 | **Five tabs where the design said four.** Steve, 2026-11-10: five is right (Desk, Shelves, Notes, Explore, Capture). The brief, plan, spec and DESIGN.md now say so. | `__root.tsx` `tabs` | S | **done 2026-11-10** |
 
 ### D: surprise and delight
@@ -283,6 +283,14 @@ Answer in this file, dated, and the items unblock.
 ## 6. Run log
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
+
+- **2026-11-11, run 29 (unattended; a normal pick).** Ground: `main` at `ae072e8`, CI green (Vercel not checked, Q13).
+  Did U7 (class C), see §7. Verified: lint, tests (3 new), build and budget green (main chunk 555.2 kB, +0.6, budget
+  raised to match), no fixture code in `dist/`; in fixture mode with the browser set offline, desktop dark shows the line
+  top-left clear of the Settings button; on a phone it sits under the "two years ago" toast, so it was not read there.
+  Not checked: a real offline round trip or a real queued write (fixture mode has none, so the "waiting" wording is
+  covered by unit tests only), or on a phone. Remaining safe supply: U1 (other surfaces), O3 (Motion). Run 30 is a
+  normal pick; run 32 a delight run.
 
 - **2026-11-11, run 28 (unattended; a delight run).** Ground: `main` at `e4e8760`, CI green (Vercel not checked, Q13).
   Did D5 (class C), see §7. Verified: lint, 307 tests (4 new), build and budget green (main chunk 554.6 kB, +1.6, budget
@@ -399,6 +407,8 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
 ## 7. Done and dropped
 
 Move items here with the date and the commit or the reason. Keep the id so old log entries still make sense.
+
+- **U7 (offline line)** Done 2026-11-11 (run 29, class C): a small typewriter-face line above every page (`OfflineLine`, `src/components/offline/`) says "Offline: showing your last visit." when the browser is offline, and "N notes and places waiting to send." when the device's outbox holds writes (counted on connection change and every 4 s). Nothing shows when online with nothing waiting. Wording in `src/lib/offlineLine.ts`, tested.
 
 - **D5 (typewriter sound)** Done 2026-11-11 (run 28, class C): Settings > Account > Appearance has "Typewriter sound", off unless turned on and kept on this device (`localStorage`, `margin.typeSound`). On, the buddy's and the Desk's typewriter clicks for each letter, thuds on a space and rings a bell at the end of a line, synthesised with Web Audio (no files). `src/lib/typeSound.ts` (`strikeFor` is tested). Adds no tap or wait.
 

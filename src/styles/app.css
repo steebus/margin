@@ -37,6 +37,8 @@ svg { flex: none; }
   margin-inline: auto;
   padding: 16px 16px calc(96px + env(safe-area-inset-bottom));
 }
+/* Offline, or writes waiting: one quiet line above the page, clear of the corner button. */
+.offline-line { margin: 0 0 8px; padding-right: 56px; font-family: var(--buddy); font-size: 0.8125rem; color: var(--ink); }
 .stack { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-content: start; }
 .narrow { max-width: 720px; margin-inline: auto; }
 /* Pages that spread out when there's room: the notes wall, the book page's two columns. */
