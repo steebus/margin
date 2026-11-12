@@ -285,6 +285,11 @@ Answer in this file, dated, and the items unblock.
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
 
+- **2026-11-12, run 62 (unattended; assess only).** Ground: `main` at `afe4aad`, CI green (Vercel not checked, Q13). Nothing
+  landed since run 61 and the question under "Open" in §5 is still unanswered. Re-checked H6 against the code: still real
+  (`pace` sleeps a flat 4.5 s per caller, `gql` sleeps a flat 60 s on a 429, `convex/hardcover.ts` lines 21 and 41), still
+  class D. No code change. Verified: docs only. **Needs Steve:** the §5 question (H2, H6 or something else; real counts for O2).
+
 - **2026-11-12, run 61 (unattended; assess only).** Ground: `main` at `3e3c37a`, CI green (Vercel not checked, Q13). Nothing
   landed since run 60. Re-checked H2 against the code: still real (`saveReview` deletes the review entry, `flush` sends
   `review_raw` only when there are words, `convex/hardcover.ts` ~609), so it stays `ready`, class D. Nothing else is both safe
