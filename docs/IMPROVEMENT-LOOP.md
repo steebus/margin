@@ -168,7 +168,7 @@ line numbers moving.
 | H1 | **The two-minute pull can stall for good.** When a page comes back full (100 books or 100 journal rows changed since the cursor), the cursor is kept where it was, so the next run asks the same question and gets the same 100. The comment says "only move as far as what was actually seen"; the code doesn't move at all. Fix: ask for `updated_at`, and move the cursor to the newest one seen (or page with an offset until short). Triggered by a bulk change on Hardcover, or a long outage followed by a backlog. | `convex/hardcover.ts` `syncAll`, the `full` branch | Sure from the code; never seen live | M | D | ready |
 | H2 | **A review cleared in Margin comes back.** `saveReview` deletes the review entry when the words are emptied, but the push only sends `review_raw` when there are words, so Hardcover keeps the old review and the next pull re-creates the entry. Fix needs care: sending `null` blindly could wipe a review written on Hardcover moments ago. Suggest a `reviewCleared` marker on the read, sent once. | `convex/library.ts` `saveReview`; `convex/hardcover.ts` `flush` (`review_raw`) and `saveBooks` (review block) | Sure from the code | M | D | ready |
 | ~~H3~~ | **Done 2026-11-11 (run 37), see §7.** ~~An edited review can be put back by the pull.~~ | | | | | done |
-| H4 | **Half done 2026-11-11 (run 41): the book page now says it, see §7. Left: a quiet mark on the Desk.** ~~Sync trouble is only visible in Settings.~~ SPEC §3.4.1 says a failed push shows on the book's page; it doesn't. Add a small "not on Hardcover yet / couldn't send: why" line to the book page and a quiet mark on the Desk when the last sync failed or anything has waited more than an hour. | `syncStatus` is used only in `Settings.tsx` | Sure | M | C | started |
+| ~~H4~~ | **Done 2026-11-11 (runs 41 and 42), see §7.** ~~Sync trouble is only visible in Settings.~~ | | | | | done |
 | H6 | **One pace for all callers, and honour `Retry-After`.** The pull, the hourly compare and the outbox each wait 4.5 s on their own, so together they can go three times the intended rate; a 429 always sleeps a flat 60 s. Check Hardcover's current published limits first (the "15" in SPEC was read from a header on 2026-11-02 with the window unknown) and write the real numbers into SPEC. | `pace`, `gql`, `syncAll`, `reconcile`, `flush` | Sure about the code; the limit itself needs checking | M | D | ready |
 | H7 | **Give up gracefully.** An outbox row that keeps failing retries hourly for ever with no way to see or drop it. After N tries, mark it stuck, show it in Settings with the error and "try again" / "discard". | `fail`, `retryDelayMs`; `syncStatus` counts at most 100 and shows one error | Sure | M | C | ready |
 | H8 | **Notes and books removed on Hardcover stay in Margin.** SPEC §3.5 records this as a known gap because deletions aren't reported. The hourly compare already reads the whole library; it could also list journal ids and offer (not silently apply) "3 notes were removed on Hardcover: remove here too?". | SPEC §3.5 "Not synced" | A design question | L | D | decided: see H17 |
@@ -282,6 +282,13 @@ Answer in this file, dated, and the items unblock.
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
 
+- **2026-11-12, run 42 (unattended; a normal pick).** Ground: `main` at `8a26b0c`, CI green (Vercel not checked, Q13). Did
+  the Desk half of H4 (class C), see §7. Also pruned §6: runs 26 to 31 are one line. Verified: lint, 329 tests (2 new), build
+  and budget green (main chunk 481.7 kB, unchanged); in fixture mode the Desk read at 390 px light and 1280 px dark (all
+  four shot): the line sits under the dateline in the typewriter face, nothing wider than its screen, no page errors. Not
+  checked: the "waited an hour" wording (fixtures hold only a failed row), a phone. Remaining safe supply: U1 (text over
+  covers, keyboard pass), O3 (Motion), D6 (class C), H7 (class C). Run 43 is a normal pick.
+
 - **2026-11-11, run 41 (unattended; a normal pick).** Ground: `main` at `0461010`, CI green (Vercel not checked, Q13). Did the
   book-page half of H4 (class C), see §7. Verified: lint, 327 tests (2 new server, 4 new lib), build and budget green (main
   chunk 481.7 kB, unchanged); in fixture mode the book page read at 390 px light and 1280 px dark (all four shot): the
@@ -360,59 +367,7 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
   the Back direction (the shelf cell isn't named, so it crossfades). Remaining safe supply: U1 (focus order, contrast),
   O3 (Motion), D14/D15 (class C). Run 33 is a normal pick.
 
-- **2026-11-11, run 31 (unattended; a normal pick).** Ground: `main` at `d2fc715`, CI green (Vercel not checked, Q13).
-  Did the next slice of U1 (class C), see §7: measured every link, button and field at 390 px, light and dark, on Capture
-  (three pages), Review, Settings (two tabs), Stats, Topics, a topic and the drawer in fixture mode. Found 45 Stats bar
-  rows 32 px tall and the topic page's "Topics" back link 18 px tall; fixed both. Everything else was named and 44 px or
-  more (inline links and a one-line link under a sentence exempt). Verified: lint, tests, build and budget below;
-  Stats and a topic read in fixture mode, phone and desktop, light and dark, before and after: rows 44 px on a touch
-  screen and 32 px with a mouse, nothing wider than its screen, no page errors. Not checked: focus order, contrast by
-  measurement, a screen reader, the book-page sub-screens beyond run 21's, or on a phone. Remaining safe supply: U1
-  (focus order, contrast), O3 (Motion). Run 32 is a delight run.
-
-- **2026-11-11, run 30 (unattended; a normal pick).** Ground: `main` at `4fe4eca`, CI green (Vercel not checked, Q13).
-  Did the next slice of U1 (class A, docs only): measured every link, button and field at 390 px, light and dark, on
-  Shelves, the table view, Notes, the Pile and Explore in fixture mode (pages confirmed rendered: 53 and 97 controls
-  on Shelves and Notes). Found no control without a name and none under 44 px (inline text links exempt, as run 21).
-  No code changed, so lint, tests and build were not rerun. Not checked: focus order, contrast by measurement, a screen
-  reader, the other surfaces (Capture, Review, Settings, Stats, Topics, the drawer), or on a phone. Remaining safe
-  supply: U1 (those surfaces, focus order, contrast), O3 (Motion). Run 31 is a normal pick; run 32 a delight run.
-
-- **2026-11-11, run 29 (unattended; a normal pick).** Ground: `main` at `ae072e8`, CI green (Vercel not checked, Q13).
-  Did U7 (class C), see §7. Verified: lint, tests (3 new), build and budget green (main chunk 555.2 kB, +0.6, budget
-  raised to match), no fixture code in `dist/`; in fixture mode with the browser set offline, desktop dark shows the line
-  top-left clear of the Settings button; on a phone it sits under the "two years ago" toast, so it was not read there.
-  Not checked: a real offline round trip or a real queued write (fixture mode has none, so the "waiting" wording is
-  covered by unit tests only), or on a phone. Remaining safe supply: U1 (other surfaces), O3 (Motion). Run 30 is a
-  normal pick; run 32 a delight run.
-
-- **2026-11-11, run 28 (unattended; a delight run).** Ground: `main` at `e4e8760`, CI green (Vercel not checked, Q13).
-  Did D5 (class C), see §7. Verified: lint, 307 tests (4 new), build and budget green (main chunk 554.6 kB, +1.6, budget
-  raised to match), no fixture code in `dist/`; Settings read in fixture mode, phone light and desktop dark: checkbox
-  sits under the theme buttons, nothing wider than its screen, no errors. Not checked: how it sounds (no audio here),
-  a phone's autoplay rules (the context is made on the first typed key and resumed if suspended), or the checkbox by
-  hand. Remaining safe supply: U1 (other surfaces), O3 (Motion), U7 (class C, small). Run 29 is a normal pick.
-
-- **2026-11-11, run 27 (unattended; a normal pick).** Ground: `main` at `830461e`, CI green (Vercel not checked, Q13).
-  Re-checked H13 against the code: real (`logProgress` and `addEntry` stamped `Date.now()`; the outbox kept no time).
-  Did it (class B), see §7. Verified: the three new server tests failed before the change (`writtenAt` unknown) and pass
-  after, plus one outbox test; lint, 303 tests, build and budget green (main chunk 553.0 kB, +0.1), no fixture code in
-  `dist/`. No visible change, so no shots. Not checked: a real offline round trip on a phone, or an old queued write
-  from before the stamp (covered by a unit test only). Remaining safe supply: U1 (other surfaces), O3 (Motion), U7
-  (class C, small). Run 28 is a delight run.
-
-- **2026-11-11, run 26 (unattended; a normal pick).** Ground: `main` at `49353d5`, CI green (Vercel not checked, Q13).
-  Did H5 (class B), see §7: a refused token gets a message that says what to do. Verified: the new test failed
-  before the change and passes after; lint, tests, build and budget below. Not checked: against the real API (a
-  mutation-free 401 can't be provoked without a bad key), or the Settings wording by eye. Remaining safe supply: U1
-  (other surfaces), O3 (Motion), U7 (class C, small). Run 27 is a normal pick; run 28 a delight run.
-
-- **2026-11-11, run 25 (unattended; a normal pick).** Ground: `main` at `16399b9`, CI green (Vercel not checked, Q13).
-  Re-checked H5 against the code: still real (`gql` in `convex/hardcover.ts` throws `Hardcover answered ${status}.` for
-  any non-ok reply, 401 included). Did the pruning §8 asks for (class A, docs only): §6's runs 14 and older are one
-  line each, 581 to 469 lines; still over 400 because §4 and §7 are long, which is fine while they hold live items and
-  the record. No code changed, so lint, tests and build were not rerun. Remaining safe supply: U1 (other surfaces),
-  O3 (Motion), H5 (class B, small), U7 (class C, small). Run 26 is a normal pick; run 28 a delight run.
+- **Runs 31 to 26.** U1 Stats and Topics targets (§7); U1 Shelves/Notes/Pile/Explore targets measured, nothing to fix; U7 offline line; D5 typewriter sound; H13 offline writes keep their time; H5 token message (§7). Run 32 onward are below.
 
 - **Run 24.** D16 stamp turns and inks (§7). **Run 23.** H12 re-pull test (§7). **Run 22.** O3 zod half, main chunk 619 to 553 kB (§7). **Run 21.** U1 Desk targets (§7).
 
@@ -439,6 +394,8 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
 ## 7. Done and dropped
 
 Move items here with the date and the commit or the reason. Keep the id so old log entries still make sense.
+
+- **H4 (Desk mark)** Done 2026-11-12 (run 42, class C): `syncStatus` also returns `oldestAt` (additive); the Desk shows a typewriter-face line under the dateline (`deskSyncMark`, `src/lib/syncNote.ts`, tested) when the last sync failed ("Hardcover isn't answering. Margin will keep trying.") or a change has waited an hour ("N changes still waiting for Hardcover."). Nothing otherwise.
 
 - **H4 (book page sync line)** Done 2026-11-11 (run 41, class C): `hardcover.bookSync` (by the outbox's `by_read` index) gives a read's waiting change, since when and the last error; the book page shows a typewriter-face line under the progress (`SyncNote`, wording in `src/lib/syncNote.ts`, tested): the reason at once after a failed try, "Not yet on Hardcover" after 10 minutes, nothing otherwise. The Desk's quiet mark isn't built.
 

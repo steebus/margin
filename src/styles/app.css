@@ -1132,6 +1132,7 @@ button.back { justify-self: start; padding: 0; border: 0; background: none; curs
 
 /* The Desk's dateline: printed under the masthead, as a catalog dates its issue. */
 .masthead-block { display: grid; gap: 2px; }
+.sync-mark { margin: 6px 0 0; text-align: center; font-family: var(--buddy); font-size: 0.8125rem; color: var(--ink); padding-right: 56px; }
 .dateline { margin: 0; text-align: center; font-family: var(--head); text-transform: uppercase; letter-spacing: 0.06em; font-size: 1.0625rem; padding-right: 56px; }
 
 /* A stamp in the run of a line: "Kept" lands beside where the words went. */

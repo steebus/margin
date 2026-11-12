@@ -756,6 +756,7 @@ export const syncStatus = query({
       lastSyncAt: link?.lastSyncAt ?? null,
       lastError: link?.lastError ?? waiting.find(w => w.lastError)?.lastError ?? null,
       pending: waiting.length,
+      oldestAt: waiting.length ? Math.min(...waiting.map(w => w._creationTime)) : null,
     }
   },
 })

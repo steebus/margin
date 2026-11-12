@@ -16,6 +16,7 @@ import { formatClock } from '../../lib/progress'
 import { Typewriter } from '../typewriter/Typewriter'
 import { Empty } from '../empty/Empty'
 import { Opening } from '../opening/Opening'
+import { deskSyncMark } from '../../lib/syncNote'
 
 const TOAST_KEY = 'margin.drawerToastAt'
 
@@ -28,11 +29,14 @@ const write = (key: string, value: string) => {
 
 // The catalog's dateline: today, and what's in hand. Printed, not announced.
 function Masthead({ reading }: { reading?: number }) {
+  const sync = useQuery(api.hardcover.syncStatus)
   const [today] = useState(() => new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }))
+  const mark = deskSyncMark(sync, Date.now())
   return (
     <header className="masthead-block">
       <div className="masthead"><h1>Margin</h1></div>
       <p className="dateline">{today}{reading ? ` · ${reading} in hand` : ''}</p>
+      {mark && <p className="sync-mark" role="status">{mark}</p>}
     </header>
   )
 }

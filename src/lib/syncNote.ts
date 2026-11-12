@@ -11,3 +11,17 @@ export function syncNote(sync: BookSync | null | undefined, now: number): { text
   if (now - sync.since < SYNC_QUIET_MS) return null
   return { text: 'Not on Hardcover yet. Margin is still sending it.', failed: false }
 }
+
+export const DESK_SYNC_QUIET_MS = 60 * 60_000
+
+export type SyncStatus = { lastError: string | null; pending: number; oldestAt: number | null }
+
+/** The Desk's quiet mark (SPEC §3.4.1): only when the last sync failed or something has waited over an hour. */
+export function deskSyncMark(status: SyncStatus | null | undefined, now: number): string | null {
+  if (!status) return null
+  if (status.lastError) return "Hardcover isn't answering. Margin will keep trying."
+  if (status.pending > 0 && status.oldestAt !== null && now - status.oldestAt >= DESK_SYNC_QUIET_MS) {
+    return `${status.pending} ${status.pending === 1 ? 'change' : 'changes'} still waiting for Hardcover.`
+  }
+  return null
+}
