@@ -223,7 +223,7 @@ never in the way": nothing here may add a tap or delay an input. Every fourth ru
 | D13 | **Ribbon bookmark** drapes and sways; logging progress drags it down. There is no ribbon element at all (progress is a bar and a percentage, per the Fair-catalog section). Needs Steve: does the ribbon still belong? | no `ribbon` in `src/components` | S | needs Steve |
 | ~~D14~~ | **Done 2026-11-11 (run 36), see §7.** ~~Spines lean on a fast scroll.~~ | | M | done |
 | ~~D15~~ | **Done 2026-11-11 (run 40), see §7.** ~~Adding a book slides into its slot.~~ | | M | done |
-| D16 | **Library card stamp for each event** (thunk, rotation, ink spread) beyond the status stamp. `stamp-land` scales in; there is no rotation or ink spread, and haptics fire only on finish. | `app.css` `stamp-land` | S | **done 2026-11-11 (run 24)**, see §7; haptics beyond finish and other events' stamps left |
+| D16 | **Library card stamp for each event** (thunk, rotation, ink spread) beyond the status stamp. `stamp-land` scales in; there is no rotation or ink spread, and haptics fire only on finish. | `app.css` `stamp-land` | S | **done 2026-11-11 (run 24)**, see §7; haptics on other status changes and ratings done run 56; other events' stamps left |
 
 **D1's audit (2026-11-10, by reading code, not the running app):**
 
@@ -282,6 +282,12 @@ Answer in this file, dated, and the items unblock.
 ## 6. Run log
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
+
+- **2026-11-12, run 56 (unattended; a delight run).** Ground: `main` at `f464f5b`, CI green (Vercel not checked, Q13). Did the
+  haptics half of D16 (class C): on a book's page every status change now gives one soft tick (15 ms; finishing keeps its two
+  thunks) and a rating change a lighter one (10 ms), `navigator.vibrate`, as Capture and Progress already do. Adds no tap or
+  wait; nothing visual changed, so no fixture shots. Verified: lint, 341 tests, build and budget green. Not checked: a phone
+  (only Android Chrome vibrates; iOS ignores it). Remaining safe supply: U4's swipe, O3 (Motion), O8's LCP. Run 57 is a normal pick.
 
 - **2026-11-12, run 55 (unattended; a normal pick).** Ground: `main` at `85a34e4`, CI green (Vercel not checked, Q13). Measured
   O2 (class A, no code change): the offline copy's size per book and note, extrapolated, in O2. Not over the cap at 600 books
@@ -469,6 +475,7 @@ Move items here with the date and the commit or the reason. Keep the id so old l
   `src/lib/drawer-rules.ts`, tested). Otherwise it's the random note as before. Nothing added to tap or wait for. The
   note's earlier-year match uses the reader's local calendar day. Fixtures hold one such line (two years ago today).
 
+- **D16 (haptics)** Done 2026-11-12 (run 56, class C): the book page's Status select ticks once (15 ms) on any change besides Read, which keeps its two thunks, and the Rating select ticks lighter (10 ms). `BookPage.tsx`.
 - **O6 (aria role on the toast)** Done 2026-11-12 (run 49, class C): the Desk's drawer toast is a `motion.div` with `role="status"` (was `motion.aside`, a role ARIA forbids on `aside`; Lighthouse's `aria-allowed-role`). No visual change.
 
 ## 8. Keeping this plan good

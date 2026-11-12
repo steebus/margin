@@ -233,7 +233,8 @@ export function BookPage() {
               <select id="book-status" value={book.status} onChange={e => {
                 const status = e.target.value as Status
                 // Finishing is the one change worth feeling: two thunks, as the Read stamp lands.
-                if (status === 'read') navigator.vibrate?.([15, 70, 30])
+                // Any other change gets one soft tick, as the stamp lands.
+                navigator.vibrate?.(status === 'read' ? [15, 70, 30] : 15)
                 void setStatus({ readId: book.readId, status }).then(() => { if (status === 'read') void navigate({ to: '/books/$bookSlug/review', params: { bookSlug: book.slug } }) })
               }}>
                 {(Object.keys(STATUS) as Status[]).map(s => <option key={s} value={s}>{STATUS[s]}</option>)}
@@ -241,7 +242,7 @@ export function BookPage() {
             </div>
             <div className="field">
               <label htmlFor="book-rating">Rating</label>
-              <select id="book-rating" value={book.rating ?? ''} onChange={e => void setRating({ readId: book.readId, rating: e.target.value ? Number(e.target.value) : null })}>
+              <select id="book-rating" value={book.rating ?? ''} onChange={e => { navigator.vibrate?.(10); void setRating({ readId: book.readId, rating: e.target.value ? Number(e.target.value) : null }) }}>
                 <option value="">Not rated</option>
                 {RATINGS.map(r => <option key={r} value={r}>{r} {r === 1 ? 'star' : 'stars'}</option>)}
               </select>
