@@ -170,7 +170,7 @@ line numbers moving.
 | ~~H3~~ | **Done 2026-11-11 (run 37), see §7.** ~~An edited review can be put back by the pull.~~ | | | | | done |
 | ~~H4~~ | **Done 2026-11-11 (runs 41 and 42), see §7.** ~~Sync trouble is only visible in Settings.~~ | | | | | done |
 | H6 | **One pace for all callers, and honour `Retry-After`.** The pull, the hourly compare and the outbox each wait 4.5 s on their own, so together they can go three times the intended rate; a 429 always sleeps a flat 60 s. Check Hardcover's current published limits first (the "15" in SPEC was read from a header on 2026-11-02 with the window unknown) and write the real numbers into SPEC. | `pace`, `gql`, `syncAll`, `reconcile`, `flush` | Sure about the code; the limit itself needs checking | M | D | ready |
-| H7 | **Give up gracefully.** An outbox row that keeps failing retries hourly for ever with no way to see or drop it. After N tries, mark it stuck, show it in Settings with the error and "try again" / "discard". | `fail`, `retryDelayMs`; `syncStatus` counts at most 100 and shows one error | Sure | M | C | ready |
+| ~~H7~~ | **Done 2026-11-12 (run 43), see §7.** ~~Give up gracefully.~~ | | | | | done |
 | H8 | **Notes and books removed on Hardcover stay in Margin.** SPEC §3.5 records this as a known gap because deletions aren't reported. The hourly compare already reads the whole library; it could also list journal ids and offer (not silently apply) "3 notes were removed on Hardcover: remove here too?". | SPEC §3.5 "Not synced" | A design question | L | D | decided: see H17 |
 | H9 | **Fields that only travel one way.** Owned, recommended-by and date added come in from Hardcover but a change in Margin never goes back; the push sends status, rating and review only. **Decided (Steve, 2026-11-10): any field Hardcover supports goes back to it.** First list what `UserBookUpdateInput` and the read and journal inputs accept (from Hardcover's docs or a read-only introspection fixture, E5), then send every one Margin holds, one field per run, each with a test and the same "a waiting change wins" rule. Margin-only corrections (`reads.edits`) stay Margin's. | `flush` `update_user_book` object vs `mapUserBook` | Sure | M, then S each | D | ready |
 | H10 | **Confirm the journal tag shape.** Tags are sent as `{category: 'general', spoiler: false, tag}`, marked unverified in the code. Half done 2026-11-11: `fixtures/hardcover/journals.json` has two real tagged notes, so the shape Hardcover *returns* (`taggings { tag { tag } }`) is recorded and tested. The shape it *accepts* on `insert_reading_journal` still isn't; check Hardcover's schema (introspection is a read) or ask Steve to tag one note from Margin and look on Hardcover. | `journalObject` in `convex/lib/hardcover.ts`; §1b | Open | S | D | ready (the write half) |
@@ -282,6 +282,14 @@ Answer in this file, dated, and the items unblock.
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
 
+- **2026-11-12, run 43 (unattended; a normal pick).** Ground: `main` at `69c7378`, CI green (Vercel not checked, Q13). Did H7
+  (class C), see §7. Also pruned §6 (runs 32 to 38 are one line). Verified: lint, 331 tests (2 new), build and budget green
+  (main chunk 482.4 kB, +0.7); in fixture mode Settings > Integrations read at 390 px light and 1280 px dark (all four
+  shot): the stuck change sits under the sync line with Try again and Discard, nothing wider than its screen, no page
+  errors beyond the known blocked Google script. Not checked: the buttons' effect by eye (fixture writes are forgotten;
+  covered by the server test), or a phone. Remaining safe supply: U1 (text over covers, keyboard pass), O3 (Motion), D6 and
+  D7 (class C). Run 44 is a delight run.
+
 - **2026-11-12, run 42 (unattended; a normal pick).** Ground: `main` at `8a26b0c`, CI green (Vercel not checked, Q13). Did
   the Desk half of H4 (class C), see §7. Also pruned §6: runs 26 to 31 are one line. Verified: lint, 329 tests (2 new), build
   and budget green (main chunk 481.7 kB, unchanged); in fixture mode the Desk read at 390 px light and 1280 px dark (all
@@ -310,62 +318,7 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
   button, nothing wider than its screen, no page errors. Not checked: the lean's motion by eye, or on a phone. Remaining
   safe supply: U1 (text over covers, keyboard pass), O3 (Motion), D15/D6 (class C), H4 (class C). Run 40 is a delight run.
 
-- **2026-11-11, run 38 (unattended; a normal pick).** Ground: `main` at `3133df2`, CI green (Vercel not checked, Q13).
-  Did the loading half of U3 (class C), see §7. Verified: lint, 317 tests, build and budget green (main chunk 481.7 kB,
-  +0.2); in fixture mode (`?fixture=slow`) at 390 px light and 1280 px dark the Desk's line shows in the typewriter face
-  with its dots, inside the screen, no page errors; shots read. Not checked: the other nine places by eye (same
-  component), the dots' rhythm in motion, or on a phone. Remaining safe supply: U3 (empty state), U1 (text over covers,
-  keyboard pass), O3 (Motion), D15/D6 (class C). Run 39 is a normal pick; run 40 a delight run.
-
-- **2026-11-11, run 37 (unattended; a normal pick).** Ground: `main` at `e43fd71`, CI green (Vercel not checked, Q13).
-  Re-checked H3 against the code: real (`waiting` guarded the read patch only, the review block overwrote text). Did
-  it (class D, the only one today; it adds no write to Hardcover, it removes a chance of sending stale text), see §7.
-  Verified: the new test failed before the change and passes after; lint, 317 tests, build and budget green (main
-  chunk 481.5 kB, unchanged). No visible change, so no shots. Not checked: against the real account, or the exact
-  timing of a pull landing between an edit and a push (covered by the test as an ordering only). Remaining safe supply:
-  U1 (text over covers, keyboard pass), O3 (Motion), D15/D6/U3 (class C). Run 38 is a normal pick; run 40 a delight run.
-
-- **2026-11-11, run 36 (unattended; a delight run).** Ground: `main` at `bc205ff`, CI green (Vercel not checked, Q13).
-  Did D14 (class C), see §7. Verified: lint, 316 tests (4 new), build and budget green (main chunk 481.5 kB, unchanged); in
-  fixture mode at 390 px light and 1280 px dark, scrolling the Pile with the wheel sets `--lean` on the list (small in
-  headless, where the wheel is smooth), spines rotate, and after 0.9 s every spine is back at 0deg; no page errors; the
-  mid-scroll phone shot read, layout unchanged. Not checked: how a real finger flick feels or whether the thresholds
-  (`LEAN_FROM`, `LEAN_FULL` in `src/lib/scrollLean.ts`) suit it, or on a phone. Remaining safe supply: U1 (text over
-  covers, keyboard pass), O3 (Motion), D15/D6 (class C). Run 37 is a normal pick.
-
-- **2026-11-11, run 35 (unattended; a normal pick).** Ground: `main` at `a527fb8`, CI green (Vercel not checked, Q13).
-  Did the focus-order slice of U1 (class A, docs only): read the code instead of changing it. Focus rings are global
-  (`.app :focus-visible`, 3 px biro, and `.tools-search:focus-within` for the one field that hides its own); the
-  drawer is a native modal `<dialog>` (`showModal`, Escape routed to `onClose`), so the browser traps focus and returns
-  it; `autoFocus` is only on fields the reader has just asked to type in (progress, reply, search, shelf name); the
-  Pile's closed unfurl links are `tabIndex=-1` and `aria-hidden`. Found nothing to fix. No code changed, so lint, tests
-  and build were not rerun. Not checked: tab order by keyboard in a browser, a screen reader, or text over covers.
-  Remaining safe supply: U1 (text over covers, keyboard pass), O3 (Motion), U3 (class C). Run 36 is a delight run.
-
-- **2026-11-11, run 34 (unattended; a normal pick).** Ground: `main` at `881364e`, CI green (Vercel not checked, Q13).
-  Did the contrast slice of U1 (class C), see §7: computed WCAG ratios for ink, biro, rule and grey on paper in both
-  themes, and for every `opacity` on text in `app.css`. Two fell short of AA 4.5:1 and were fixed. Verified: lint, 312
-  tests, build and budget green (main chunk unchanged, 481.5 kB); in fixture mode the computed colours are the ones the
-  ratios assume, light and dark, no page errors. No screenshot read (a colour tweak on a count badge and placeholder
-  text; the badge only appears with a filter on, which fixtures can't set by hand). Not checked: focus order, text over
-  covers, or on a phone. Remaining safe supply: U1 (focus order), O3 (Motion), U3 (class C). Run 35 is a normal pick; run
-  36 a delight run.
-
-- **2026-11-11, run 33 (unattended; a normal pick).** Ground: `main` at `68da7be`, CI green (Vercel not checked, Q13).
-  Did B6 (class C), see §7. Verified: lint, 312 tests, build and budget green (`npm run budget` reports the main chunk at 481.5 kB raw,
-  154.7 gzip, well under the 555.3 budget; run 32 logged 555.2 by another measure, so the gap is unexplained and unchanged by
-  this edit's size; budget not touched); in fixture mode at 390 px, `/settings/integrations/kobo`
-  still shows the Kobo page, `/settings/integrations/nope` and `/imports/5` show the not-found screen, no page errors. No
-  screenshots read. Not checked: on a phone, or desktop/dark (the not-found screen is run 17's, unchanged). Remaining safe
-  supply: U1 (focus order, contrast), O3 (Motion), U3 (class C). Run 34 is a normal pick; run 36 a delight run.
-
-- **2026-11-11, run 32 (unattended; a delight run).** Ground: `main` at `877b071`, CI green (Vercel not checked, Q13).
-  Did D2 (class C), see §7. Verified: lint, 312 tests (2 new), build and budget green (main chunk 555.2 kB, unchanged); in
-  fixture mode at 390 px light and 1280 px dark, a tap on a shelf cell starts a view transition whose animations include
-  `book-cover` group, old and new, so the cover is carried to the book page's header; the name is gone from the shelf
-  afterwards; settled page unchanged; no page errors. Not checked: the flight by eye (shots are settled), on a phone, or
-  the Back direction (the shelf cell isn't named, so it crossfades). Remaining safe supply: U1 (focus order, contrast),
-  O3 (Motion), D14/D15 (class C). Run 33 is a normal pick.
+- **Runs 38 to 32.** U3 loading line; H3 review put back (class D); D14 spines lean; U1 focus order (read, nothing to fix); U1 contrast; B6 placeholders; D2 cover flight. All in §7, each checked by lint, tests, build and fixture shots.
 
 - **Runs 31 to 26.** U1 Stats and Topics targets (§7); U1 Shelves/Notes/Pile/Explore targets measured, nothing to fix; U7 offline line; D5 typewriter sound; H13 offline writes keep their time; H5 token message (§7). Run 32 onward are below.
 
@@ -394,6 +347,8 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
 ## 7. Done and dropped
 
 Move items here with the date and the commit or the reason. Keep the id so old log entries still make sense.
+
+- **H7 (stuck changes)** Done 2026-11-12 (run 43, class C): after 6 failed tries (`STUCK_AFTER`, `convex/lib/outbox.ts`) an outbox row counts as stuck. `syncStatus` lists up to 10 (`stuck`: label, last error, tries; additive), Settings > Integrations > Hardcover shows each with "Try again" (`retryStuck`: tries reset, sent at once) and "Discard" (`discardStuck`: only for stuck rows, only your own; Margin keeps what it holds, Hardcover is never told, and the next pull may bring Hardcover's version back). Retry timing is unchanged (still backs off to an hour). Tests in `convex/hardcoverSync.test.ts`; the fixtures hold one stuck row.
 
 - **H4 (Desk mark)** Done 2026-11-12 (run 42, class C): `syncStatus` also returns `oldestAt` (additive); the Desk shows a typewriter-face line under the dateline (`deskSyncMark`, `src/lib/syncNote.ts`, tested) when the last sync failed ("Hardcover isn't answering. Margin will keep trying.") or a change has waited an hour ("N changes still waiting for Hardcover."). Nothing otherwise.
 

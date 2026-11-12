@@ -605,3 +605,41 @@ test('a book whose edition gives no format keeps the one Margin has', async () =
   await t.mutation(internal.hardcover.saveBooks, { userId, update: true, items: [editionItem({ percent: 10, format: 'ebook' })] })
   expect((await as.query(api.library.myBooks, {}))[0].format).toBe('ebook')
 })
+
+test('a change that keeps failing is shown as stuck, and can be retried or discarded', async () => {
+  fakeHardcover()
+  const { t, as, readId, outbox } = await setup()
+  await as.mutation(api.library.logProgress, { readId, percent: 50 })
+  const [row] = await outbox()
+  await t.run(ctx => ctx.db.patch(row._id, { attempts: 5, lastError: 'Hardcover answered 502.' }))
+  expect((await as.query(api.hardcover.syncStatus, {}))?.stuck).toEqual([])
+
+  await t.run(ctx => ctx.db.patch(row._id, { attempts: 6, nextAt: Date.now() + 3_600_000 }))
+  const status = await as.query(api.hardcover.syncStatus, {})
+  expect(status?.stuck).toEqual([{ id: row._id, label: 'Changes to Book One', error: 'Hardcover answered 502.', tries: 6 }])
+
+  // Someone else's change can't be touched.
+  const other = await t.run(ctx => ctx.db.insert('users', { name: 'Other' }))
+  await t.withIdentity({ subject: `${other}|session` }).mutation(api.hardcover.discardStuck, { id: row._id })
+  await t.withIdentity({ subject: `${other}|session` }).mutation(api.hardcover.retryStuck, { id: row._id })
+  expect((await outbox())[0].attempts).toBe(6)
+
+  await as.mutation(api.hardcover.retryStuck, { id: row._id })
+  const [again] = await outbox()
+  expect(again.attempts).toBe(0)
+  expect(again.lastError).toBeUndefined()
+  expect((await as.query(api.hardcover.syncStatus, {}))?.stuck).toEqual([])
+
+  await t.run(ctx => ctx.db.patch(row._id, { attempts: 7 }))
+  await as.mutation(api.hardcover.discardStuck, { id: row._id })
+  expect(await outbox()).toHaveLength(0)
+})
+
+test('discard leaves a change that is not stuck alone', async () => {
+  fakeHardcover()
+  const { as, readId, outbox } = await setup()
+  await as.mutation(api.library.logProgress, { readId, percent: 50 })
+  const [row] = await outbox()
+  await as.mutation(api.hardcover.discardStuck, { id: row._id })
+  expect(await outbox()).toHaveLength(1)
+})

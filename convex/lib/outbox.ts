@@ -42,3 +42,24 @@ export async function enqueueList(ctx: MutationCtx, userId: Id<'users'>, readId:
 
 /** After n failures, wait 2^n minutes, up to an hour. */
 export const retryDelayMs = (attempts: number) => Math.min(2 ** attempts, 60) * 60_000
+
+/** After this many failed tries a change is called stuck: Settings shows it, with the error, to retry or drop. */
+export const STUCK_AFTER = 6
+
+export const isStuck = (attempts: number) => attempts >= STUCK_AFTER
+
+const WHAT: Record<string, string> = {
+  read: 'Changes to',
+  entry: 'A note on',
+  deleteJournal: 'Removing a note from',
+  addBook: 'Adding',
+  listBook: 'Putting on a shelf:',
+  unlistBook: 'Taking off a shelf:',
+  deleteBook: 'Removing',
+}
+
+/** A plain-words name for a stuck change, for Settings. `title` is the book's, when it has one. */
+export function stuckLabel(kind: string, title?: string) {
+  const what = WHAT[kind] ?? 'A change to'
+  return title ? `${what} ${title}` : `${what} a book`
+}

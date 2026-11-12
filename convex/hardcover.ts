@@ -2,7 +2,7 @@ import { getAuthUserId } from '@convex-dev/auth/server'
 import { ConvexError, v } from 'convex/values'
 import { internal } from './_generated/api'
 import type { Id } from './_generated/dataModel'
-import { action, internalAction, internalMutation, internalQuery, query, type ActionCtx } from './_generated/server'
+import { action, internalAction, internalMutation, internalQuery, mutation, query, type ActionCtx } from './_generated/server'
 import { entryKey } from './lib/entryKey'
 import { askForReflection } from './lib/reflection'
 import { checkMilestones } from './milestones'
@@ -10,7 +10,7 @@ import {
   JOURNAL_FIELDS, journalObject, LIBRARY_QUERY, LISTS_QUERY, listSlug, mapJournal, mapSearch, mapUserBook, newUserBook, progressChanged, SEARCH_QUERY, progressFields, readFields, readingDates, statusId,
   type HardcoverJournal, type HardcoverList, type HardcoverUserBook, type SearchDocument,
 } from './lib/hardcover'
-import { enqueueEntry, enqueueRead, retryDelayMs } from './lib/outbox'
+import { enqueueEntry, enqueueRead, isStuck, retryDelayMs, stuckLabel } from './lib/outbox'
 
 const PAGE = 100
 const CLAIM = 3
@@ -757,6 +757,34 @@ export const syncStatus = query({
       lastError: link?.lastError ?? waiting.find(w => w.lastError)?.lastError ?? null,
       pending: waiting.length,
       oldestAt: waiting.length ? Math.min(...waiting.map(w => w._creationTime)) : null,
+      stuck: await Promise.all(waiting.filter(w => isStuck(w.attempts)).slice(0, 10).map(async w => {
+        const read = w.readId ? await ctx.db.get(w.readId) : null
+        const work = read ? await ctx.db.get(read.workId) : null
+        return { id: w._id, label: stuckLabel(w.kind, work?.title), error: w.lastError ?? null, tries: w.attempts }
+      })),
     }
+  },
+})
+
+/** "Try again" on a stuck change: back to the front of the queue with its tries counted afresh. */
+export const retryStuck = mutation({
+  args: { id: v.id('hardcoverOutbox') },
+  handler: async (ctx, { id }) => {
+    const userId = await getAuthUserId(ctx)
+    const row = await ctx.db.get(id)
+    if (!userId || !row || row.userId !== userId) return
+    await ctx.db.patch(id, { attempts: 0, nextAt: Date.now(), lastError: undefined })
+    await ctx.scheduler.runAfter(0, internal.hardcover.flush, {})
+  },
+})
+
+/** "Discard" on a stuck change: Margin keeps what it holds; Hardcover is simply never told. */
+export const discardStuck = mutation({
+  args: { id: v.id('hardcoverOutbox') },
+  handler: async (ctx, { id }) => {
+    const userId = await getAuthUserId(ctx)
+    const row = await ctx.db.get(id)
+    if (!userId || !row || row.userId !== userId || !isStuck(row.attempts)) return
+    await ctx.db.delete(id)
   },
 })

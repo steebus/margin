@@ -309,6 +309,7 @@ export async function seed(ctx: MutationCtx, now: number): Promise<Id<'users'>> 
   // Settings has something to say in every panel.
   await ctx.db.insert('integrations', { userId, provider: 'hardcover', hardcoverUserId: 4242, cursor: new Date(now - 150_000).toISOString(), lastSyncAt: now - 90_000 })
   await ctx.db.insert('hardcoverOutbox', { userId, kind: 'read', readId: talking.readId, version: 1, attempts: 2, nextAt: now + 4 * 60_000, lastError: 'Hardcover answered 502.' })
+  await ctx.db.insert('hardcoverOutbox', { userId, kind: 'read', readId: byTitle('A Field Guide to Getting Lost in Small Towns, With Notes on Returning: Essays').readId, version: 1, attempts: 7, nextAt: now + 60 * 60_000, lastError: 'Hardcover answered 502.' })
   await ctx.db.insert('koboLinks', { userId, cookie: 'fixture', lastPullAt: now - 5 * 3_600_000, lastReport: { books: 6, highlights: 41 } })
   await ctx.db.insert('hiddenTopics', { userId, key: 'young adult', name: 'Young Adult' })
   await ctx.db.insert('reviewItems', {

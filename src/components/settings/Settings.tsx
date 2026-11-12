@@ -32,6 +32,8 @@ function HardcoverImport() {
   const importLibrary = useAction(api.hardcover.importLibrary)
   const books = useQuery(api.library.myBooks)
   const sync = useQuery(api.hardcover.syncStatus)
+  const retryStuck = useMutation(api.hardcover.retryStuck)
+  const discardStuck = useMutation(api.hardcover.discardStuck)
   const [running, setRunning] = useState(false)
   const [result, setResult] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -64,6 +66,21 @@ function HardcoverImport() {
         <p className="where">Run this once to bring in your books, notes and reviews and to start syncing both ways.</p>
       )}
       {sync?.lastError && <p role="alert">Hardcover sync problem: {sync.lastError} It will keep retrying.</p>}
+      {sync?.stuck && sync.stuck.length > 0 && (
+        <ul className="stack" aria-label="Changes Hardcover keeps refusing">
+          {sync.stuck.map(item => (
+            <li key={item.id} className="stack">
+              <p className="where">
+                {item.label} hasn't reached Hardcover after {item.tries} tries{item.error ? `: ${item.error.replace(/\.$/, '')}` : ''}.
+              </p>
+              <div className="btn-row">
+                <button type="button" className="btn" onClick={() => void retryStuck({ id: item.id })}>Try again</button>
+                <button type="button" className="btn" onClick={() => void discardStuck({ id: item.id })}>Discard</button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
       <div className="btn-row">
         <button type="button" className="btn btn-solid" disabled={running} onClick={() => void run()}>
           {running ? 'Importing, a minute or two…' : 'Import from Hardcover'}
