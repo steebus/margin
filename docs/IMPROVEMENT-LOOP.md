@@ -277,34 +277,24 @@ Answer in this file, dated, and the items unblock.
 - Recorded Hardcover replies are in `fixtures/hardcover/` (Q11, 2026-11-11; E5 done, H10 half done, see §1b).
 
 **Open:**
-- None.
+- (2026-11-12, run 60) The safe, small supply is empty; every `ready` item is class D or needs a device. Which next?
+  H2 (a cleared review comes back), H6 (one pace for Hardcover calls), or something else. And, for O2, how many books and
+  notes the real library holds. Until answered, runs only assess.
 
 ## 6. Run log
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
 
-- **2026-11-12, run 59 (unattended; a normal pick, assess only).** Ground: `main` at `7fb3418`, CI green (Vercel not checked, Q13).
-  Read the empty reader (`?fixture=empty`) on Desk, Shelves, Notes and Explore (phone and desktop, both themes, 16 shots): the
-  empty states read fine, nothing wider than its screen, no errors. Notes' and Explore's empty lines are plain text beside the
-  Desk's drawn `Empty`; left as U3 decided (they are filter-style results). Same `ready` list as run 58: nothing both safe and
-  small, and the rest is class D. No code change. Verified: lint, tests, build and budget (see commit). **Still needs Steve:** his
-  real book and note counts (O2), and whether he wants H2 or H6 next. Run 60 is a delight run and the tenth-run review of §8.
+- **2026-11-12, run 60 (unattended; a delight run, and the tenth-run review of §8).** Ground: `main` at `e0f2407`, CI green
+  (Vercel not checked, Q13). **Review:** since run 50's review, 10 commits on `main` (one by Steve, H1/H11; nine by the loop),
+  none reverted or hand-edited (the one "reverted" in the log, run 54, never shipped), so by the only proxy there is, Steve left
+  them alone. The scoring keeps picking small safe class A/C items, and the safe supply is now empty: runs 57 to 59 found nothing
+  both safe and small, and every `ready` item left is class D (H2, H6, H9, H10, H17, D9) or needs a phone or Steve's numbers
+  (O2, O3, O8's LCP, U4's swipe). No change to §1 to §3. The file had passed 400 lines, so this run pruned it: runs 57 to 59
+  are one entry and run 20 is one line. No code change. Verified: docs only; `main` was already green. **Needs Steve:** pick
+  what the loop does next (see the note under "Open" in §5); until then runs only assess.
 
-- **2026-11-12, run 58 (unattended; a normal pick, assess only).** Ground: `main` at `6b9c19e`, CI green (Vercel not checked, Q13).
-  Read the Pile, a finished read's page, a person's page and Topics in fixture mode (phone and desktop, light and dark, 20 shots):
-  spines, stamps-and-dates, empty "written during this read" line and the person's two covers all read fine; nothing wider than
-  its screen, no errors. No `ready` item is both safe and small (same list as run 57), and no class D today: Steve's own H1/H11
-  commit landed earlier on 2026-11-12, and §3 allows one a day. No code change. Verified: lint, 341 tests, build and budget
-  (482.4 kB) green. **Still needs Steve** (from run 57): his real book and note counts (O2), and whether he wants H2 or H6 next.
-  Run 59 is a normal pick; run 60 is a delight run and the tenth-run review of §8.
-
-- **2026-11-12, run 57 (unattended; a normal pick, assess only).** Ground: `main` at `8fea546`, CI green (Vercel not checked, Q13).
-  Read Stats and Capture in fixture mode (phone, light and dark): bars, targets and the disabled Save button read fine; the shots
-  script (Desk, Shelves, Notes, Explore, Stats, Review, Capture, Settings, 32 shots) found nothing wider than its screen and no
-  errors. Nothing `ready` is both safe and small: O3's `LazyMotion` risks costing an animation (§2), O8's LCP and O2 need
-  Steve's numbers or a phone, U4's swipe is a gesture best seen on a device, and the `ready` H items are class D (H2, H6, H9,
-  H10, H17). No code change. Verified: lint, 341 tests, build and budget green (482.4 kB). **Needs Steve:** his real book and
-  note counts (O2), and whether he wants a class D item (H2 or H6) picked next. Run 58 is a normal pick.
+- **Runs 57 to 59 (assess only).** Read Stats, Capture, the Pile, a finished read's page, a person's page, Topics and the empty reader in fixture mode (phone and desktop, both themes): nothing wider than its screen, no errors, nothing to fix. Empty lines on Notes and Explore stay plain text as U3 decided. Asked Steve for his real book and note counts (O2) and whether he wants H2 or H6 next.
 
 - **2026-11-12, run 56 (unattended; a delight run).** Ground: `main` at `f464f5b`, CI green (Vercel not checked, Q13). Did the
   haptics half of D16 (class C): on a book's page every status change now gives one soft tick (15 ms; finishing keeps its two
@@ -339,14 +329,7 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
 
 - **Run 24.** D16 stamp turns and inks (§7). **Run 23.** H12 re-pull test (§7). **Run 22.** O3 zod half, main chunk 619 to 553 kB (§7). **Run 21.** U1 Desk targets (§7).
 
-- **2026-11-11, run 20 (unattended; a delight run, and the tenth-run review of §8).** Ground: `main` at `b8d0193`, CI
-  green (Vercel not checked, Q13). **Review:** since run 10, 10 loop commits on `main`, none reverted or hand-edited
-  (git log: no Revert, no non-loop author), so by the only proxy there is, Steve left them alone; the scoring has
-  picked small safe class A/B/C items as intended and the safe supply is thinning (left: U1, O3; every `ready` H item
-  is class D). No change to §1 to §3. Did D12 (class C), see §7. Verified: lint, 289 tests, build and budget green
-  (main chunk 618.9 kB, unchanged), no fixture code in `dist/`; Entry page read in fixture mode on phone, light:
-  settled tag identical, nothing wider than its screen, no errors. Not checked: the swing itself in motion (fixture
-  writes are forgotten, so a tag can't land there), or on a phone. Next is a normal pick, from U1, O3 or class D.
+- **Run 20 (a delight run, and the first tenth-run review, §8).** 10 loop commits since run 10, none reverted; no change to §1 to §3. Did D12 tags swing (§7).
 
 - **Run 19.** U10 disabled solid buttons readable (§7). **Run 18.** O1 the Desk stops downloading every note (§7). **Run 17.** B2 error and not-found screens (§7). **Run 16.** D11 handwriting reveal (§7). **Run 15.** Assessed Capture, Review, Explore, Stats; U11 radio dots (§7).
 
