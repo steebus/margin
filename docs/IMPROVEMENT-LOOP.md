@@ -189,7 +189,7 @@ No open items (B6 done, §7).
 
 | Id | Item | Evidence | Sure? | Size | Class | Status |
 |---|---|---|---|---|---|---|
-| O2 | **The offline copy is kept in localStorage,** which holds about 5 MB and is written synchronously on every live update. A few thousand highlights will pass that, and the write fails silently, so offline reading quietly stops working. Measure the real sizes first; if they're near, move the copies to IndexedDB. | `remember` in `src/lib/offline.ts` swallows the quota error | A risk, unmeasured | M | B | ready (measure first; needs Steve's numbers or E1) |
+| O2 | **The offline copy is kept in localStorage,** which holds about 5 MB and is written synchronously on every live update. A few thousand highlights will pass that, and the write fails silently, so offline reading quietly stops working. **Measured run 55** from the fixture answers (`src/fixtures/data.json`, JSON length): `myBooks` 1.5 kB a book, `allEntries` 0.45 kB a note (fixture notes are short; real highlights run longer), `graph` 20 kB (one copy). So 600 books and 2,000 notes is about 2.0M characters, 600 and 5,000 about 3.4M, 1,000 and 10,000 about 6.3M. Browsers allow roughly 5M characters (5 MB) per origin, shared with the other keys. Not over today, but 5,000 notes is within reach. Steve's real counts would settle it: ask for them, or read `margin.cache.*` lengths in his browser console. If near, move the copies to IndexedDB. | `remember` in `src/lib/offline.ts` swallows the quota error | A risk, unmeasured | M | B | ready (measure first; needs Steve's numbers or E1) |
 | O3 | **Main chunk was 620 kB (194 kB gzip); zod half done 2026-11-11 (run 22), now 553 kB (173 kB gzip).** Left, by source share: react-dom ~30%, Motion ~26%, convex ~9%. Candidates: Motion's `LazyMotion` with the `m` components (watch that it can't cost any animation, §2); check the Desk's route isn't dragging other screens in. Measure each change against `npm run budget`. | build output; source-map estimate 2026-11-10 | Sure of the size; gains unmeasured | M | A | started |
 | O5 | **`myBooks` re-sends the whole library on any change to any read.** Fine at 600 books; watch it. If Shelves ever janks on a sync, split the hot fields (progress, status) from the cold ones. Measure before touching. | `convex/library.ts` `myBooks` | A watch item | L | B | ready (measure only) |
 | O6 | **Lighthouse pass** (PLAN Phase 7.3: 90+ for accessibility and performance on mobile; SPEC §6: LCP under 2.5 s on mid-range Android). **First pass done 2026-11-12 (run 49)**, numbers in O8. Left: Notes' contrast item, a signed-in run on real data (Steve's). | `PLAN.md` Phase 7 | n/a | M | A | started |
@@ -283,6 +283,13 @@ Answer in this file, dated, and the items unblock.
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
 
+- **2026-11-12, run 55 (unattended; a normal pick).** Ground: `main` at `85a34e4`, CI green (Vercel not checked, Q13). Measured
+  O2 (class A, no code change): the offline copy's size per book and note, extrapolated, in O2. Not over the cap at 600 books
+  and 2,000 notes (about 2.0M characters), but near it by 5,000 notes (3.4M); needs Steve's real counts. Also pruned this file
+  (it had passed 400 lines): runs 44 to 49 are one line. Verified: fixtures regenerated and measured; docs only, so lint,
+  tests and build were not changed by this run. Not checked: a real browser's quota, Steve's data. Remaining safe supply: U4's
+  swipe, O3 (Motion), O8's LCP. Run 56 is a delight run.
+
 - **2026-11-12, run 54 (unattended; a delight run).** Ground: `main` at `fdc99c1`, CI green (Vercel not checked, Q13). Tried D2's
   Back half (the cover flying home to its shelf cell): a `returnCover(slug)` on the Back button and a `data-returning` name on the
   cell. Built, lint, 342 tests, build and budget green, then **reverted unshipped**: in fixture mode the shelf's cells render
@@ -312,47 +319,7 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
   observer on Shelves at 390 px in fixture build: one shift of 0.16 before, none after. Not checked: Notes, throttled Lighthouse,
   a phone on a slow network. Run 51 is a normal pick; run 52 is a delight run.
 
-- **2026-11-12, run 49 (unattended; a normal pick).** Ground: `main` at `eadf883`, CI green (Vercel not checked, Q13). Did the
-  first Lighthouse pass (O6, class A, numbers in O8) and one fix it found: the Desk's drawer toast was an `<aside>` with
-  `role="status"`, which ARIA doesn't allow; it is a `<div>` now (same look, same motion). Verified: lint, tests, build and
-  budget green (482.4 kB, unchanged), 334 tests, no fixture code in `dist/`. Not re-run in Lighthouse (the toast shows only when due). Not checked: a screen reader, a phone, Steve's real data. Next is a
-  normal pick: O8's layout shift is the top item.
-
-- **2026-11-12, run 48 (unattended; a delight run).** Ground: `main` at `1d3570c`, CI green (Vercel not checked, Q13). Did D7
-  (class C; an optional `cited` field on `buddyTurns`, additive), see §7. Verified: lint, 334 tests (3 new in
-  `convex/lib/buddyCited.test.ts`, one assertion in `buddy.test.ts`), build and budget green (482.4 kB, unchanged); the buddy's
-  page read in fixture mode, phone and desktop, light and dark: the card sits under the reply, nothing wider than its screen,
-  no errors. Not checked: the real model naming a book (tests stub Anthropic), the deal-in in motion, a phone. Remaining safe
-  supply: U4's swipe, O3 (Motion), D6's other half. Run 49 is a normal pick.
-
-- **2026-11-12, run 47 (unattended; a normal pick).** Ground: `main` at `9c77a4a`, CI green (Vercel not checked, Q13). Did the
-  stack-and-deal slice of U4 (class C), see §7. Verified: lint, 331 tests, build and budget green (482.4 kB, unchanged), no fixture
-  code in `dist/`; Review read in fixture mode, phone and desktop, light and dark: the stack's edges show under the card,
-  nothing wider than the screen, no errors. Not checked: the deal-in in motion (a still can't show it), a phone, one waiting
-  card or three (the fixtures hold two). Remaining safe supply: U4's swipe, O3 (Motion), D6's other half, D7 (class C). Run 48 is a
-  delight run.
-
-- **2026-11-12, run 46 (unattended; a normal pick).** Ground: `main` at `974b429`, CI green (Vercel not checked, Q13). Did the
-  covers half of U1 (class C), see §7: cover titles print on a paper strip (12.9:1, fine); the biro ticks and strikes over art
-  covers were night's pale blue on pale art (about 1.5:1) and now use the daylight biro. Verified: lint, 331 tests, build and
-  budget green (482.4 kB, unchanged); Shelves read in fixture mode, phone dark before and after (desktop and light shots
-  taken, nothing wider than the screen, no errors). Not checked: a phone, real art. Remaining safe supply: O3 (Motion), D6's
-  other half, D7 (class C). Run 47 is a normal pick; run 48 is a delight run.
-
-- **2026-11-12, run 45 (unattended; a normal pick).** Ground: `main` at `e37f73f`, CI green (Vercel not checked, Q13). Did the
-  keyboard half of U1 (class A, no code change). In fixture mode, light and dark at 1280 px, Tab through the Desk, Shelves,
-  Notes, Pile, Explore, Settings, Capture, Review, a book's page, its notes, its edit page and the drawer (6 to 40 stops each):
-  every stop was `:focus-visible`, had an outline or shadow, and was on screen; nothing to fix. Also pruned §6 (run 43 is
-  a line). Not checked: Tab order against reading order by eye, dialogs and sheets that open on a tap, a screen reader, a
-  phone. Remaining safe supply: U1 (text over covers), O3 (Motion), D6's other half, D7 (class C). Run 46 is a normal pick;
-  run 48 is a delight run.
-
-- **2026-11-12, run 44 (unattended; a delight run).** Ground: `main` at `2da1255`, CI green (Vercel not checked, Q13). Did
-  the date-stamp slice of D6 (class C), see §7. Also pruned §6 (runs 39 to 42 are one line). Verified: lint, 331 tests,
-  build and budget green (main chunk 482.4 kB, unchanged); in fixture mode a finished book's page read at 390 px light
-  and 1280 px dark: the date stamp sits under "Your review", turned the other way from READ, nothing wider than its screen,
-  no page errors. Not checked: the landing in motion (a still can't show it), or a phone. Remaining safe supply: U1 (text
-  over covers, keyboard pass), O3 (Motion), D6's other half (the book walking to the Pile), D7 (class C). Run 45 is a normal pick.
+- **Runs 49 to 44.** O6 first Lighthouse pass and the toast `div` (O8); D7 citation cards; U4 stack and deal; U1 marks over covers; U1 keyboard pass (nothing to fix); D6 date stamp. All in §7, each checked by lint, tests, build, budget and fixture shots.
 
 - **Runs 43 to 39.** H7 stuck changes; H4 Desk mark and book-page line; D15 adding a book slides into its slot; U3 empty states (§7). Run 43 left: lint, 331 tests, build and budget green, Settings read in fixture mode.
 
