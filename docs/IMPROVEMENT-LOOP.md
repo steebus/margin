@@ -283,6 +283,13 @@ Answer in this file, dated, and the items unblock.
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
 
+- **2026-11-12, run 59 (unattended; a normal pick, assess only).** Ground: `main` at `7fb3418`, CI green (Vercel not checked, Q13).
+  Read the empty reader (`?fixture=empty`) on Desk, Shelves, Notes and Explore (phone and desktop, both themes, 16 shots): the
+  empty states read fine, nothing wider than its screen, no errors. Notes' and Explore's empty lines are plain text beside the
+  Desk's drawn `Empty`; left as U3 decided (they are filter-style results). Same `ready` list as run 58: nothing both safe and
+  small, and the rest is class D. No code change. Verified: lint, tests, build and budget (see commit). **Still needs Steve:** his
+  real book and note counts (O2), and whether he wants H2 or H6 next. Run 60 is a delight run and the tenth-run review of §8.
+
 - **2026-11-12, run 58 (unattended; a normal pick, assess only).** Ground: `main` at `6b9c19e`, CI green (Vercel not checked, Q13).
   Read the Pile, a finished read's page, a person's page and Topics in fixture mode (phone and desktop, light and dark, 20 shots):
   spines, stamps-and-dates, empty "written during this read" line and the person's two covers all read fine; nothing wider than
