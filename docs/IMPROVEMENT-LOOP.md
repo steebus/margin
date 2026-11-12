@@ -285,6 +285,12 @@ Answer in this file, dated, and the items unblock.
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
 
+- **2026-11-12, run 61 (unattended; assess only).** Ground: `main` at `3e3c37a`, CI green (Vercel not checked, Q13). Nothing
+  landed since run 60. Re-checked H2 against the code: still real (`saveReview` deletes the review entry, `flush` sends
+  `review_raw` only when there are words, `convex/hardcover.ts` ~609), so it stays `ready`, class D. Nothing else is both safe
+  and small, so no code change. Verified: docs only. **Needs Steve:** the question under "Open" in §5 (H2, H6 or something
+  else; real book and note counts for O2). Runs will keep assessing until it is answered.
+
 - **2026-11-12, run 60 (unattended; a delight run, and the tenth-run review of §8).** Ground: `main` at `e0f2407`, CI green
   (Vercel not checked, Q13). **Review:** since run 50's review, 10 commits on `main` (one by Steve, H1/H11; nine by the loop),
   none reverted or hand-edited (the one "reverted" in the log, run 54, never shipped), so by the only proxy there is, Steve left
