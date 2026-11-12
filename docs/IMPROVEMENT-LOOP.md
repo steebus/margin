@@ -204,7 +204,7 @@ Every item here is class C unless it's a plain bug. Look at each in fixture mode
 | U1 | **An accessibility sweep, one surface per run:** focus order and visible focus, names on icon buttons, contrast in both themes (WCAG AA is a brand commitment), 48dp targets, nothing hover-only, toasts announced once. Start with the Desk and the book page. **Targets and names swept on every screen by run 31, contrast of the tokens and every text opacity by run 34, focus rings and dialog focus read in code by run 35 (see §6). Keyboard pass done by run 45 (below). Text over covers read by run 46 (titles sit on a paper strip, fine); marks over art fixed run 46. Left: nothing known.** | `PRODUCT.md` Accessibility; never audited | M each | started |
 | ~~U2~~ | **Dropped 2026-11-10 (Steve doesn't want motion reduced).** ~~A reduced-motion sweep.~~ Nine places mention reduced motion; `PLAN.md` wants a designed path for every animation. List every animation, tick the ones with a designed still version, fix the rest. | `grep prefers-reduced-motion` | M | ready |
 | ~~U3~~ | **Done 2026-11-11 (runs 38 and 39), see §7.** ~~Loading and empty states.~~ Several screens showed a bare "Opening…" line. DESIGN-DIRECTION asks for "something small and alive". Design one empty state and one loading state and use them everywhere. | `Desk.tsx`, `__root.tsx` | M | done |
-| U4 | **The review queue is buttons "for now".** PLAN and DESIGN-DIRECTION describe an index-card stack to swipe. | `PLAN.md` Phase 5.2; `Review.tsx` | M | ready |
+| U4 | **The review queue is buttons "for now".** PLAN and DESIGN-DIRECTION describe an index-card stack to swipe. Stack look and deal-in **done 2026-11-12 (run 47)**, §7. Left: the swipe itself (accept, reject, flick to skip); the card holds a form and radios, so a gesture needs care not to fight them. | `PLAN.md` Phase 5.2; `Review.tsx` | M | started |
 | U5 | **The Pile, as Steve left it:** thinner books; on a phone, unfurl summaries only in the middle; "not loving the book style". | `PLAN.md` Held for after the build | M | needs Steve (what style instead?) |
 | U6 | **Grouping note, quote and progress** as one action, since they're similar. | `PLAN.md` Held for after the build | M | needs Steve |
 | ~~U7~~ | **Done 2026-11-11 (run 29), see §7.** ~~Offline is invisible.~~ | | S | done |
@@ -282,6 +282,13 @@ Answer in this file, dated, and the items unblock.
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
 
+- **2026-11-12, run 47 (unattended; a normal pick).** Ground: `main` at `9c77a4a`, CI green (Vercel not checked, Q13). Did the
+  stack-and-deal slice of U4 (class C), see §7. Verified: lint, 331 tests, build and budget green (482.4 kB, unchanged), no fixture
+  code in `dist/`; Review read in fixture mode, phone and desktop, light and dark: the stack's edges show under the card,
+  nothing wider than the screen, no errors. Not checked: the deal-in in motion (a still can't show it), a phone, one waiting
+  card or three (the fixtures hold two). Remaining safe supply: U4's swipe, O3 (Motion), D6's other half, D7 (class C). Run 48 is a
+  delight run.
+
 - **2026-11-12, run 46 (unattended; a normal pick).** Ground: `main` at `974b429`, CI green (Vercel not checked, Q13). Did the
   covers half of U1 (class C), see §7: cover titles print on a paper strip (12.9:1, fine); the biro ticks and strikes over art
   covers were night's pale blue on pale art (about 1.5:1) and now use the daylight biro. Verified: lint, 331 tests, build and
@@ -336,6 +343,7 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
 
 Move items here with the date and the commit or the reason. Keep the id so old log entries still make sense.
 
+- **U4 (stack and deal)** Done 2026-11-12 (run 47, class C): the Review card sits on a stack: when more cards wait, one or two card edges peek out below it (`.review-stack`, `data-behind`, `app.css`), and each new top card is dealt on (`review-deal`, 0.38 s, slight overshoot and tilt). No new tap or wait. Left: the swipe.
 - **U1 (marks over covers)** Done 2026-11-12 (run 46, class C): `.thumb[data-art] .mark` and the read tick on an art cell use `--cover-biro` (`#2346c8`, tokens.css) with a `--cover-paper` halo in both themes, since cover art is pale in both. In dark the pale biro was about 1.5:1 on it. Marks on plain covers are unchanged.
 - **D6 (date stamp)** Done 2026-11-12 (run 44, class C): on a finished book's page the "Finished 9 Nov 2026" line is a second, smaller stamp (`.stamp-date`, `app.css`) in the book face, turned +2 deg against READ's -5, landing 300 ms after it with its own small thunk (`stamp-date-land`). Replays when the status or finish date changes. No new tap or wait. Left: the book walking to the Pile.
 - **H7 (stuck changes)** Done 2026-11-12 (run 43, class C): after 6 failed tries (`STUCK_AFTER`, `convex/lib/outbox.ts`) an outbox row counts as stuck. `syncStatus` lists up to 10 (`stuck`: label, last error, tries; additive), Settings > Integrations > Hardcover shows each with "Try again" (`retryStuck`: tries reset, sent at once) and "Discard" (`discardStuck`: only for stuck rows, only your own; Margin keeps what it holds, Hardcover is never told, and the next pull may bring Hardcover's version back). Retry timing is unchanged (still backs off to an hour). Tests in `convex/hardcoverSync.test.ts`; the fixtures hold one stuck row.

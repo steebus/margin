@@ -256,6 +256,15 @@ p a { color: inherit; text-underline-offset: 3px; }
 
 /* ---------- Boxes ---------- */
 .box { display: grid; gap: 10px; padding: 14px; border: var(--line) solid var(--ink); border-radius: 3px; }
+/* Review queue: the cards still waiting peek out below the top one, and each new top card is dealt onto the stack. */
+.review-stack { position: relative; isolation: isolate; }
+.review-stack[data-behind="1"] { padding-bottom: 6px; }
+.review-stack[data-behind="2"] { padding-bottom: 12px; }
+.review-stack::before, .review-stack::after { content: ""; position: absolute; z-index: -1; left: 0; right: 0; bottom: 0; top: 8px; border: var(--line) solid var(--ink); border-radius: 3px; background: var(--paper); display: none; }
+.review-stack[data-behind="1"]::before, .review-stack[data-behind="2"]::before { display: block; translate: 0 6px; rotate: 0.5deg; }
+.review-stack[data-behind="2"]::after { display: block; translate: 0 12px; rotate: -0.7deg; }
+.review-card { background: var(--paper); animation: review-deal 0.38s cubic-bezier(0.2, 0.9, 0.3, 1.15); }
+@keyframes review-deal { from { opacity: 0; translate: 0 -14px; rotate: -1.6deg; } 70% { opacity: 1; } }
 .tags { display: flex; flex-wrap: wrap; gap: 6px; }
 .tag { padding: 1px 8px; border: 1.5px solid var(--ink); border-radius: 3px; font-size: 0.875rem; }
 .stars { display: inline-flex; gap: 1px; }

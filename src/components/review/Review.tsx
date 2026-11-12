@@ -61,7 +61,7 @@ function ReviewCard({ card, left }: { card: Card; left: number }) {
   })
 
   return (
-    <article className="box stack" aria-label={card.title}>
+    <article className="box stack review-card" aria-label={card.title}>
       <p className="where">{left} waiting · from {SOURCE[card.source]}</p>
       <h2 className="book-title" data-size={card.title.length > 28 ? 'long' : 'mid'}>{card.title}</h2>
       {card.author && <p className="book-author">{card.author}</p>}
@@ -114,7 +114,12 @@ export function Review() {
           <div className="btn-row"><Link to="/settings" search={{ tab: 'integrations' }} className="btn">Go to Settings</Link></div>
         </div>
       )}
-      {cards && cards.length > 0 && <ReviewCard key={cards[0].id} card={cards[0]} left={cards.length} />}
+      {cards && cards.length > 0 && (
+        // Cards still waiting show as edges of a stack under this one (two at most); the next is dealt on top when this one goes.
+        <div className="review-stack" data-behind={Math.min(cards.length - 1, 2)}>
+          <ReviewCard key={cards[0].id} card={cards[0]} left={cards.length} />
+        </div>
+      )}
     </div>
   )
 }
