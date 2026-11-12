@@ -248,6 +248,9 @@ p a { color: inherit; text-underline-offset: 3px; }
   animation: pen 520ms cubic-bezier(0.45, 0, 0.3, 1) both;
 }
 @keyframes pen { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+/* Over a cover's art the art is pale in both themes, so marks keep the daylight biro and a paper halo (night's pale blue was 1.5:1 there). */
+:is(.thumb[data-art] .mark, .cell:has(.thumb[data-art]) .mark-tick) { filter: drop-shadow(0 0 1.5px var(--cover-paper)); }
+:is(.thumb[data-art] .mark, .cell:has(.thumb[data-art]) .mark-tick) path { stroke: var(--cover-biro); }
 .biro-arrow { width: 26px; height: 40px; }
 .biro-arrow path { fill: none; stroke: var(--biro); stroke-width: 2.25; stroke-linecap: round; stroke-linejoin: round; }
 

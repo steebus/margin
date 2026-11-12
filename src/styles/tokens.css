@@ -14,6 +14,8 @@
   /* The paper and ink a cover is printed in. Covers keep their daylight stock in both themes. */
   --cover-paper: #d8d6cf;
   --cover-ink: #121212;
+  /* The reader's biro on a cover: the daylight blue in both themes, since the art is pale in both. */
+  --cover-biro: #2346c8;
   color-scheme: light;
   scrollbar-color: var(--ink) var(--paper);
 }

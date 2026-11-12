@@ -201,7 +201,7 @@ Every item here is class C unless it's a plain bug. Look at each in fixture mode
 | Id | Item | Evidence | Size | Status |
 |---|---|---|---|---|
 | ~~U9~~ | **Closed 2026-11-10 (Steve: dim, don't invert; SPEC §3.11 corrected).** ~~Drawings in the dark theme.~~ In fixture mode a book with a drawing shows as a pale panel with black ink on Shelves at night, where SPEC §3.11 says `invert` plus `screen`. It may be the stand-in art (an SVG, not a WebP), a decision since the spec, or a bug. Check with Steve's eyes on a real drawing before touching it. | `fixture-shots/shelves.phone.dark.png` | S | closed |
-| U1 | **An accessibility sweep, one surface per run:** focus order and visible focus, names on icon buttons, contrast in both themes (WCAG AA is a brand commitment), 48dp targets, nothing hover-only, toasts announced once. Start with the Desk and the book page. **Targets and names swept on every screen by run 31, contrast of the tokens and every text opacity by run 34, focus rings and dialog focus read in code by run 35 (see §6). Keyboard pass done by run 45 (below). Left: contrast of text over covers and drawings.** | `PRODUCT.md` Accessibility; never audited | M each | started |
+| U1 | **An accessibility sweep, one surface per run:** focus order and visible focus, names on icon buttons, contrast in both themes (WCAG AA is a brand commitment), 48dp targets, nothing hover-only, toasts announced once. Start with the Desk and the book page. **Targets and names swept on every screen by run 31, contrast of the tokens and every text opacity by run 34, focus rings and dialog focus read in code by run 35 (see §6). Keyboard pass done by run 45 (below). Text over covers read by run 46 (titles sit on a paper strip, fine); marks over art fixed run 46. Left: nothing known.** | `PRODUCT.md` Accessibility; never audited | M each | started |
 | ~~U2~~ | **Dropped 2026-11-10 (Steve doesn't want motion reduced).** ~~A reduced-motion sweep.~~ Nine places mention reduced motion; `PLAN.md` wants a designed path for every animation. List every animation, tick the ones with a designed still version, fix the rest. | `grep prefers-reduced-motion` | M | ready |
 | ~~U3~~ | **Done 2026-11-11 (runs 38 and 39), see §7.** ~~Loading and empty states.~~ Several screens showed a bare "Opening…" line. DESIGN-DIRECTION asks for "something small and alive". Design one empty state and one loading state and use them everywhere. | `Desk.tsx`, `__root.tsx` | M | done |
 | U4 | **The review queue is buttons "for now".** PLAN and DESIGN-DIRECTION describe an index-card stack to swipe. | `PLAN.md` Phase 5.2; `Review.tsx` | M | ready |
@@ -282,6 +282,13 @@ Answer in this file, dated, and the items unblock.
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
 
+- **2026-11-12, run 46 (unattended; a normal pick).** Ground: `main` at `974b429`, CI green (Vercel not checked, Q13). Did the
+  covers half of U1 (class C), see §7: cover titles print on a paper strip (12.9:1, fine); the biro ticks and strikes over art
+  covers were night's pale blue on pale art (about 1.5:1) and now use the daylight biro. Verified: lint, 331 tests, build and
+  budget green (482.4 kB, unchanged); Shelves read in fixture mode, phone dark before and after (desktop and light shots
+  taken, nothing wider than the screen, no errors). Not checked: a phone, real art. Remaining safe supply: O3 (Motion), D6's
+  other half, D7 (class C). Run 47 is a normal pick; run 48 is a delight run.
+
 - **2026-11-12, run 45 (unattended; a normal pick).** Ground: `main` at `e37f73f`, CI green (Vercel not checked, Q13). Did the
   keyboard half of U1 (class A, no code change). In fixture mode, light and dark at 1280 px, Tab through the Desk, Shelves,
   Notes, Pile, Explore, Settings, Capture, Review, a book's page, its notes, its edit page and the drawer (6 to 40 stops each):
@@ -329,6 +336,7 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
 
 Move items here with the date and the commit or the reason. Keep the id so old log entries still make sense.
 
+- **U1 (marks over covers)** Done 2026-11-12 (run 46, class C): `.thumb[data-art] .mark` and the read tick on an art cell use `--cover-biro` (`#2346c8`, tokens.css) with a `--cover-paper` halo in both themes, since cover art is pale in both. In dark the pale biro was about 1.5:1 on it. Marks on plain covers are unchanged.
 - **D6 (date stamp)** Done 2026-11-12 (run 44, class C): on a finished book's page the "Finished 9 Nov 2026" line is a second, smaller stamp (`.stamp-date`, `app.css`) in the book face, turned +2 deg against READ's -5, landing 300 ms after it with its own small thunk (`stamp-date-land`). Replays when the status or finish date changes. No new tap or wait. Left: the book walking to the Pile.
 - **H7 (stuck changes)** Done 2026-11-12 (run 43, class C): after 6 failed tries (`STUCK_AFTER`, `convex/lib/outbox.ts`) an outbox row counts as stuck. `syncStatus` lists up to 10 (`stuck`: label, last error, tries; additive), Settings > Integrations > Hardcover shows each with "Try again" (`retryStuck`: tries reset, sent at once) and "Discard" (`discardStuck`: only for stuck rows, only your own; Margin keeps what it holds, Hardcover is never told, and the next pull may bring Hardcover's version back). Retry timing is unchanged (still backs off to an hour). Tests in `convex/hardcoverSync.test.ts`; the fixtures hold one stuck row.
 
