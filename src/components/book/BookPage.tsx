@@ -180,7 +180,7 @@ export function BookPage() {
             <p className="book-rating"><span className="pct pct-large">{book.rating}</span> <span className="where">of 5</span></p>
           )}
           {book.status === 'read' && <p><Link to="/books/$bookSlug/review" params={{ bookSlug: book.slug }}>{entries.some(e => e.kind === 'review') ? 'Your review' : 'Write a review'}</Link></p>}
-          {book.status === 'read' && book.finishedAt && <p className="where">Finished {formatDate(book.finishedAt)}</p>}
+          {book.status === 'read' && book.finishedAt && <p key={`${book.status}-${book.finishedAt}`} className="stamp-date"><span>Finished</span> {formatDate(book.finishedAt)}</p>}
           <SyncNote readId={book.readId} />
         </div>
         <div className="book-name">

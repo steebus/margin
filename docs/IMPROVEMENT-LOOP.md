@@ -245,7 +245,7 @@ never in the way": nothing here may add a tap or delay an input. Every fourth ru
 | ~~D2~~ | **Done 2026-11-11 (run 32), see §7.** ~~Shelf to book as one movement.~~ | | S | done |
 | D4 | **A year in the catalog.** A printable end-of-year sheet in the Fair-catalog look: the year's books as stamps, pages, the most-marked book, the line most returned to. December is close. | `stats.ts` has most of the numbers | L | needs Steve |
 | ~~D5~~ | **Done 2026-11-11 (run 28), see §7.** ~~Typewriter sound, off by default.~~ | | S | done |
-| D6 | **Finishing a book** beyond the stamp: the library card gets its date stamp with the thunk and slight turn the brief describes, and the book walks to the Pile. | `a3985b8` added stamps; compare with the brief | M | ready |
+| D6 | **Finishing a book** beyond the stamp: the book walks to the Pile. (The date stamp is **done 2026-11-12, run 44**, §7.) | `a3985b8` added stamps; compare with the brief | M | started |
 | D7 | **Citation cards in the buddy's replies** (SPEC §3.8: a cited entry renders as a clickable index card). Not built. | `Buddy.tsx` | M | ready |
 | D8 | **New books get drawn on their own.** SPEC §3.11 says a book being read is drawn straight away; today nothing is drawn until the bulk script runs. Costs money per book, so it needs a yes and a cap. | SPEC §3.11 "When it runs" | M | **dropped 2026-11-10: Steve doesn't want books drawn automatically.** SPEC §3.11 should say so (B7) |
 | D9 | **Pull to refresh on the Desk** that asks Hardcover now, not at the next two-minute tick. | DESIGN-DIRECTION "pull-to-refresh where it means something" | S | ready (class D: it calls the sync) |
@@ -290,33 +290,14 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
   covered by the server test), or a phone. Remaining safe supply: U1 (text over covers, keyboard pass), O3 (Motion), D6 and
   D7 (class C). Run 44 is a delight run.
 
-- **2026-11-12, run 42 (unattended; a normal pick).** Ground: `main` at `8a26b0c`, CI green (Vercel not checked, Q13). Did
-  the Desk half of H4 (class C), see §7. Also pruned §6: runs 26 to 31 are one line. Verified: lint, 329 tests (2 new), build
-  and budget green (main chunk 481.7 kB, unchanged); in fixture mode the Desk read at 390 px light and 1280 px dark (all
-  four shot): the line sits under the dateline in the typewriter face, nothing wider than its screen, no page errors. Not
-  checked: the "waited an hour" wording (fixtures hold only a failed row), a phone. Remaining safe supply: U1 (text over
-  covers, keyboard pass), O3 (Motion), D6 (class C), H7 (class C). Run 43 is a normal pick.
+- **2026-11-12, run 44 (unattended; a delight run).** Ground: `main` at `2da1255`, CI green (Vercel not checked, Q13). Did
+  the date-stamp slice of D6 (class C), see §7. Also pruned §6 (runs 39 to 42 are one line). Verified: lint, 331 tests,
+  build and budget green (main chunk 482.4 kB, unchanged); in fixture mode a finished book's page read at 390 px light
+  and 1280 px dark: the date stamp sits under "Your review", turned the other way from READ, nothing wider than its screen,
+  no page errors. Not checked: the landing in motion (a still can't show it), or a phone. Remaining safe supply: U1 (text
+  over covers, keyboard pass), O3 (Motion), D6's other half (the book walking to the Pile), D7 (class C). Run 45 is a normal pick.
 
-- **2026-11-11, run 41 (unattended; a normal pick).** Ground: `main` at `0461010`, CI green (Vercel not checked, Q13). Did the
-  book-page half of H4 (class C), see §7. Verified: lint, 327 tests (2 new server, 4 new lib), build and budget green (main
-  chunk 481.7 kB, unchanged); in fixture mode the book page read at 390 px light and 1280 px dark (all four shot): the
-  line sits under the progress, in the typewriter face, nothing wider than its screen, no page errors. Not checked: the
-  "waited a while" wording (fixtures hold only a failed row), the Desk mark (not built), or on a phone. Remaining safe supply:
-  H4 (Desk mark), U1 (text over covers, keyboard pass), O3 (Motion), D6 (class C). Run 42 is a normal pick.
-
-- **2026-11-11, run 40 (unattended; a delight run).** Ground: `main` at `1452fb9`, CI green (run 38's commit still showed
-  queued, as before; Vercel not checked, Q13). Did D15 (class C), see §7. Verified: lint, 322 tests (5 new), build and budget
-  green (main chunk 481.7 kB, unchanged); Shelves read in fixture mode at 390 px light, plus the other three shots: layout
-  unchanged, nothing wider than its screen, no page errors. Not checked: the slide itself, by eye or on a phone (fixture
-  writes are forgotten, so no book can be added there), or how it behaves on a very long shelf. Remaining safe supply: U1
-  (text over covers, keyboard pass), O3 (Motion), D6 (class C), H4 (class C). Run 41 is a normal pick.
-
-- **2026-11-11, run 39 (unattended; a normal pick).** Ground: `main` at `ffd26e1`, CI for run 38's commit still queued when
-  checked, the one before green (Vercel not checked, Q13). Did the empty-state half of U3 (class C), see §7. Verified: lint,
-  317 tests, build and budget green (main chunk 481.7 kB, unchanged); in fixture mode (`?fixture=empty`) the Desk and
-  Shelves read at 390 px light and 1280 px dark (and the other two combinations shot): shelf drawing, heading, line,
-  button, nothing wider than its screen, no page errors. Not checked: the lean's motion by eye, or on a phone. Remaining
-  safe supply: U1 (text over covers, keyboard pass), O3 (Motion), D15/D6 (class C), H4 (class C). Run 40 is a delight run.
+- **Runs 42 to 39.** H4 Desk mark and book-page line (class C); D15 adding a book slides into its slot; U3 empty states (§7). Run 43 did H7 (§7).
 
 - **Runs 38 to 32.** U3 loading line; H3 review put back (class D); D14 spines lean; U1 focus order (read, nothing to fix); U1 contrast; B6 placeholders; D2 cover flight. All in §7, each checked by lint, tests, build and fixture shots.
 
@@ -348,6 +329,7 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
 
 Move items here with the date and the commit or the reason. Keep the id so old log entries still make sense.
 
+- **D6 (date stamp)** Done 2026-11-12 (run 44, class C): on a finished book's page the "Finished 9 Nov 2026" line is a second, smaller stamp (`.stamp-date`, `app.css`) in the book face, turned +2 deg against READ's -5, landing 300 ms after it with its own small thunk (`stamp-date-land`). Replays when the status or finish date changes. No new tap or wait. Left: the book walking to the Pile.
 - **H7 (stuck changes)** Done 2026-11-12 (run 43, class C): after 6 failed tries (`STUCK_AFTER`, `convex/lib/outbox.ts`) an outbox row counts as stuck. `syncStatus` lists up to 10 (`stuck`: label, last error, tries; additive), Settings > Integrations > Hardcover shows each with "Try again" (`retryStuck`: tries reset, sent at once) and "Discard" (`discardStuck`: only for stuck rows, only your own; Margin keeps what it holds, Hardcover is never told, and the next pull may bring Hardcover's version back). Retry timing is unchanged (still backs off to an hour). Tests in `convex/hardcoverSync.test.ts`; the fixtures hold one stuck row.
 
 - **H4 (Desk mark)** Done 2026-11-12 (run 42, class C): `syncStatus` also returns `oldestAt` (additive); the Desk shows a typewriter-face line under the dateline (`deskSyncMark`, `src/lib/syncNote.ts`, tested) when the last sync failed ("Hardcover isn't answering. Margin will keep trying.") or a change has waited an hour ("N changes still waiting for Hardcover."). Nothing otherwise.
