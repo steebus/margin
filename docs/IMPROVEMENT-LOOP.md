@@ -201,7 +201,7 @@ Every item here is class C unless it's a plain bug. Look at each in fixture mode
 | Id | Item | Evidence | Size | Status |
 |---|---|---|---|---|
 | ~~U9~~ | **Closed 2026-11-10 (Steve: dim, don't invert; SPEC §3.11 corrected).** ~~Drawings in the dark theme.~~ In fixture mode a book with a drawing shows as a pale panel with black ink on Shelves at night, where SPEC §3.11 says `invert` plus `screen`. It may be the stand-in art (an SVG, not a WebP), a decision since the spec, or a bug. Check with Steve's eyes on a real drawing before touching it. | `fixture-shots/shelves.phone.dark.png` | S | closed |
-| U1 | **An accessibility sweep, one surface per run:** focus order and visible focus, names on icon buttons, contrast in both themes (WCAG AA is a brand commitment), 48dp targets, nothing hover-only, toasts announced once. Start with the Desk and the book page. **Targets and names swept on every screen by run 31, contrast of the tokens and every text opacity by run 34, focus rings and dialog focus read in code by run 35 (see §6). Left: a keyboard pass in a browser, contrast of text over covers and drawings.** | `PRODUCT.md` Accessibility; never audited | M each | started |
+| U1 | **An accessibility sweep, one surface per run:** focus order and visible focus, names on icon buttons, contrast in both themes (WCAG AA is a brand commitment), 48dp targets, nothing hover-only, toasts announced once. Start with the Desk and the book page. **Targets and names swept on every screen by run 31, contrast of the tokens and every text opacity by run 34, focus rings and dialog focus read in code by run 35 (see §6). Keyboard pass done by run 45 (below). Left: contrast of text over covers and drawings.** | `PRODUCT.md` Accessibility; never audited | M each | started |
 | ~~U2~~ | **Dropped 2026-11-10 (Steve doesn't want motion reduced).** ~~A reduced-motion sweep.~~ Nine places mention reduced motion; `PLAN.md` wants a designed path for every animation. List every animation, tick the ones with a designed still version, fix the rest. | `grep prefers-reduced-motion` | M | ready |
 | ~~U3~~ | **Done 2026-11-11 (runs 38 and 39), see §7.** ~~Loading and empty states.~~ Several screens showed a bare "Opening…" line. DESIGN-DIRECTION asks for "something small and alive". Design one empty state and one loading state and use them everywhere. | `Desk.tsx`, `__root.tsx` | M | done |
 | U4 | **The review queue is buttons "for now".** PLAN and DESIGN-DIRECTION describe an index-card stack to swipe. | `PLAN.md` Phase 5.2; `Review.tsx` | M | ready |
@@ -282,13 +282,13 @@ Answer in this file, dated, and the items unblock.
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
 
-- **2026-11-12, run 43 (unattended; a normal pick).** Ground: `main` at `69c7378`, CI green (Vercel not checked, Q13). Did H7
-  (class C), see §7. Also pruned §6 (runs 32 to 38 are one line). Verified: lint, 331 tests (2 new), build and budget green
-  (main chunk 482.4 kB, +0.7); in fixture mode Settings > Integrations read at 390 px light and 1280 px dark (all four
-  shot): the stuck change sits under the sync line with Try again and Discard, nothing wider than its screen, no page
-  errors beyond the known blocked Google script. Not checked: the buttons' effect by eye (fixture writes are forgotten;
-  covered by the server test), or a phone. Remaining safe supply: U1 (text over covers, keyboard pass), O3 (Motion), D6 and
-  D7 (class C). Run 44 is a delight run.
+- **2026-11-12, run 45 (unattended; a normal pick).** Ground: `main` at `e37f73f`, CI green (Vercel not checked, Q13). Did the
+  keyboard half of U1 (class A, no code change). In fixture mode, light and dark at 1280 px, Tab through the Desk, Shelves,
+  Notes, Pile, Explore, Settings, Capture, Review, a book's page, its notes, its edit page and the drawer (6 to 40 stops each):
+  every stop was `:focus-visible`, had an outline or shadow, and was on screen; nothing to fix. Also pruned §6 (run 43 is
+  a line). Not checked: Tab order against reading order by eye, dialogs and sheets that open on a tap, a screen reader, a
+  phone. Remaining safe supply: U1 (text over covers), O3 (Motion), D6's other half, D7 (class C). Run 46 is a normal pick;
+  run 48 is a delight run.
 
 - **2026-11-12, run 44 (unattended; a delight run).** Ground: `main` at `2da1255`, CI green (Vercel not checked, Q13). Did
   the date-stamp slice of D6 (class C), see §7. Also pruned §6 (runs 39 to 42 are one line). Verified: lint, 331 tests,
@@ -297,7 +297,7 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
   no page errors. Not checked: the landing in motion (a still can't show it), or a phone. Remaining safe supply: U1 (text
   over covers, keyboard pass), O3 (Motion), D6's other half (the book walking to the Pile), D7 (class C). Run 45 is a normal pick.
 
-- **Runs 42 to 39.** H4 Desk mark and book-page line (class C); D15 adding a book slides into its slot; U3 empty states (§7). Run 43 did H7 (§7).
+- **Runs 43 to 39.** H7 stuck changes; H4 Desk mark and book-page line; D15 adding a book slides into its slot; U3 empty states (§7). Run 43 left: lint, 331 tests, build and budget green, Settings read in fixture mode.
 
 - **Runs 38 to 32.** U3 loading line; H3 review put back (class D); D14 spines lean; U1 focus order (read, nothing to fix); U1 contrast; B6 placeholders; D2 cover flight. All in §7, each checked by lint, tests, build and fixture shots.
 
