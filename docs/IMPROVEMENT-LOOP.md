@@ -283,6 +283,14 @@ Answer in this file, dated, and the items unblock.
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
 
+- **2026-11-12, run 58 (unattended; a normal pick, assess only).** Ground: `main` at `6b9c19e`, CI green (Vercel not checked, Q13).
+  Read the Pile, a finished read's page, a person's page and Topics in fixture mode (phone and desktop, light and dark, 20 shots):
+  spines, stamps-and-dates, empty "written during this read" line and the person's two covers all read fine; nothing wider than
+  its screen, no errors. No `ready` item is both safe and small (same list as run 57), and no class D today: Steve's own H1/H11
+  commit landed earlier on 2026-11-12, and §3 allows one a day. No code change. Verified: lint, 341 tests, build and budget
+  (482.4 kB) green. **Still needs Steve** (from run 57): his real book and note counts (O2), and whether he wants H2 or H6 next.
+  Run 59 is a normal pick; run 60 is a delight run and the tenth-run review of §8.
+
 - **2026-11-12, run 57 (unattended; a normal pick, assess only).** Ground: `main` at `8fea546`, CI green (Vercel not checked, Q13).
   Read Stats and Capture in fixture mode (phone, light and dark): bars, targets and the disabled Save button read fine; the shots
   script (Desk, Shelves, Notes, Explore, Stats, Review, Capture, Settings, 32 shots) found nothing wider than its screen and no
@@ -312,26 +320,7 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
   is unknown and can't be seen from here. Left in D2 as a note. No code change. Remaining safe supply: U4's swipe, O3 (Motion),
   O8's LCP. Run 55 is a normal pick.
 
-- **2026-11-12, run 53 (unattended; a normal pick).** Ground: `main` at `adf14d2`, CI green (Vercel not checked, Q13). No code
-  change. Re-checked O8's leftovers against the build: Notes has no layout shift now (observer, fixture build, phone width) and the
-  loading line's contrast was a mid-fade reading, see O8. Verified: lint, tests and build green. Not checked: throttled Lighthouse,
-  a phone. Remaining safe supply: LCP (O8), U4's swipe, O3 (Motion); `ready` H items are class D. Run 54 is a delight run.
-
-- **2026-11-12, run 52 (unattended; a delight run).** Ground: `main` at `f742326`, CI green (Vercel not checked, Q13). Did the
-  last slice of D6 (class C), see §7. Verified: lint, tests, build and budget green; the review page read in fixture mode,
-  phone and desktop, light and dark: the settled spine sits on its rule, nothing wider than its screen, no errors. Not
-  checked: the drop in motion (a still can't show it), a phone, a book with a very long title. Remaining safe supply: U4's
-  swipe, O3 (Motion), O8's rest. Run 53 is a normal pick.
-
-- **2026-11-12, run 51 (unattended; a normal pick).** Ground: `main` at `fc61b14` (Steve's own class D commit that morning, H1 and H11; CI green, Vercel not checked, Q13). Marked H1 done (stale). Did O8's `.strip-card` name (class C, no visible change): the aria-label is built by `stripName` and includes "Audiobook" when the card prints it in the author's place. Verified: lint, 341 tests (3 new), build and budget green (482.4 kB). Not checked: Lighthouse re-run, a screen reader, fixture shots (nothing visible changed). Run 52 is a delight run.
-
-- **2026-11-12, run 50 (unattended; a normal pick, and the tenth-run review of §8).** Ground: `main` at `2c754f5`, CI green (Vercel not
-  checked, Q13). **Review:** since run 20, 31 commits on `main`, all by the loop, none reverted (git log), so Steve left them
-  alone; scoring keeps picking small safe items and no change to §1 to §3 is needed. Supply of safe items is thin: what's left is
-  O8's rest, U4's swipe, O3 (Motion), D6's other half, and class D items (one a day, never two in a row). Did O8's Shelves shift
-  (class C, no visual change beyond text no longer re-wrapping), see §7. Verified: lint, tests, build and budget green; layout-shift
-  observer on Shelves at 390 px in fixture build: one shift of 0.16 before, none after. Not checked: Notes, throttled Lighthouse,
-  a phone on a slow network. Run 51 is a normal pick; run 52 is a delight run.
+- **Runs 53 to 50.** O8: Notes has no layout shift and the loading line was a mid-fade reading (53); D6 spine onto the Pile (52); `.strip-card` name, H1 marked done (51); font preload for Shelves, and the tenth-run review (50: 31 loop commits, none reverted, no change to §1 to §3). All in §7 or O8.
 
 - **Runs 49 to 44.** O6 first Lighthouse pass and the toast `div` (O8); D7 citation cards; U4 stack and deal; U1 marks over covers; U1 keyboard pass (nothing to fix); D6 date stamp. All in §7, each checked by lint, tests, build, budget and fixture shots.
 
