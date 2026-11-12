@@ -193,7 +193,7 @@ No open items (B6 done, §7).
 | O3 | **Main chunk was 620 kB (194 kB gzip); zod half done 2026-11-11 (run 22), now 553 kB (173 kB gzip).** Left, by source share: react-dom ~30%, Motion ~26%, convex ~9%. Candidates: Motion's `LazyMotion` with the `m` components (watch that it can't cost any animation, §2); check the Desk's route isn't dragging other screens in. Measure each change against `npm run budget`. | build output; source-map estimate 2026-11-10 | Sure of the size; gains unmeasured | M | A | started |
 | O5 | **`myBooks` re-sends the whole library on any change to any read.** Fine at 600 books; watch it. If Shelves ever janks on a sync, split the hot fields (progress, status) from the cold ones. Measure before touching. | `convex/library.ts` `myBooks` | A watch item | L | B | ready (measure only) |
 | O6 | **Lighthouse pass** (PLAN Phase 7.3: 90+ for accessibility and performance on mobile; SPEC §6: LCP under 2.5 s on mid-range Android). **First pass done 2026-11-12 (run 49)**, numbers in O8. Left: Notes' contrast item, a signed-in run on real data (Steve's). | `PLAN.md` Phase 7 | n/a | M | A | started |
-| O8 | **Lighthouse numbers (run 49).** Fixture build (`vite build --mode fixtures`, `vite preview`, `npx lighthouse@12`, Lighthouse's default mobile throttling, headless Chromium; data is invented, so a guide, not Steve's numbers). Performance / accessibility: Desk 90 / 96, Shelves 77 / 96, Notes 80 / 96. LCP 2.9 / 3.1 / 3.5 s (SPEC wants under 2.5), TBT 130 / 290 / 190 ms. **Layout shift** CLS 0.06 / 0.17 / 0.10 (Shelves `section.stack` and Notes `div.notes-wall` over 0.1: the grid pops in after the first paint). Accessibility fails left: `.strip-card` names ("Text inside the element is not included in the accessible name": its `aria-label` is title, author and percent, the visible text differs somewhere, probably the cover's own text or "Audiobook"); the loading line's colour at 4.32:1 (probably caught mid-fade, `opening-in`; re-check with a settled page). Start with the Shelves layout shift. | this file | Sure for the fixture build | M | C | ready |
+| O8 | **Lighthouse numbers (run 49).** Fixture build (`vite build --mode fixtures`, `vite preview`, `npx lighthouse@12`, Lighthouse's default mobile throttling, headless Chromium; data is invented, so a guide, not Steve's numbers). Performance / accessibility: Desk 90 / 96, Shelves 77 / 96, Notes 80 / 96. LCP 2.9 / 3.1 / 3.5 s (SPEC wants under 2.5), TBT 130 / 290 / 190 ms. **Layout shift** CLS 0.06 / 0.17 / 0.10 (Shelves `section.stack` and Notes `div.notes-wall` over 0.1: the grid pops in after the first paint). Accessibility fails left: `.strip-card` names ("Text inside the element is not included in the accessible name": its `aria-label` is title, author and percent, the visible text differs somewhere, probably the cover's own text or "Audiobook"); the loading line's colour at 4.32:1 (probably caught mid-fade, `opening-in`; re-check with a settled page). **Shelves shift fixed run 50** (it was the heading and buttons re-wrapping when the fonts arrived, not the grid; the first screen's three fonts are now preloaded in `index.html`: CLS 0.16 to 0 unthrottled, measured with a layout-shift observer). Left: Notes' shift (0.10, not re-measured; probably the same cause), LCP over 2.5 s, the `.strip-card` name, the loading line's contrast. | this file | Sure for the fixture build | M | C | started |
 
 ### U: UI and UX
 
@@ -283,6 +283,14 @@ Answer in this file, dated, and the items unblock.
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
 
+- **2026-11-12, run 50 (unattended; a normal pick, and the tenth-run review of §8).** Ground: `main` at `2c754f5`, CI green (Vercel not
+  checked, Q13). **Review:** since run 20, 31 commits on `main`, all by the loop, none reverted (git log), so Steve left them
+  alone; scoring keeps picking small safe items and no change to §1 to §3 is needed. Supply of safe items is thin: what's left is
+  O8's rest, U4's swipe, O3 (Motion), D6's other half, and class D items (one a day, never two in a row). Did O8's Shelves shift
+  (class C, no visual change beyond text no longer re-wrapping), see §7. Verified: lint, tests, build and budget green; layout-shift
+  observer on Shelves at 390 px in fixture build: one shift of 0.16 before, none after. Not checked: Notes, throttled Lighthouse,
+  a phone on a slow network. Run 51 is a normal pick; run 52 is a delight run.
+
 - **2026-11-12, run 49 (unattended; a normal pick).** Ground: `main` at `eadf883`, CI green (Vercel not checked, Q13). Did the
   first Lighthouse pass (O6, class A, numbers in O8) and one fix it found: the Desk's drawer toast was an `<aside>` with
   `role="status"`, which ARIA doesn't allow; it is a `<div>` now (same look, same motion). Verified: lint, tests, build and
@@ -357,6 +365,7 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
 
 Move items here with the date and the commit or the reason. Keep the id so old log entries still make sense.
 
+- **O8 (font preload)** Done 2026-11-12 (run 50, class C): `index.html` preloads League Gothic, Source Serif 4 and Courier Prime (Latin), the first screen's faces, so Shelves' heading and button row no longer re-wrap (a 0.16 layout shift) when they swap in. Same files the CSS names; no animation touched.
 - **D7 (citation cards)** Done 2026-11-12 (run 48, class C): when the buddy's reply names the book a note it found came from (as the persona asks), that note shows under the reply as an index card (up to three, `citedFrom`, `convex/lib/buddy.ts`, tested), linking to `/e/:entryId`. `buddyTurns.cited` (optional, additive) holds the ids; `buddy.thread` resolves them to title, kind and the first 160 characters, dropping any since deleted. Cards deal on one after another (`cite-deal`, `app.css`). A reply that names no book cites nothing; topic_links notes aren't cited. Adds no tap or wait.
 
 - **U4 (stack and deal)** Done 2026-11-12 (run 47, class C): the Review card sits on a stack: when more cards wait, one or two card edges peek out below it (`.review-stack`, `data-behind`, `app.css`), and each new top card is dealt on (`review-deal`, 0.38 s, slight overshoot and tilt). No new tap or wait. Left: the swipe.
