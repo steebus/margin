@@ -6,6 +6,7 @@ import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { errorText } from '../../lib/books'
+import { faceOf, spineOf, spineTitle } from '../../lib/pile'
 import { NotFoundBook } from './BookPage'
 import { EntryText, entryLabel, type Entry } from './EntryList'
 
@@ -32,10 +33,27 @@ export function FinishReview() {
   return (
     <div className="narrow stack">
       {back}
+      <PileDrop book={book} />
       <h1 className="book-title">Your review</h1>
       <p>{book.title}, {book.author}</p>
       <ReviewForm key={book.readId} readId={book.readId} slug={bookSlug} rating={book.rating} text={review?.text ?? ''} />
       <Looking readId={book.readId} notes={notes} />
+    </div>
+  )
+}
+
+/** The finished book's own spine, as it will lie in the Pile, dropping onto the top of it. Decoration: the words repeat the page. */
+function PileDrop({ book }: { book: { slug: string; title: string; author: string; pages: number | null; genres: string[] } }) {
+  const spine = spineOf(book.slug, book.pages)
+  return (
+    <div className="pile-drop" aria-hidden="true">
+      <div className="spine" data-look={spine.look} data-thin={spine.thin || undefined} style={{ height: spine.height, width: `${spine.width}%`, marginLeft: `${((100 - spine.width) * spine.shift) / 100}%` }}>
+        <span className="spine-etch" />
+        <span className="spine-label">
+          <span className="spine-title" data-face={faceOf(book.genres)} style={{ WebkitLineClamp: spine.titleLines, '--title': `${spine.titleSize}px` } as React.CSSProperties}>{spineTitle(book.title)}</span>
+          <span className="spine-author">{book.author}</span>
+        </span>
+      </div>
     </div>
   )
 }

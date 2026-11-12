@@ -246,7 +246,7 @@ never in the way": nothing here may add a tap or delay an input. Every fourth ru
 | ~~D2~~ | **Done 2026-11-11 (run 32), see §7.** ~~Shelf to book as one movement.~~ | | S | done |
 | D4 | **A year in the catalog.** A printable end-of-year sheet in the Fair-catalog look: the year's books as stamps, pages, the most-marked book, the line most returned to. December is close. | `stats.ts` has most of the numbers | L | needs Steve |
 | ~~D5~~ | **Done 2026-11-11 (run 28), see §7.** ~~Typewriter sound, off by default.~~ | | S | done |
-| D6 | **Finishing a book** beyond the stamp: the book walks to the Pile. (The date stamp is **done 2026-11-12, run 44**, §7.) | `a3985b8` added stamps; compare with the brief | M | started |
+| D6 | **Finishing a book** beyond the stamp: the book walks to the Pile. (The date stamp is **done 2026-11-12, run 44**, §7; the spine dropping onto the Pile on the review page **done run 52**, §7.) | `a3985b8` added stamps; compare with the brief | M | started |
 | ~~D7~~ | **Done 2026-11-12 (run 48), see §7.** ~~Citation cards in the buddy's replies.~~ | | M | done |
 | D8 | **New books get drawn on their own.** SPEC §3.11 says a book being read is drawn straight away; today nothing is drawn until the bulk script runs. Costs money per book, so it needs a yes and a cap. | SPEC §3.11 "When it runs" | M | **dropped 2026-11-10: Steve doesn't want books drawn automatically.** SPEC §3.11 should say so (B7) |
 | D9 | **Pull to refresh on the Desk** that asks Hardcover now, not at the next two-minute tick. | DESIGN-DIRECTION "pull-to-refresh where it means something" | S | ready (class D: it calls the sync) |
@@ -282,6 +282,12 @@ Answer in this file, dated, and the items unblock.
 ## 6. Run log
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
+
+- **2026-11-12, run 52 (unattended; a delight run).** Ground: `main` at `f742326`, CI green (Vercel not checked, Q13). Did the
+  last slice of D6 (class C), see §7. Verified: lint, tests, build and budget green; the review page read in fixture mode,
+  phone and desktop, light and dark: the settled spine sits on its rule, nothing wider than its screen, no errors. Not
+  checked: the drop in motion (a still can't show it), a phone, a book with a very long title. Remaining safe supply: U4's
+  swipe, O3 (Motion), O8's rest. Run 53 is a normal pick.
 
 - **2026-11-12, run 51 (unattended; a normal pick).** Ground: `main` at `fc61b14` (Steve's own class D commit that morning, H1 and H11; CI green, Vercel not checked, Q13). Marked H1 done (stale). Did O8's `.strip-card` name (class C, no visible change): the aria-label is built by `stripName` and includes "Audiobook" when the card prints it in the author's place. Verified: lint, 341 tests (3 new), build and budget green (482.4 kB). Not checked: Lighthouse re-run, a screen reader, fixture shots (nothing visible changed). Run 52 is a delight run.
 
@@ -367,6 +373,7 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
 
 Move items here with the date and the commit or the reason. Keep the id so old log entries still make sense.
 
+- **D6 (spine onto the Pile)** Done 2026-11-12 (run 52, class C): finishing a book lands on its review page, which now opens with that book's own Pile spine (`spineOf`, same binding, width and face as on the Pile) dropping onto a rule and settling with a bounce (`pile-drop`, 0.52 s, `.pile-drop`, `app.css`; `PileDrop`, `FinishReview.tsx`). Decoration only (`aria-hidden`). Adds no tap or wait. Replays whenever that page opens.
 - **O8 (font preload)** Done 2026-11-12 (run 50, class C): `index.html` preloads League Gothic, Source Serif 4 and Courier Prime (Latin), the first screen's faces, so Shelves' heading and button row no longer re-wrap (a 0.16 layout shift) when they swap in. Same files the CSS names; no animation touched.
 - **D7 (citation cards)** Done 2026-11-12 (run 48, class C): when the buddy's reply names the book a note it found came from (as the persona asks), that note shows under the reply as an index card (up to three, `citedFrom`, `convex/lib/buddy.ts`, tested), linking to `/e/:entryId`. `buddyTurns.cited` (optional, additive) holds the ids; `buddy.thread` resolves them to title, kind and the first 160 characters, dropping any since deleted. Cards deal on one after another (`cite-deal`, `app.css`). A reply that names no book cites nothing; topic_links notes aren't cited. Adds no tap or wait.
 
