@@ -209,6 +209,8 @@ export default defineSchema({
     text: v.string(),
     state: v.union(v.literal('writing'), v.literal('done'), v.literal('failed')),
     usage: v.optional(v.object({ input: v.number(), output: v.number(), cacheRead: v.number(), cacheWrite: v.number() })),
+    // Entries the reply drew on, shown as index cards (SPEC 3.8).
+    cited: v.optional(v.array(v.id('entries'))),
     createdAt: v.number(),
   })
     .index('by_read', ['readId', 'createdAt'])

@@ -30,7 +30,17 @@ export const thread = query({
       ready: !!process.env.ANTHROPIC_API_KEY,
       // The book's guide, which the reader opts into (lib/guide.ts DEPTHS). Null when there isn't one.
       guide: guide && { depth: depthOf(guide), state: guide.state },
-      turns: turns.map(t => ({ id: t._id, role: t.role, text: t.text, state: t.state })),
+      turns: await Promise.all(turns.map(async t => ({
+        id: t._id, role: t.role, text: t.text, state: t.state,
+        // The notes a reply drew on, as index cards. One since deleted just drops out.
+        cited: await Promise.all((t.cited ?? []).map(async id => {
+          const e = await ctx.db.get(id)
+          if (!e || e.userId !== userId) return null
+          const other = await ctx.db.get(e.readId)
+          const work = other && await ctx.db.get(other.workId)
+          return { id: e._id, title: work?.title ?? 'Unknown', kind: e.kind, text: e.text.slice(0, 160) }
+        })).then(cards => cards.filter(c => c !== null)),
+      }))),
     }
   },
 })
@@ -204,7 +214,7 @@ export const searchEntries = internalQuery({
     return Promise.all(entries.map(async e => {
       const other = await ctx.db.get(e.readId)
       const work = other && await ctx.db.get(other.workId)
-      return { title: work?.title ?? 'Unknown', author: work?.authors[0] ?? 'Unknown', kind: e.kind, text: e.text, position: positionOf(e.pos), current: other?.workId === read.workId }
+      return { id: e._id, title: work?.title ?? 'Unknown', author: work?.authors[0] ?? 'Unknown', kind: e.kind, text: e.text, position: positionOf(e.pos), current: other?.workId === read.workId }
     }))
   },
 })
@@ -251,9 +261,10 @@ export const finishTurn = internalMutation({
     text: v.string(),
     state: v.union(v.literal('done'), v.literal('failed')),
     usage: v.optional(v.object({ input: v.number(), output: v.number(), cacheRead: v.number(), cacheWrite: v.number() })),
+    cited: v.optional(v.array(v.id('entries'))),
   },
-  handler: async (ctx, { turnId, text, state, usage }) => {
-    await ctx.db.patch(turnId, { text, state, usage })
+  handler: async (ctx, { turnId, text, state, usage, cited }) => {
+    await ctx.db.patch(turnId, { text, state, usage, ...(cited?.length ? { cited } : {}) })
   },
 })
 

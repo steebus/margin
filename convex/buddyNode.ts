@@ -3,8 +3,9 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { v } from 'convex/values'
 import { internal } from './_generated/api'
+import type { Id } from './_generated/dataModel'
 import { internalAction } from './_generated/server'
-import { BUDDY_EFFORT, BUDDY_MODEL, foundText, PERSONA, SEARCH_TOOL, TOPIC_TOOL, topicText } from './lib/buddy'
+import { BUDDY_EFFORT, citedFrom, type Found, BUDDY_MODEL, foundText, PERSONA, SEARCH_TOOL, TOPIC_TOOL, topicText } from './lib/buddy'
 
 // Often enough to read as typing, without a database write for every word.
 const WRITE_EVERY_MS = 350
@@ -45,6 +46,7 @@ export const reply = internalAction({
       const messages: Anthropic.Beta.BetaMessageParam[] = [...facts.messages]
       const usage = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 }
       let text = ''
+      const found: Found[] = []
       let wrote = 0
       let writing: Promise<unknown> = Promise.resolve()
 
@@ -84,6 +86,11 @@ export const reply = internalAction({
 
         // It wants to look something up in the reader's notes or topics. That runs here, and the answer goes back.
         messages.push({ role: 'assistant', content: message.content })
+        const search = async (query: string) => {
+          const hits = await ctx.runQuery(internal.buddy.searchEntries, { turnId, query })
+          found.push(...hits)
+          return hits
+        }
         const results = await Promise.all(message.content.flatMap(block => block.type === 'tool_use' ? [block] : []).map(async block => {
           const input = block.input as { query?: unknown; topic?: unknown }
           return {
@@ -91,7 +98,7 @@ export const reply = internalAction({
             tool_use_id: block.id,
             content: block.name === TOPIC_TOOL.name
               ? topicText(await ctx.runQuery(internal.buddy.topicLinks, { turnId, topic: String(input.topic ?? '') }))
-              : foundText(await ctx.runQuery(internal.buddy.searchEntries, { turnId, query: String(input.query ?? '') })),
+              : foundText(await search(String(input.query ?? ''))),
           }
         }))
         messages.push({ role: 'user', content: results })
@@ -100,7 +107,7 @@ export const reply = internalAction({
       await writing
 
       if (!text.trim()) return fail('Your buddy had nothing to say. Try again.')
-      await ctx.runMutation(internal.buddy.finishTurn, { turnId, text: text.trim(), state: 'done', usage })
+      await ctx.runMutation(internal.buddy.finishTurn, { turnId, text: text.trim(), state: 'done', usage, cited: citedFrom(text, found) as Id<'entries'>[] })
     } catch (e) {
       console.error('The reply failed:', e instanceof Error ? e.message : e)
       await fail(whyItFailed(e))

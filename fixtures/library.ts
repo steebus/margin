@@ -298,8 +298,10 @@ export async function seed(ctx: MutationCtx, now: number): Promise<Id<'users'>> 
     ['buddy', 'That’s a reading with some company: a few critics take the letter as the book’s one honest object. But you said “make it true”. True for whom, do you think: her, or the people waiting on the answer?'],
     ['reader', 'For her. Everyone else decided years ago.'],
   ]
+  // The buddy's last reply drew on a note from another book.
+  const echo = (await ctx.db.query('entries').collect()).find(e => e.userId === userId && e.readId !== talking.readId && e.kind === 'note')
   for (const [k, [role, text]] of turns.entries()) {
-    await ctx.db.insert('buddyTurns', { userId, readId: talking.readId, role, text, state: 'done', createdAt: now - 2 * DAY + k * 90_000, ...(role === 'buddy' ? { usage: { input: 4200, output: 180, cacheRead: 3900, cacheWrite: 0 } } : {}) })
+    await ctx.db.insert('buddyTurns', { userId, readId: talking.readId, role, text, state: 'done', ...(echo && k === 2 ? { cited: [echo._id] } : {}), createdAt: now - 2 * DAY + k * 90_000, ...(role === 'buddy' ? { usage: { input: 4200, output: 180, cacheRead: 3900, cacheWrite: 0 } } : {}) })
   }
   await ctx.db.insert('buddyQueue', {
     userId, readId: byTitle('A Field Guide to Getting Lost in Small Towns, With Notes on Returning: Essays').readId, milestoneKey: 'check-75', percent: 75,

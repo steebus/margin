@@ -294,6 +294,10 @@ test("the buddy searches the reader's notes across books, and cites the book a n
   expect(result).toContain('tool_result')
   expect(result).toContain('From \\"Other Book\\" by Someone Else, note, Page 40: The lighthouse is her mother.')
   expect((await as.query(api.buddy.thread, { readId }))!.turns[0]).toMatchObject({ state: 'done', text: 'You wrote about a lighthouse in Other Book.' })
+  // The reply names Other Book, so the note it found there comes back as a card; a topic search or a reply naming nothing cites nothing.
+  expect((await as.query(api.buddy.thread, { readId }))!.turns[0].cited).toEqual([
+    expect.objectContaining({ title: 'Other Book', kind: 'note', text: 'The lighthouse is her mother.' }),
+  ])
   const spend = await as.query(api.buddy.monthSpend, {})
   expect(spend!.dollars).toBeGreaterThan(0)
 })

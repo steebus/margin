@@ -118,6 +118,18 @@ function Thread({ readId, title }: { readId: Id<'reads'>; title: string }) {
                 {turn.state === 'failed'
                   ? <p role="alert">{turn.text}</p>
                   : <p className="tw" data-writing={turn.state === 'writing' || undefined}>{turn.text || '…'}</p>}
+                {turn.cited.length > 0 && (
+                  <ul className="cites" aria-label="Notes this draws on">
+                    {turn.cited.map((c, k) => (
+                      <li key={c.id} style={{ '--k': k } as React.CSSProperties}>
+                        <Link to="/e/$entryId" params={{ entryId: c.id }} className="citation">
+                          <span className="where">{c.title} · {c.kind}</span>
+                          <span className="hand">{c.text}</span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
                 {turn.id === lastBuddy && !writing && (
                   // The reader can say it got something wrong. Kept for this read, and never said again.
                   <div className="correct">

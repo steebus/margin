@@ -246,7 +246,7 @@ never in the way": nothing here may add a tap or delay an input. Every fourth ru
 | D4 | **A year in the catalog.** A printable end-of-year sheet in the Fair-catalog look: the year's books as stamps, pages, the most-marked book, the line most returned to. December is close. | `stats.ts` has most of the numbers | L | needs Steve |
 | ~~D5~~ | **Done 2026-11-11 (run 28), see §7.** ~~Typewriter sound, off by default.~~ | | S | done |
 | D6 | **Finishing a book** beyond the stamp: the book walks to the Pile. (The date stamp is **done 2026-11-12, run 44**, §7.) | `a3985b8` added stamps; compare with the brief | M | started |
-| D7 | **Citation cards in the buddy's replies** (SPEC §3.8: a cited entry renders as a clickable index card). Not built. | `Buddy.tsx` | M | ready |
+| ~~D7~~ | **Done 2026-11-12 (run 48), see §7.** ~~Citation cards in the buddy's replies.~~ | | M | done |
 | D8 | **New books get drawn on their own.** SPEC §3.11 says a book being read is drawn straight away; today nothing is drawn until the bulk script runs. Costs money per book, so it needs a yes and a cap. | SPEC §3.11 "When it runs" | M | **dropped 2026-11-10: Steve doesn't want books drawn automatically.** SPEC §3.11 should say so (B7) |
 | D9 | **Pull to refresh on the Desk** that asks Hardcover now, not at the next two-minute tick. | DESIGN-DIRECTION "pull-to-refresh where it means something" | S | ready (class D: it calls the sync) |
 
@@ -281,6 +281,13 @@ Answer in this file, dated, and the items unblock.
 ## 6. Run log
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
+
+- **2026-11-12, run 48 (unattended; a delight run).** Ground: `main` at `1d3570c`, CI green (Vercel not checked, Q13). Did D7
+  (class C; an optional `cited` field on `buddyTurns`, additive), see §7. Verified: lint, 334 tests (3 new in
+  `convex/lib/buddyCited.test.ts`, one assertion in `buddy.test.ts`), build and budget green (482.4 kB, unchanged); the buddy's
+  page read in fixture mode, phone and desktop, light and dark: the card sits under the reply, nothing wider than its screen,
+  no errors. Not checked: the real model naming a book (tests stub Anthropic), the deal-in in motion, a phone. Remaining safe
+  supply: U4's swipe, O3 (Motion), D6's other half. Run 49 is a normal pick.
 
 - **2026-11-12, run 47 (unattended; a normal pick).** Ground: `main` at `9c77a4a`, CI green (Vercel not checked, Q13). Did the
   stack-and-deal slice of U4 (class C), see §7. Verified: lint, 331 tests, build and budget green (482.4 kB, unchanged), no fixture
@@ -342,6 +349,8 @@ Newest first. One entry per run: date, what was assessed, what was done, how it 
 ## 7. Done and dropped
 
 Move items here with the date and the commit or the reason. Keep the id so old log entries still make sense.
+
+- **D7 (citation cards)** Done 2026-11-12 (run 48, class C): when the buddy's reply names the book a note it found came from (as the persona asks), that note shows under the reply as an index card (up to three, `citedFrom`, `convex/lib/buddy.ts`, tested), linking to `/e/:entryId`. `buddyTurns.cited` (optional, additive) holds the ids; `buddy.thread` resolves them to title, kind and the first 160 characters, dropping any since deleted. Cards deal on one after another (`cite-deal`, `app.css`). A reply that names no book cites nothing; topic_links notes aren't cited. Adds no tap or wait.
 
 - **U4 (stack and deal)** Done 2026-11-12 (run 47, class C): the Review card sits on a stack: when more cards wait, one or two card edges peek out below it (`.review-stack`, `data-behind`, `app.css`), and each new top card is dealt on (`review-deal`, 0.38 s, slight overshoot and tilt). No new tap or wait. Left: the swipe.
 - **U1 (marks over covers)** Done 2026-11-12 (run 46, class C): `.thumb[data-art] .mark` and the read tick on an art cell use `--cover-biro` (`#2346c8`, tokens.css) with a `--cover-paper` halo in both themes, since cover art is pale in both. In dark the pale biro was about 1.5:1 on it. Marks on plain covers are unchanged.
