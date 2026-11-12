@@ -3,7 +3,7 @@ import { convexTest } from 'convex-test'
 import { readFileSync } from 'node:fs'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { api, internal } from './_generated/api'
-import { journalObject, mapJournal, progressChanged, progressFields, readFields } from './lib/hardcover'
+import { journalObject, listsFingerprint, mapJournal, nextCursor, progressChanged, progressFields, readFields } from './lib/hardcover'
 import { retryDelayMs } from './lib/outbox'
 import schema from './schema'
 
@@ -380,7 +380,7 @@ test('importing the recorded library twice adds nothing the second time (PLAN Ph
   expect(await shelf()).toEqual(shelfFirst)
 })
 
-test('the hourly pull brings in a date changed on Hardcover, and one cleared there clears here', async () => {
+test('the daily pull brings in a date changed on Hardcover, and one cleared there clears here', async () => {
   fakeHardcover({ library: [readsBook([{ id: 1, started_at: '2021-05-05', finished_at: null }], 2)] })
   const { t, as, readId } = await setup()
   await t.run(async ctx => {
@@ -642,4 +642,65 @@ test('discard leaves a change that is not stuck alone', async () => {
   const [row] = await outbox()
   await as.mutation(api.hardcover.discardStuck, { id: row._id })
   expect(await outbox()).toHaveLength(1)
+})
+
+test('a full page of changes moves the cursor to the last one seen, so the same hundred never come round again', async () => {
+  const at = (i: number) => new Date(Date.UTC(2026, 0, 2) + i * 1000).toISOString().replace('Z', '')
+  const journal = Array.from({ length: 100 }, (_, i) => ({ id: i + 1, event: 'progress_updated', book_id: 1, updated_at: at(i) }))
+  fakeHardcover({ sync: { reading_journals: journal } })
+  const { t, userId } = await setup()
+  await connect(t, userId)
+  await flushTimers(t.action(internal.hardcover.syncAll, {}))
+  const [link] = await t.run(ctx => ctx.db.query('integrations').collect())
+  expect(link.cursor).toBe(new Date(Date.parse(`${at(99)}Z`) - 1).toISOString())
+})
+
+test('pure pieces: where the sync carries on from', () => {
+  const fresh = '2026-01-05T00:00:00.000Z'
+  const previous = '2026-01-01T00:00:00.000Z'
+  expect(nextCursor(previous, fresh, [{ full: false, times: ['2026-01-02T00:00:00Z'] }])).toBe(fresh)
+  // Just before the last one, so anything else stamped that instant comes again.
+  expect(nextCursor(previous, fresh, [{ full: true, times: ['2026-01-02T00:00:00Z', '2026-01-03T00:00:00Z'] }])).toBe('2026-01-02T23:59:59.999Z')
+  // Two full pages: the one that got less far decides.
+  expect(nextCursor(previous, fresh, [
+    { full: true, times: ['2026-01-02T00:00:00Z', '2026-01-04T00:00:00Z'] },
+    { full: true, times: ['2026-01-02T00:00:00', '2026-01-03T00:00:00'] },
+  ])).toBe('2026-01-02T23:59:59.999Z')
+  // A page all from one instant is stepped past, never fetched forever.
+  expect(nextCursor(previous, fresh, [{ full: true, times: ['2026-01-02T00:00:00Z', '2026-01-02T00:00:00Z'] }])).toBe('2026-01-02T00:00:00.000Z')
+  expect(nextCursor(previous, fresh, [{ full: true, times: [null] }])).toBe(previous)
+})
+
+test("readers' tag counts creeping up don't rewrite the book, but crossing two does", async () => {
+  const { workChanged } = await import('./hardcover')
+  const tags = (count: number) => ({ tags: [{ name: 'Fantasy', kind: 'genre' }, { name: 'dragons', kind: 'tag', count }] })
+  expect(workChanged(tags(5), tags(9))).toBe(false)
+  expect(workChanged(tags(1), tags(2))).toBe(true)
+  expect(workChanged({ ...tags(5), title: 'A' } as any, { ...tags(5), title: 'B' } as any)).toBe(true)
+})
+
+test('lists are only matched to every book when they changed on Hardcover, or a book was passed over', async () => {
+  const lists = [{ hardcoverListId: 5, name: 'Own', slug: 'own', bookIds: [1] }]
+  fakeHardcover()
+  const { t, as, userId, readId } = await setup()
+  await connect(t, userId)
+  const save = (l = lists) => t.mutation(internal.hardcover.saveLists, { userId, lists: l, fingerprint: listsFingerprint(l) })
+  const shelfIds = async () => (await t.run(ctx => ctx.db.get(readId)))!.shelfIds
+
+  await save()
+  expect(await shelfIds()).toHaveLength(1)
+  // Unchanged lists: the books aren't read again, so a change made behind the sync's back stays put.
+  await t.run(ctx => ctx.db.patch(readId, { shelfIds: [] }))
+  await save([...lists].reverse())
+  expect(await shelfIds()).toEqual([])
+  // Changed lists: everything is matched again.
+  await save([...lists, { hardcoverListId: 6, name: 'Read', slug: 'list-read', bookIds: [] }])
+  expect(await shelfIds()).toHaveLength(1)
+
+  // A book with a list change waiting is passed over, so the next pull checks every book again.
+  const [{ id: listId }] = await as.query(api.books.myLists, {})
+  await as.mutation(api.books.setOnList, { readId, listId, on: false })
+  await save()
+  const [link] = await t.run(ctx => ctx.db.query('integrations').collect())
+  expect(link.listsFingerprint).toBeUndefined()
 })

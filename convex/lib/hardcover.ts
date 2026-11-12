@@ -276,3 +276,42 @@ export function journalObject(entry: { kind: string; text: string; page?: number
 
 /** Ignores rounding differences between pages and percent, so a sync never nudges progress back and forth. */
 export const progressChanged = (mine: number, theirs: number) => Math.abs(mine - theirs) > 1
+
+// Hardcover's `timestamp` columns come without a zone, and are UTC.
+const instant = (time: string | null | undefined) => time ? Date.parse(/(Z|[+-]\d\d:?\d\d)$/.test(time) ? time : `${time}Z`) : NaN
+
+/**
+ * Where the two-minute sync starts next time. With nothing cut off, from `fresh` (just before this run began). When a
+ * page came back full, from just before the last thing on it, so its stragglers come again (saving is idempotent) and
+ * the next run carries on from there. A page all stamped the same instant can't be split by time, so it's stepped
+ * past, rather than fetched again forever; the daily reconcile still brings any book it skipped.
+ */
+export function nextCursor(previous: string, fresh: string, pages: { full: boolean; times: (string | null | undefined)[] }[]) {
+  const cut = pages.filter(p => p.full)
+  if (!cut.length) return fresh
+  const since = instant(previous)
+  let next = Infinity
+  for (const { times } of cut) {
+    const first = instant(times[0])
+    const last = instant(times[times.length - 1])
+    if (Number.isNaN(last)) return previous
+    const before = last - 1
+    next = Math.min(next, first === last || before <= since ? last : before)
+  }
+  return new Date(next).toISOString()
+}
+
+/** Hardcover's lists in a few characters, the same whatever order they came in. */
+export function listsFingerprint(lists: { hardcoverListId: number; name: string; slug: string; bookIds: number[] }[]) {
+  const text = JSON.stringify([...lists].sort((a, b) => a.hardcoverListId - b.hardcoverListId)
+    .map(l => [l.hardcoverListId, l.name, l.slug, [...l.bookIds].sort((a, b) => a - b)]))
+  // FNV-1a, twice with different seeds: nothing hangs on it but skipping work, so it needn't be cryptographic.
+  let a = 0x811c9dc5
+  let b = 0x01000193
+  for (let i = 0; i < text.length; i++) {
+    const c = text.charCodeAt(i)
+    a = Math.imul(a ^ c, 0x01000193)
+    b = Math.imul(b ^ c, 0x811c9dc5)
+  }
+  return `${(a >>> 0).toString(36)}${(b >>> 0).toString(36)}:${text.length}`
+}

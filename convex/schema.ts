@@ -34,7 +34,7 @@ export default defineSchema({
     pages: v.optional(v.number()),
     audioSeconds: v.optional(v.number()),
     subjects: v.array(v.string()),
-    // Hardcover's genres and readers' tags, as topics (convex/lib/topics.ts). Missing until the hourly reconcile fills it.
+    // Hardcover's genres and readers' tags, as topics (convex/lib/topics.ts). Missing until the daily reconcile fills it.
     tags: v.optional(v.array(v.object({ name: v.string(), kind: v.union(v.literal('genre'), v.literal('tag')), count: v.optional(v.number()) }))),
     originalLanguage: v.optional(v.string()),
     // The first author's, from Hardcover, for the stats. Missing where Hardcover doesn't know.
@@ -128,7 +128,7 @@ export default defineSchema({
     // How many percent the guide runs ahead of this reader's edition, from their "hasn't happened yet" (SPEC 3.3).
     guideLag: v.optional(v.number()),
     // The reader's corrections to the book (Steve, 2026-11-06). Margin's own: they never go to Hardcover, and the
-    // hourly sync writes the work, not these, so they stay put. A missing field means "as Hardcover has it".
+    // daily sync writes the work, not these, so they stay put. A missing field means "as Hardcover has it".
     edits: v.optional(v.object({
       title: v.optional(v.string()),
       authors: v.optional(v.array(v.string())),
@@ -302,6 +302,8 @@ export default defineSchema({
     cursor: v.string(),
     lastSyncAt: v.optional(v.number()),
     lastError: v.optional(v.string()),
+    // Hardcover's lists as they were when every book last matched them (lib/hardcover.ts listsFingerprint).
+    listsFingerprint: v.optional(v.string()),
   })
     .index('by_user', ['userId'])
     .index('by_provider', ['provider']),
