@@ -192,7 +192,8 @@ No open items (B6 done, §7).
 | O2 | **The offline copy is kept in localStorage,** which holds about 5 MB and is written synchronously on every live update. A few thousand highlights will pass that, and the write fails silently, so offline reading quietly stops working. Measure the real sizes first; if they're near, move the copies to IndexedDB. | `remember` in `src/lib/offline.ts` swallows the quota error | A risk, unmeasured | M | B | ready (measure first; needs Steve's numbers or E1) |
 | O3 | **Main chunk was 620 kB (194 kB gzip); zod half done 2026-11-11 (run 22), now 553 kB (173 kB gzip).** Left, by source share: react-dom ~30%, Motion ~26%, convex ~9%. Candidates: Motion's `LazyMotion` with the `m` components (watch that it can't cost any animation, §2); check the Desk's route isn't dragging other screens in. Measure each change against `npm run budget`. | build output; source-map estimate 2026-11-10 | Sure of the size; gains unmeasured | M | A | started |
 | O5 | **`myBooks` re-sends the whole library on any change to any read.** Fine at 600 books; watch it. If Shelves ever janks on a sync, split the hot fields (progress, status) from the cold ones. Measure before touching. | `convex/library.ts` `myBooks` | A watch item | L | B | ready (measure only) |
-| O6 | **Lighthouse pass** (PLAN Phase 7.3: 90+ for accessibility and performance on mobile; SPEC §6: LCP under 2.5 s on mid-range Android). Never run. Needs E1 to get past sign-in. | `PLAN.md` Phase 7 | n/a | M | A | ready |
+| O6 | **Lighthouse pass** (PLAN Phase 7.3: 90+ for accessibility and performance on mobile; SPEC §6: LCP under 2.5 s on mid-range Android). **First pass done 2026-11-12 (run 49)**, numbers in O8. Left: Notes' contrast item, a signed-in run on real data (Steve's). | `PLAN.md` Phase 7 | n/a | M | A | started |
+| O8 | **Lighthouse numbers (run 49).** Fixture build (`vite build --mode fixtures`, `vite preview`, `npx lighthouse@12`, Lighthouse's default mobile throttling, headless Chromium; data is invented, so a guide, not Steve's numbers). Performance / accessibility: Desk 90 / 96, Shelves 77 / 96, Notes 80 / 96. LCP 2.9 / 3.1 / 3.5 s (SPEC wants under 2.5), TBT 130 / 290 / 190 ms. **Layout shift** CLS 0.06 / 0.17 / 0.10 (Shelves `section.stack` and Notes `div.notes-wall` over 0.1: the grid pops in after the first paint). Accessibility fails left: `.strip-card` names ("Text inside the element is not included in the accessible name": its `aria-label` is title, author and percent, the visible text differs somewhere, probably the cover's own text or "Audiobook"); the loading line's colour at 4.32:1 (probably caught mid-fade, `opening-in`; re-check with a settled page). Start with the Shelves layout shift. | this file | Sure for the fixture build | M | C | ready |
 
 ### U: UI and UX
 
@@ -281,6 +282,12 @@ Answer in this file, dated, and the items unblock.
 ## 6. Run log
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
+
+- **2026-11-12, run 49 (unattended; a normal pick).** Ground: `main` at `eadf883`, CI green (Vercel not checked, Q13). Did the
+  first Lighthouse pass (O6, class A, numbers in O8) and one fix it found: the Desk's drawer toast was an `<aside>` with
+  `role="status"`, which ARIA doesn't allow; it is a `<div>` now (same look, same motion). Verified: lint, tests, build and
+  budget green (482.4 kB, unchanged), 334 tests, no fixture code in `dist/`. Not re-run in Lighthouse (the toast shows only when due). Not checked: a screen reader, a phone, Steve's real data. Next is a
+  normal pick: O8's layout shift is the top item.
 
 - **2026-11-12, run 48 (unattended; a delight run).** Ground: `main` at `1d3570c`, CI green (Vercel not checked, Q13). Did D7
   (class C; an optional `cited` field on `buddyTurns`, additive), see §7. Verified: lint, 334 tests (3 new in
@@ -463,6 +470,8 @@ Move items here with the date and the commit or the reason. Keep the id so old l
   today's date in an earlier year, it shows that note headed "Three years ago today" (`onThisDay`, `yearsAgoToday` in
   `src/lib/drawer-rules.ts`, tested). Otherwise it's the random note as before. Nothing added to tap or wait for. The
   note's earlier-year match uses the reader's local calendar day. Fixtures hold one such line (two years ago today).
+
+- **O6 (aria role on the toast)** Done 2026-11-12 (run 49, class C): the Desk's drawer toast is a `motion.div` with `role="status"` (was `motion.aside`, a role ARIA forbids on `aside`; Lighthouse's `aria-allowed-role`). No visual change.
 
 ## 8. Keeping this plan good
 

@@ -139,7 +139,7 @@ export function Desk() {
 
       <AnimatePresence>
         {toast && latest && shown && (
-          <motion.aside
+          <motion.div
             className="toast"
             role="status"
             initial={{ y: 24, opacity: 0 }}
@@ -154,7 +154,7 @@ export function Desk() {
               <Link to="/books/$bookSlug/entries/$entryId" params={{ bookSlug: shown.book.slug, entryId: shown.id }} className="btn btn-solid">Open the note</Link>
               <button type="button" className="btn" onClick={() => setToast(false)}>Dismiss</button>
             </div>
-          </motion.aside>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>
