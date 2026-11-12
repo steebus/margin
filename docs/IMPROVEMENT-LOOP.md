@@ -283,6 +283,14 @@ Answer in this file, dated, and the items unblock.
 
 Newest first. One entry per run: date, what was assessed, what was done, how it was verified, what's waiting.
 
+- **2026-11-12, run 54 (unattended; a delight run).** Ground: `main` at `fdc99c1`, CI green (Vercel not checked, Q13). Tried D2's
+  Back half (the cover flying home to its shelf cell): a `returnCover(slug)` on the Back button and a `data-returning` name on the
+  cell. Built, lint, 342 tests, build and budget green, then **reverted unshipped**: in fixture mode the shelf's cells render
+  after the view transition has taken its new snapshot (MutationObserver: 0 cells, then 28), so only `::view-transition-old(book-cover)`
+  ever existed, with or without the change. Fixture data arrives async; whether the real app's cached books render in the same commit
+  is unknown and can't be seen from here. Left in D2 as a note. No code change. Remaining safe supply: U4's swipe, O3 (Motion),
+  O8's LCP. Run 55 is a normal pick.
+
 - **2026-11-12, run 53 (unattended; a normal pick).** Ground: `main` at `adf14d2`, CI green (Vercel not checked, Q13). No code
   change. Re-checked O8's leftovers against the build: Notes has no layout shift now (observer, fixture build, phone width) and the
   loading line's contrast was a mid-fade reading, see O8. Verified: lint, tests and build green. Not checked: throttled Lighthouse,
@@ -405,7 +413,7 @@ Move items here with the date and the commit or the reason. Keep the id so old l
 
 - **B6 (placeholders)** Done 2026-11-11 (run 33, class C): `/imports/:jobId` is removed (no import-job table or code existed; it now shows "Nothing filed here"), and an unknown `/settings/integrations/:provider` is a not-found instead of "This page isn't built yet"; only `kobo` has a page. The `Placeholder` component and its CSS are gone; SPEC §4.1 matches.
 
-- **D2 (cover flight)** Done 2026-11-11 (run 32, class C): tapping a book on Shelves (grid) or a card in the Desk's reading strip carries its cover to the book page's header over 0.42 s (`flyCover`, `src/lib/coverFlight.ts`; `view-transition-name: book-cover` on the book page's cover, `app.css`). Only the tapped cover is named, and the name is removed after 0.8 s, since names must be unique and hundreds would slow every transition. Not covered: the table view, Notes and other entrances to a book (they crossfade as before), and going Back.
+- **D2 (cover flight)** Done 2026-11-11 (run 32, class C): tapping a book on Shelves (grid) or a card in the Desk's reading strip carries its cover to the book page's header over 0.42 s (`flyCover`, `src/lib/coverFlight.ts`; `view-transition-name: book-cover` on the book page's cover, `app.css`). Only the tapped cover is named, and the name is removed after 0.8 s, since names must be unique and hundreds would slow every transition. Not covered: the table view, Notes and other entrances to a book (they crossfade as before), and going Back (tried run 54, reverted: the shelf's cells render after the transition's new snapshot in fixture mode, so the name had nothing to land on; try only if the real app renders the shelf in the same commit, e.g. by measuring on a phone, or by holding the transition until the cells exist).
 
 - **U1 (Stats and Topics targets)** Done 2026-11-11 (run 31, class C): on a touch screen (`pointer: coarse`) Stats' bar rows are 44 px tall (were 32) and the topic page's "Topics" back link is 44 px tall (was 18). With a mouse the Stats chart keeps its denser rows. Capture, Review, Settings and the drawer measured fine.
 
