@@ -7,7 +7,7 @@ import { entryKey } from './lib/entryKey'
 import { askForReflection } from './lib/reflection'
 import { checkMilestones } from './milestones'
 import {
-  JOURNAL_FIELDS, journalObject, LIBRARY_QUERY, LISTS_QUERY, listSlug, mapJournal, mapSearch, mapUserBook, newUserBook, progressChanged, SEARCH_QUERY, progressFields, readFields, readingDates, statusId,
+  JOURNAL_FIELDS, journalObject, LIBRARY_QUERY, LISTS_QUERY, listsFingerprint, listSlug, mapJournal, mapSearch, mapUserBook, newUserBook, nextCursor, progressChanged, SEARCH_QUERY, progressFields, readFields, readingDates, statusId,
   type HardcoverJournal, type HardcoverList, type HardcoverUserBook, type SearchDocument,
 } from './lib/hardcover'
 import { enqueueEntry, enqueueRead, isStuck, retryDelayMs, stuckLabel } from './lib/outbox'
@@ -111,6 +111,14 @@ const stable = (value: unknown) => JSON.stringify(value, (_, x) =>
 export const changes = (doc: object, patch: object) =>
   Object.entries(patch).some(([k, v]) => stable(v) !== stable((doc as Record<string, unknown>)[k]))
 
+// Readers' tag counts creep up as other people tag a book, but Margin only asks whether a tag reached two (lib/topics.ts),
+// so a count that moved past that isn't a change. Otherwise most works were rewritten every pull, waking every screen
+// that reads the whole library.
+type Tags = { name: string; kind: string; count?: number }[] | undefined
+const settled = (tags: Tags) => tags?.map(t => t.count === undefined ? t : { ...t, count: Math.min(t.count, 2) })
+export const workChanged = (known: { tags?: Tags }, metadata: { tags?: Tags }) =>
+  changes({ ...known, tags: settled(known.tags) }, { ...metadata, tags: settled(metadata.tags) })
+
 export const saveBooks = internalMutation({
   args: { userId: v.id('users'), items: v.array(bookItem), update: v.optional(v.boolean()) },
   handler: async (ctx, { userId, items, update }) => {
@@ -126,7 +134,7 @@ export const saveBooks = internalMutation({
       const { slug: _slug, ...metadata } = work
       // A slug never changes once minted, because links depend on it.
       const workId = known?._id ?? await ctx.db.insert('works', work)
-      if (known && changes(known, metadata)) await ctx.db.patch(known._id, metadata)
+      if (known && workChanged(known, metadata)) await ctx.db.patch(known._id, metadata)
 
       const mine = await ctx.db.query('reads').withIndex('by_user_work', q => q.eq('userId', userId).eq('workId', workId)).first()
       let readId = mine?._id
@@ -320,21 +328,27 @@ async function pullLists(ctx: ActionCtx, userId: Id<'users'>) {
   const lists = data.me?.[0]?.lists
   // A reply with no lists field says nothing, and mustn't read as "every list was deleted".
   if (!Array.isArray(lists)) return
-  await ctx.runMutation(internal.hardcover.saveLists, {
-    userId,
-    lists: lists.map(l => ({
-      hardcoverListId: l.id,
-      name: l.name?.trim() || 'Untitled list',
-      slug: listSlug(l),
-      bookIds: (l.list_books ?? []).flatMap(b => (b.book_id ? [b.book_id] : [])),
-    })),
-  })
+  const mine = lists.map(l => ({
+    hardcoverListId: l.id,
+    name: l.name?.trim() || 'Untitled list',
+    slug: listSlug(l),
+    bookIds: (l.list_books ?? []).flatMap(b => (b.book_id ? [b.book_id] : [])),
+  }))
+  await ctx.runMutation(internal.hardcover.saveLists, { userId, lists: mine, fingerprint: listsFingerprint(mine) })
 }
 
 /** Makes Margin's lists match Hardcover's. A book with a list change still waiting to send keeps what it has. */
 export const saveLists = internalMutation({
-  args: { userId: v.id('users'), lists: v.array(v.object({ hardcoverListId: v.number(), name: v.string(), slug: v.string(), bookIds: v.array(v.number()) })) },
-  handler: async (ctx, { userId, lists }) => {
+  args: {
+    userId: v.id('users'),
+    lists: v.array(v.object({ hardcoverListId: v.number(), name: v.string(), slug: v.string(), bookIds: v.array(v.number()) })),
+    fingerprint: v.optional(v.string()),
+  },
+  handler: async (ctx, { userId, lists, fingerprint }) => {
+    // Matching lists to books reads every read and its work, so it's skipped when Hardcover's lists are just as they
+    // were the last time every book was brought into line with them.
+    const link = await ctx.db.query('integrations').withIndex('by_user', q => q.eq('userId', userId)).first()
+    if (fingerprint && link?.listsFingerprint === fingerprint) return
     const shelves = await ctx.db.query('shelves').withIndex('by_user_slug', q => q.eq('userId', userId)).collect()
     const idFor = new Map<number, Id<'shelves'>>()
     for (const list of lists) {
@@ -358,6 +372,10 @@ export const saveLists = internalMutation({
       if (!same) await ctx.db.patch(read._id, { shelfIds })
     }
     for (const shelf of gone) await ctx.db.delete(shelf._id)
+    // A book passed over for a waiting change might never be sent (Discard), so its lists are checked again next time.
+    const skipped = reads.some(read => waiting.has(read._id))
+    if (link && fingerprint && !skipped) await ctx.db.patch(link._id, { listsFingerprint: fingerprint })
+    else if (link?.listsFingerprint) await ctx.db.patch(link._id, { listsFingerprint: undefined })
   },
 })
 
@@ -383,8 +401,8 @@ export const recordSync = internalMutation({
 })
 
 /**
- * Hourly, the whole library: Hardcover doesn't date its read records, so a date changed there can't be spotted
- * by the two-minute check. Only reads from Hardcover. A change of Margin's still waiting to send wins, as ever.
+ * Daily, the whole library: Hardcover doesn't date its read records, so a date changed there can't be spotted
+ * by the two-minute check. It was hourly, and reading every book 24 times a day was most of Margin's database use. Only reads from Hardcover. A change of Margin's still waiting to send wins, as ever.
  */
 export const reconcile = internalAction({
   args: {},
@@ -416,15 +434,22 @@ export const syncAll = internalAction({
     for (const link of await ctx.runQuery(internal.hardcover.connections, {})) {
       const startedAt = Date.now()
       try {
-        const data = await gql<{ me: { user_books: HardcoverUserBook[] }[]; reading_journals: (HardcoverJournal & { book_id: number })[] }>(
+        type Dated = { updated_at?: string | null }
+        const data = await gql<{ me: { user_books: (HardcoverUserBook & Dated)[] }[]; reading_journals: (HardcoverJournal & Dated & { book_id: number })[] }>(
           `query($since: timestamptz!, $sinceLocal: timestamp!, $u: Int!) {
-            me { user_books(where: {updated_at: {_gt: $since}}, limit: ${PAGE}, order_by: {updated_at: asc}) { ${USER_BOOK_FIELDS} } }
-            reading_journals(where: {user_id: {_eq: $u}, updated_at: {_gt: $sinceLocal}}, limit: ${PAGE}, order_by: {updated_at: asc}) { ${JOURNAL_FIELDS} }
+            me { user_books(where: {updated_at: {_gt: $since}}, limit: ${PAGE}, order_by: {updated_at: asc}) { updated_at ${USER_BOOK_FIELDS} } }
+            reading_journals(where: {user_id: {_eq: $u}, updated_at: {_gt: $sinceLocal}}, limit: ${PAGE}, order_by: {updated_at: asc}) { updated_at ${JOURNAL_FIELDS} }
           }`,
           { since: link.cursor, sinceLocal: link.cursor, u: link.hardcoverUserId },
         )
-        const books = data.me?.[0]?.user_books ?? []
+        const books: HardcoverUserBook[] = data.me?.[0]?.user_books ?? []
         const journal = data.reading_journals ?? []
+        // A full page means there's more. The cursor moves to the last thing seen, so the next run carries on from there.
+        // It used to stay put, so a burst of over a hundred changes was fetched and saved again every two minutes, forever.
+        const cursor = nextCursor(link.cursor, new Date(startedAt - CURSOR_OVERLAP_MS).toISOString(), [
+          { full: books.length >= PAGE, times: books.map(b => (b as Dated).updated_at) },
+          { full: journal.length >= PAGE, times: journal.map(j => j.updated_at) },
+        ])
 
         // A journal event such as progress can mean a book changed without its own record moving.
         const seen = new Set(books.map(b => b.book?.id))
@@ -442,9 +467,6 @@ export const syncAll = internalAction({
         const items = quotes(journal)
         if (items.length) await ctx.runMutation(internal.hardcover.saveJournal, { userId: link.userId, items })
 
-        // If a page came back full there's more, so only move as far as what was actually seen.
-        const full = books.length >= PAGE || journal.length >= PAGE
-        const cursor = full ? link.cursor : new Date(startedAt - CURSOR_OVERLAP_MS).toISOString()
         await ctx.runMutation(internal.hardcover.recordSync, { id: link._id, cursor })
       } catch (e) {
         await ctx.runMutation(internal.hardcover.recordSync, { id: link._id, error: message(e) })
@@ -527,7 +549,7 @@ export const finish = internalMutation({
 })
 
 /** Keeps Hardcover's id for a read it just created, so the next push updates it instead of adding another. */
-// ponytail: matched by position, so removing an earlier read mid-push could misfile it. The hourly pull corrects that.
+// ponytail: matched by position, so removing an earlier read mid-push could misfile it. The daily pull corrects that.
 export const saveReadingId = internalMutation({
   args: { readId: v.id('reads'), index: v.number(), hardcoverId: v.number() },
   handler: async (ctx, { readId, index, hardcoverId }) => {

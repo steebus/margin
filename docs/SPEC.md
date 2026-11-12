@@ -180,7 +180,7 @@ selected on the page travel with the bookmarklet and are read first.
 
 **Hardcover gets it too.** A book added this way is pushed straight away, not at the next
 sync (§3.5): `insert_user_book` with its status and the account in `recommended_by`, then
-`insert_list_book` for a list. Lists come in with every import and hourly pull, and are changed
+`insert_list_book` for a list. Lists come in with every import and daily pull, and are changed
 from a book's page. These were confirmed against Hardcover's live schema with read-only calls on
 2026-11-02; no write has been tried yet. The add never waits on it. A failed push goes in an outbox and retries, and
 the book's page says so. A book already on Hardcover isn't added twice. Hardcover's
@@ -225,7 +225,7 @@ block one.
   books that are already finished.
 - **Reads and dates** sync both ways. A book can have several reads (re-reads), each with its own start and finish
   date, editable on the book page. A read removed in Margin is removed on Hardcover, but only by explicit id. Hardcover
-  doesn't date its read records, so the whole library is compared hourly, read-only, to catch date changes made there.
+  doesn't date its read records, so the whole library is compared once a day, read-only, to catch date changes made there (hourly until 2026-11-12, when it was most of the database reads). A date edited on Hardcover can take up to a day to arrive.
 - **Finishing a book** from either side asks one reflection question, written by the small text model from the book and
   the reader's notes, once per book. The answer is a `reflection` entry that keeps its question. On Hardcover it's a
   private note, without the question. Imports never ask.
